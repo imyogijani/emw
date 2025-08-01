@@ -25,6 +25,40 @@ connectDB();
 
 // rest object
 const app = express();
+const crypto = require("crypto");
+const { exec } = require("child_process");
+
+const WEBHOOK_SECRET = "your_github_secret_here";
+
+app.use(
+  "/webhook",
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
+
+app.post("/webhook", (req, res) => {
+  const signature = req.headers["x-hub-signature-256"];
+  const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
+  const digest = "sha256=" + hmac.update(req.rawBody).digest("hex");
+
+  if (signature !== digest) {
+    return res.status(403).send("Signature mismatch");
+  }
+
+  console.log("✅ GitHub Webhook Received. Running deploy.sh...");
+
+  exec("bash /var/www/emw/deploy.sh", (err, stdout, stderr) => {
+    if (err) {
+      console.error(`❌ Deploy error:\n${stderr}`);
+      return res.status(500).send("Deployment failed.");
+    }
+    console.log(`✅ Deploy output:\n${stdout}`);
+    return res.status(200).send("Deployment completed.");
+  });
+});
 
 //middlewares
 app.use(express.json());
