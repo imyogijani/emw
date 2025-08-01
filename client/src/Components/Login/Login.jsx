@@ -5,6 +5,11 @@ import axios from "../../utils/axios";
 import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";
 import { CloudCog } from "lucide-react";
+import { auth } from "../../firebase/firebase"; // Make sure Firebase is set up
+import {
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -88,6 +93,21 @@ const Login = () => {
     setIsLoading(true);
     setError("");
     try {
+      // Step 1: Firebase check
+      // const userCred = await signInWithEmailAndPassword(
+      //   auth,
+      //   formData.email,
+      //   formData.password
+      // );
+
+      // // Step 2: Check email verification
+      // if (!userCred.user.emailVerified) {
+      //   await sendEmailVerification(userCred.user); //  Resend email
+      //   toast.error("Please verify your email. Verification email resent.");
+      //   setIsLoading(false);
+      //   return;
+      // }
+
       const response = await axios.post("/api/auth/login", formData);
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
@@ -122,9 +142,20 @@ const Login = () => {
         setError(errorMsg);
       }
     } catch (err) {
-      const errorMsg =
-        err.response?.data?.message ||
-        "Login failed. Please check your credentials.";
+      let errorMsg = "Login failed. Please try again.";
+
+      if (err.code === "auth/user-not-found") {
+        errorMsg = "No account found with this email.";
+      } else if (err.code === "auth/wrong-password") {
+        errorMsg = "Incorrect password. Please try again.";
+      } else if (err.code === "auth/invalid-email") {
+        errorMsg = "Invalid email format.";
+      } else if (err.code === "auth/too-many-requests") {
+        errorMsg = "Too many login attempts. Try again later.";
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+
       toast.error(errorMsg);
       setError(errorMsg);
       setFormData((prev) => ({

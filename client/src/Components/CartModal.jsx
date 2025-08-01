@@ -10,6 +10,8 @@ import {
   removeCartItemAPI,
 } from "../api/cartApi/cartApi";
 
+import { trackEvent } from "../analytics/trackEvent";
+
 export default function CartModal({ open, onClose }) {
   const navigate = useNavigate();
   // const {
@@ -34,8 +36,13 @@ export default function CartModal({ open, onClose }) {
         const response = await getCartByUserAPI(userId);
         setCartData(response);
         // console.log("Cart Moadal", response);
-
         setLoading(false);
+
+        trackEvent("view_cart_modal", {
+          user_id: userId,
+          item_count: response?.cart?.items?.length || 0,
+          location: window.location.pathname,
+        });
       } catch (err) {
         console.error("Failed to fetch cart:", err);
         toast.error("Failed to fetch cart");
@@ -46,6 +53,13 @@ export default function CartModal({ open, onClose }) {
   }, [open, userId]);
 
   const handleCheckout = () => {
+    trackEvent("start_checkout", {
+      user_id: userId,
+      item_count: cart?.items?.length || 0,
+      total_price: cart?.total || 0,
+      location: window.location.pathname,
+    });
+
     // Check if user is logged in and is a customer
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -93,6 +107,19 @@ export default function CartModal({ open, onClose }) {
             totalPrice: newTotalPrice,
           };
         });
+
+        // const updatedProduct = cartData.cart.items.find(
+        //   (item) => item.productId === productId
+        // );
+        // if (updatedProduct) {
+        //   await trackEvent("cart_quantity_changed", {
+        //     product_id: productId,
+        //     new_quantity: newQuantity,
+        //     price: updatedProduct.price,
+        //     user_id: userId,
+        //     location: window.location.pathname,
+        //   });
+        // }
       } catch (err) {
         console.error("Failed to update cart:", err);
         toast.error("Failed to update quantity");
@@ -103,6 +130,11 @@ export default function CartModal({ open, onClose }) {
 
   const handleClearCart = useCallback(async () => {
     try {
+      trackEvent("cart_clear_all_items", {
+        user_id: userId,
+        location: window.location.pathname,
+      });
+
       await clearCartAPI(userId);
       toast.success("Cart cleared!");
       setCartData((prev) => ({
@@ -119,6 +151,12 @@ export default function CartModal({ open, onClose }) {
   const handleRemoveItem = useCallback(
     async (productId) => {
       try {
+        trackEvent("cart_remove_item", {
+          user_id: userId,
+          product_id: productId,
+          location: window.location.pathname,
+        });
+
         await removeCartItemAPI(userId, productId);
         toast.success("Item removed from cart");
 

@@ -69,34 +69,15 @@ export const deleteOffer = async (req, res) => {
 
 
 export const toggleOfferActive = async (req, res) => {
-   try {
-     const offer = await Offer.findById(req.params.id);
-     if (!offer) return res.status(404).json({ success: false, message: "Offer not found" });
-
-     offer.isActive = !offer.isActive;
-     await offer.save();
-
-     res.json({ success: true, isActive: offer.isActive });
-   } catch (err) {
-     res.status(500).json({ success: false, error: err.message });
-   }
- };
-
-// Get today's offers
-export const getTodaysOffers = async (req, res) => {
   try {
-    const now = new Date();
-    const offers = await Offer.find({
-      isActive: true,
-      startDate: { $lte: now },
-      endDate: { $gte: now },
-    })
-      .populate("product", "name image description price rating reviewCount")
-      .populate("seller", "shopName");
+    const offer = await Offer.findById(req.params.id);
+    if (!offer) return res.status(404).json({ success: false, message: "Offer not found" });
 
-    res.status(200).json({ success: true, offers });
+    offer.isActive = !offer.isActive;
+    await offer.save();
+
+    res.json({ success: true, isActive: offer.isActive });
   } catch (err) {
-    console.error("Error fetching today's offers:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
