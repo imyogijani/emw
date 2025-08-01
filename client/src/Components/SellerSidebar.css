@@ -1,0 +1,335 @@
+aside {
+  width: 280px;
+  background: linear-gradient(135deg, var(--dark-blue), rgba(0, 0, 20, 0.95));
+  color: var(--text-color-sidebar);
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  height: 100vh;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+aside h2 {
+  font-weight: 700 !important;
+  font-size: 2rem !important;
+  background: linear-gradient(135deg, #fff, var(--yellow, #fc8a06)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  margin-bottom: 2rem !important;
+  text-align: center !important;
+  letter-spacing: -0.5px !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+aside ul {
+  list-style: none;
+  padding: 0;
+}
+
+aside ul li {
+  margin-bottom: 10px;
+}
+
+aside ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+aside ul li a:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: var(--yellow);
+  opacity: 0.15;
+  transition: width 0.3s ease;
+}
+
+aside ul li a:hover:before,
+aside ul li a.active:before {
+  width: 100%;
+}
+
+aside ul li a:hover,
+aside ul li a.active {
+  color: var(--yellow);
+  transform: translateX(4px);
+}
+
+aside ul li a svg {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+aside ul li a:hover .admin-nav-icon {
+  transform: scale(1.1);
+}
+
+aside ul li a span {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+aside button {
+  margin-top: 20px;
+  width: 100%;
+}
+
+/* Seller sidebar specific styles */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: var(--dark-blue);
+  color: var(--text-color-header);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.admin-title {
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: white !important;
+  text-align: center;
+  font-weight: 700 !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5) !important;
+  background: linear-gradient(135deg, #fff, var(--yellow, #fc8a06)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+.admin-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  flex-grow: 1;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-nav-link:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: var(--yellow);
+  opacity: 0.15;
+  transition: width 0.3s ease;
+}
+
+.admin-nav-link:hover:before,
+.admin-nav-link.active:before {
+  width: 100%;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.active {
+  color: var(--yellow);
+  transform: translateX(4px);
+  text-decoration: none;
+}
+
+.admin-nav-icon {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.admin-nav-link:hover .admin-nav-icon {
+  transform: scale(1.1);
+}
+
+.admin-nav-text {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.admin-nav-list li {
+  margin-bottom: 10px;
+}
+
+.admin-sub-nav-list {
+  list-style: none;
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.admin-sub-nav-list li {
+  margin-bottom: 5px;
+}
+
+.admin-sub-nav-link {
+  text-decoration: none;
+  display: block;
+  padding: 8px 15px;
+  border-radius: 5px;
+  color: #adb5bd;
+  transition: background-color 0.3s ease;
+}
+
+.admin-sub-nav-link:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.admin-sub-nav-link.active {
+  color: var(--yellow);
+}
+
+/* Footer section with theme and logout buttons */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.theme-toggle-btn,
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.logout-btn {
+  background: rgba(255, 71, 87, 0.1);
+}
+
+.logout-btn:hover {
+  background: rgba(255, 71, 87, 0.2);
+  transform: translateY(-2px);
+}
+
+.theme-toggle-btn svg,
+.logout-btn svg {
+  margin-right: 0.875rem;
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-btn:hover svg,
+.logout-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.theme-toggle-btn span,
+.logout-btn span {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+@media (max-width: 768px) {
+  aside {
+    width: 260px;
+    padding: 1.25rem;
+    /* Hide scrollbar on small screens */
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+
+  aside::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+
+  aside h2 {
+    font-size: 1.75rem;
+  }
+
+  .admin-nav-link {
+    padding: 0.75rem 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  aside {
+    width: 240px;
+    padding: 1rem;
+  }
+
+  .admin-nav-icon {
+    font-size: 1.125rem;
+  }
+
+  .admin-nav-text {
+    font-size: 0.875rem;
+  }
+}
+
+.dashboard-link {
+  background: var(--primary-color, #007bff);
+  color: #fff !important;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 0.7rem 1.2rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+}
+.dashboard-link:hover,
+.dashboard-link.active {
+  background: #0056b3;
+  color: #fff !important;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
