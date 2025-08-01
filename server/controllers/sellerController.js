@@ -1,4 +1,5 @@
 import User from "../models/userModel.js";
+import asyncHandler from "express-async-handler";
 import Product from "../models/productModel.js";
 import Order from "../models/orderModel.js";
 import Subscription from "../models/subscriptionModel.js";
@@ -284,4 +285,105 @@ export const getSalesData = async (req, res) => {
   }
 };
 
+export const getSellerOrderHistory = asyncHandler(async (req, res) => {
+  const userId = req.userId;
 
+  // ✅ Step 1: Find seller by userId
+  const seller = await Seller.findOne({ user: userId });
+  if (!seller) {
+    return res.status(404).json({ message: "Seller not found" });
+  }
+
+  const sellerId = seller._id;
+
+  // ✅ Step 2: Build filters
+  const {
+    page = 1,
+    limit = 10,
+    orderStatus,
+    paymentStatus,
+    productId,
+    from,
+    to,
+  } = req.query;
+
+  const skip = (page - 1) * limit;
+
+  // ✅ Step 3: Seller's product IDs
+  const sellerProducts = await Product.find({ seller: sellerId }).select("_id");
+  const productIds = sellerProducts.map((p) => p._id);
+
+  const matchStage = {
+    "items.productId": { $in: productIds },
+  };
+
+  if (orderStatus) {
+    matchStage.orderStatus = orderStatus;
+  }
+
+  if (paymentStatus) {
+    matchStage.paymentStatus = paymentStatus;
+  }
+
+  if (productId && mongoose.Types.ObjectId.isValid(productId)) {
+    matchStage["items.productId"] = mongoose.Types.ObjectId(productId);
+  }
+
+  if (from || to) {
+    matchStage.createdAt = {};
+    if (from) matchStage.createdAt.$gte = new Date(from);
+    if (to) matchStage.createdAt.$lte = new Date(to);
+  }
+
+  // ✅ Step 4: Total count
+  const totalOrders = await Order.countDocuments(matchStage);
+
+  // ✅ Step 5: Fetch orders
+  const orders = await Order.find(matchStage)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit))
+    .populate("userId", "name email")
+    .populate("items.productId", "name image")
+    .select("userId items totalAmount paymentStatus orderStatus createdAt");
+
+  // ✅ Step 6: Format per seller
+  const formattedOrders = [];
+
+  for (const order of orders) {
+    const filteredItems = order.items.filter((item) =>
+      productIds.some((pid) => pid.toString() === item.productId._id.toString())
+    );
+
+    if (filteredItems.length === 0) continue; // skip irrelevant orders
+
+    const formattedOrder = {
+      orderId: order._id,
+      customer: {
+        name: order.userId?.name || "N/A",
+        email: order.userId?.email || "N/A",
+      },
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.orderStatus,
+      createdAt: order.createdAt,
+      items: filteredItems.map((item) => ({
+        productId: item.productId._id,
+        productName: item.productId.name,
+        productImage: item.productId.image?.[0],
+        quantity: item.quantity,
+        finalPrice: item.finalPrice,
+        total: item.finalPrice * item.quantity,
+        deliveryStatus: item.deliveryStatus,
+      })),
+    };
+
+    formattedOrders.push(formattedOrder);
+  }
+  res.status(200).json({
+    success: true,
+    totalOrders,
+    currentPage: parseInt(page),
+    totalPages: Math.ceil(totalOrders / limit),
+    orders: formattedOrders,
+  });
+});
