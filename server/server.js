@@ -8,28 +8,30 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import cron from "node-cron";
+import { exec } from "child_process";
+import crypto from "crypto";
+
 import { expireDeals } from "./cronExpireDeals.js";
 
+// Resolve __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configure dotenv with absolute path
+// Load environment variables
 dotenv.config({ path: path.join(__dirname, "../.env") });
-
-// Debug logging
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
+// MongoDB connection
 import connectDB from "./config/db.js";
-//mongodb Connection
 connectDB();
 
-// rest object
+// Create Express app
 const app = express();
-const crypto = require("crypto");
-const { exec } = require("child_process");
 
+// Webhook secret (change to your real GitHub webhook secret)
 const WEBHOOK_SECRET = "your_github_secret_here";
 
+// Webhook raw body parsing
 app.use(
   "/webhook",
   express.json({
@@ -39,6 +41,7 @@ app.use(
   })
 );
 
+// Webhook route
 app.post("/webhook", (req, res) => {
   const signature = req.headers["x-hub-signature-256"];
   const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
@@ -60,23 +63,22 @@ app.post("/webhook", (req, res) => {
   });
 });
 
-//middlewares
+// Middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173"], // Add production domain here if needed
     credentials: true,
     exposedHeaders: ["Content-Disposition"],
   })
 );
 app.use(morgan("dev"));
-// app.use(fileUpload());
 
-// Configure static file serving with proper headers and caching
+// Static files for uploads
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "public/uploads"), {
-    maxAge: "1d", // Cache for 1 day
+    maxAge: "1d",
     etag: true,
     lastModified: true,
     setHeaders: (res, path) => {
@@ -86,14 +88,14 @@ app.use(
         path.endsWith(".png") ||
         path.endsWith(".gif")
       ) {
-        res.setHeader("Cache-Control", "public, max-age=86400"); // 1 day
+        res.setHeader("Cache-Control", "public, max-age=86400");
         res.setHeader("Content-Type", "image/" + path.split(".").pop());
       }
     },
   })
 );
 
-// Serve other static files
+// Public assets
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: "1h",
@@ -101,13 +103,7 @@ app.use(
   })
 );
 
-//routs
-//1 test route
-// app.get("/", (req, res) => {
-//   res.status(200).json({
-//     message: "Welcome to LifeConnect",
-//   });
-// });
+// Routes
 import testRoutes from "./routes/testRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
@@ -129,6 +125,7 @@ import menuRoutes from "./routes/menuItemRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testNotificationRouter from "./routes/testNotification.js";
+
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
@@ -156,9 +153,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/analytics", gaProxyRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-// app.use("/api/v1/inventory", require("./routes/inventoryRoutes"));
-
-// Schedule deal expiration every hour
+// CRON: check for expired deals every hour
 cron.schedule("0 * * * *", async () => {
   try {
     await expireDeals();
@@ -168,15 +163,12 @@ cron.schedule("0 * * * *", async () => {
   }
 });
 
-// to see sever is proper running
-// http://localhost:8080/
-// http://localhost:5173/
-//add port
+// Start server
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(
-    `Node server running in ${process.env.DEV_MODE} mode on Port ${process.env.PORT}`
-      .bgBlue.white
+    `Node server running in ${process.env.DEV_MODE} mode on Port ${PORT}`.bgBlue
+      .white
   );
 });
