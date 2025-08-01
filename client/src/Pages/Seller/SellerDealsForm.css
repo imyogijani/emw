@@ -1,0 +1,66 @@
+/* SellerDealsForm.css: Styles for the seller deal modal form */
+
+/* Modal content/card sizing for consistency */
+.modal-content {
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  background: #fff;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.seller-deal-form {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.seller-deal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.seller-deal-form-group label {
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.seller-deal-form-control {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: #fff;
+  outline: none;
+  transition: border 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.seller-deal-form-control:focus {
+  border-color: #007bff;
+}
+
+.seller-deal-form textarea.seller-deal-form-control {
+  min-height: 80px;
+  resize: vertical;
+}
+
+@media (max-width: 500px) {
+  .modal-content {
+    width: 98vw;
+    padding: 1rem 0.5rem;
+  }
+  .seller-deal-form {
+    max-height: 50vh;
+    padding-right: 0;
+  }
+}

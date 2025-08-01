@@ -1,0 +1,82 @@
+header {
+  background-color: var(--dark-blue);
+  color: var(--text-color-header);
+  padding: 15px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+header nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.nav-left {
+  flex: 0 0 auto;
+}
+
+.nav-left h1 {
+  margin: 0;
+  font-size: 24px;
+  color: white;
+}
+
+.nav-center {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-center ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-center ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.nav-center ul li a:hover {
+  color: var(--yellow);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logout-btn {
+  background-color: #ff4757;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  margin-left: 15px;
+}
+
+.logout-btn:hover {
+  background-color: #ff6b81;
+}
+
+.theme-toggle-container {
+  display: flex;
+  align-items: center;
+}

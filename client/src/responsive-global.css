@@ -1,0 +1,781 @@
+/* Global Responsive Styles for All Pages */
+
+/* Ensure all pages have proper responsive behavior */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Global responsive containers */
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section-container {
+  width: 100%;
+  padding: 20px 0;
+}
+
+/* Global responsive text */
+.responsive-heading {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.responsive-subheading {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  line-height: 1.3;
+  margin-bottom: 0.8rem;
+}
+
+.responsive-text {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  line-height: 1.5;
+}
+
+/* Global responsive grids for all page types */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.seller-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.2rem;
+  padding: 1rem 0;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Global responsive forms */
+.responsive-form {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color, #fc8a06);
+  box-shadow:
+    0 0 0 4px rgba(252, 138, 6, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
+  border-color: #c1c7cd;
+}
+
+.form-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group input[type="file"] {
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-style: dashed;
+  cursor: pointer;
+}
+
+.form-group input[type="file"]:hover {
+  background: #e9ecef;
+}
+
+/* Enhanced button styling */
+.form-submit-btn,
+.admin-btn,
+.seller-btn {
+  background: linear-gradient(135deg, var(--primary-color, #fc8a06), #e67e00);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(252, 138, 6, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.form-submit-btn:hover,
+.admin-btn:hover,
+.seller-btn:hover {
+  background: linear-gradient(135deg, #e67e00, #d67300);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(252, 138, 6, 0.3);
+}
+
+.form-submit-btn:active,
+.admin-btn:active,
+.seller-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(252, 138, 6, 0.2);
+}
+
+.form-submit-btn:disabled,
+.admin-btn:disabled,
+.seller-btn:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Secondary button styling */
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268, #495057);
+}
+
+/* Danger button styling */
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #c82333, #bd2130);
+}
+
+/* Success button styling */
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #218838, #1e7e34);
+}
+
+/* Form row for side-by-side inputs */
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* Input with icon */
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon input {
+  padding-left: 45px;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 18px;
+}
+
+/* Floating label effect */
+.floating-label {
+  position: relative;
+}
+
+.floating-label input,
+.floating-label textarea,
+.floating-label select {
+  padding-top: 20px;
+}
+
+.floating-label label {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  color: #6c757d;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.floating-label input:focus + label,
+.floating-label textarea:focus + label,
+.floating-label select:focus + label,
+.floating-label input:not(:placeholder-shown) + label,
+.floating-label textarea:not(:placeholder-shown) + label {
+  top: 6px;
+  font-size: 12px;
+  color: var(--primary-color, #fc8a06);
+  font-weight: 600;
+}
+
+/* Global responsive buttons */
+.responsive-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--primary-color, #fc8a06);
+  color: white;
+}
+
+.responsive-btn:hover {
+  background: var(--primary-color-hover, #d67e00);
+  transform: translateY(-1px);
+}
+
+.responsive-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Global responsive tables */
+.responsive-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.responsive-table th,
+.responsive-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.responsive-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Global responsive cards */
+.responsive-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.responsive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.card-content {
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Global responsive navigation */
+.responsive-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color, #fc8a06);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background: #f8f9fa;
+  color: var(--primary-color, #fc8a06);
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1200px) {
+  .page-container {
+    max-width: 100%;
+    padding: 0 15px;
+  }
+
+  .admin-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .seller-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .page-container {
+    padding: 0 12px;
+  }
+
+  .responsive-nav {
+    padding: 0.8rem 1.5rem;
+  }
+
+  .admin-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .seller-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .responsive-table-container {
+    font-size: 14px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 0 10px;
+  }
+
+  .section-container {
+    padding: 15px 0;
+  }
+
+  .responsive-nav {
+    padding: 0.6rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .admin-grid,
+  .seller-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .responsive-form {
+    padding: 0 1rem;
+  }
+
+  .responsive-card {
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .responsive-table-container {
+    font-size: 13px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 8px;
+  }
+
+  /* Hide less important table columns on mobile */
+  .responsive-table .hide-mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-container {
+    padding: 0 8px;
+  }
+
+  .responsive-nav {
+    padding: 0.5rem 0.8rem;
+  }
+
+  .nav-brand {
+    font-size: 1.2rem;
+  }
+
+  .nav-links {
+    gap: 0.5rem;
+    font-size: 14px;
+  }
+
+  .admin-grid,
+  .seller-grid,
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .responsive-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .responsive-card {
+    padding: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .responsive-table {
+    font-size: 12px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 0 5px;
+  }
+
+  .section-container {
+    padding: 10px 0;
+  }
+
+  .responsive-nav {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .responsive-card {
+    padding: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 4px;
+    font-size: 11px;
+  }
+
+  /* Stack form elements on very small screens */
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-row .form-group {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .page-container {
+    padding: 0 3px;
+  }
+
+  .responsive-card {
+    padding: 0.5rem;
+    border-radius: 6px;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+  }
+
+  .responsive-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .nav-brand {
+    font-size: 1rem;
+  }
+
+  .nav-links {
+    font-size: 12px;
+  }
+}
+
+/* High DPI and accessibility improvements */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .responsive-card,
+  .responsive-table,
+  .responsive-btn {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .responsive-card,
+  .responsive-btn,
+  .nav-link {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .responsive-nav,
+  .responsive-btn {
+    display: none !important;
+  }
+
+  .responsive-card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .page-container {
+    max-width: 100%;
+    padding: 0;
+  }
+}
+
+/* Focus management for accessibility */
+.responsive-btn:focus,
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.nav-link:focus {
+  outline: 2px solid var(--primary-color, #fc8a06);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid var(--primary-color, #fc8a06);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-state h3 {
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  margin-bottom: 1.5rem;
+}
+
+/* Success/Error states */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.alert-error {
+  background: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.alert-info {
+  background: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  border-color: #ffeaa7;
+  color: #856404;
+}

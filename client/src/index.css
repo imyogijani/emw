@@ -1,0 +1,509 @@
+@import "./responsive-utils.css";
+@import "./responsive-global.css";
+@import "./card-system.css";
+@import "./hero-alignment.css";
+
+:root {
+  --background-color: #f4f7f6;
+  --text-color: #000000;
+  --text-color-dark: #333333;
+  --primary-color: #fc8a06;
+  --primary-color-hover: #d67e00;
+  --button-text-color: #fff;
+  --button-radius: 8px;
+  --button-shadow: 0 2px 8px rgba(252, 138, 6, 0.08);
+  --button-font-weight: 600;
+  --button-font-size: 1rem;
+  --secondary-color: #6c757d;
+  --accent-color: #28a745;
+  --border-color: #e0e0e0;
+  --card-background: #ffffff;
+  --text-color-sidebar: #fcfcfc;
+  --text-color-header: #333333;
+  --sidebar-background: #f0f0f0; /* Light theme sidebar background */
+  --dark-blue: #2c3e50; /* Define dark blue for sidebar */
+  --yellow: #f39c12; /* Define yellow for sidebar hover */
+  --yellow-hover: #f7921e3a;
+  --text-color-inverted: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --admin-sidebar-logo-color: var(--background-color);
+  --logo-color: var(--text-color-dark);
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color-dark);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+button,
+.btn,
+.glass-btn,
+.subscription-save-btn,
+.subscription-cancel-btn,
+.add-new-btn,
+.edit-btn,
+.delete-btn,
+.save-btn,
+.cancel-btn,
+.view-cart-btn,
+.plus-icon,
+.compact-size-btn,
+.xl-btn {
+  background: var(--primary-color) !important;
+  color: var(--button-text-color) !important;
+  border: none !important;
+  border-radius: var(--button-radius) !important;
+  box-shadow: var(--button-shadow) !important;
+  font-weight: var(--button-font-weight) !important;
+  font-size: var(--button-font-size) !important;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    box-shadow 0.18s;
+  outline: none !important;
+}
+
+button:hover,
+.btn:hover,
+.glass-btn:hover,
+.subscription-save-btn:hover,
+.subscription-cancel-btn:hover,
+.add-new-btn:hover,
+.edit-btn:hover,
+.delete-btn:hover,
+.save-btn:hover,
+.cancel-btn:hover,
+.view-cart-btn:hover,
+.plus-icon:hover,
+.compact-size-btn:hover,
+.xl-btn:hover {
+  background: var(--primary-color-hover) !important;
+  color: var(--button-text-color) !important;
+}
+
+/* For disabled state */
+button:disabled,
+.btn:disabled,
+.glass-btn:disabled,
+.subscription-save-btn:disabled,
+.subscription-cancel-btn:disabled,
+.add-new-btn:disabled,
+.edit-btn:disabled,
+.delete-btn:disabled,
+.save-btn:disabled,
+.cancel-btn:disabled,
+.view-cart-btn:disabled,
+.plus-icon:disabled,
+.compact-size-btn:disabled,
+.xl-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background: var(--primary-color) !important;
+  color: var(--button-text-color) !important;
+}
+
+/* For text links that look like buttons */
+a[role="button"],
+.link-btn {
+  background: var(--primary-color) !important;
+  color: var(--button-text-color) !important;
+  border-radius: var(--button-radius) !important;
+  font-weight: var(--button-font-weight) !important;
+  font-size: var(--button-font-size) !important;
+  padding: 10px 15px !important;
+  text-decoration: none !important;
+  display: inline-block;
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+a[role="button"]:hover,
+.link-btn:hover {
+  background: var(--primary-color-hover) !important;
+  color: var(--button-text-color) !important;
+}
+
+/* Remove conflicting background from .compact-size-btn.small, .plus-icon, etc. */
+.compact-size-btn.small,
+.plus-icon,
+.xl-btn {
+  background: var(--primary-color) !important;
+  color: var(--button-text-color) !important;
+}
+
+/* Ensure text color for all buttons */
+button *,
+.btn *,
+.glass-btn *,
+.subscription-save-btn *,
+.subscription-cancel-btn *,
+.add-new-btn *,
+.edit-btn *,
+.delete-btn *,
+.save-btn *,
+.cancel-btn *,
+.view-cart-btn *,
+.plus-icon *,
+.compact-size-btn *,
+.xl-btn * {
+  color: var(--button-text-color) !important;
+}
+
+/* Font visibility and readability improvements */
+.ensure-readable-text {
+  color: #222 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.high-contrast-text {
+  color: #000 !important;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.category-text-readable {
+  color: #232f3e !important;
+  font-weight: 600 !important;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2px 6px;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+}
+
+/* Ensure all headings have good contrast */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-color-dark) !important;
+  font-weight: 600;
+}
+
+/* Improve paragraph text readability */
+p {
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Improve link visibility */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-color-hover);
+  text-decoration: underline;
+}
+
+/* Prevent global button size change on click/focus/disabled */
+button,
+button:active,
+button:focus,
+button:disabled {
+  box-sizing: border-box;
+  padding: 10px 15px;
+  min-width: 0;
+  min-height: 0;
+  font-size: 1rem;
+}
+
+/* Responsive utilities and improvements */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Container utilities */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 15px;
+}
+
+/* Responsive text utilities */
+.text-responsive {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+}
+
+.heading-responsive {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* Responsive spacing utilities */
+.p-responsive {
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.m-responsive {
+  margin: clamp(1rem, 3vw, 2rem);
+}
+
+/* Media query breakpoints for common responsive patterns */
+@media (max-width: 1400px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .container {
+    max-width: 960px;
+    padding: 0 15px;
+  }
+
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    max-width: 720px;
+    padding: 0 12px;
+  }
+
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+
+  /* Better button spacing on mobile */
+  button {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  /* Better form inputs on mobile */
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Ensure text is readable */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.2;
+    margin-bottom: 0.5em;
+  }
+
+  p {
+    line-height: 1.4;
+    margin-bottom: 1em;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    max-width: 100%;
+    padding: 0 8px;
+  }
+
+  html {
+    font-size: 14px;
+  }
+
+  /* Stack elements vertically on small screens */
+  .flex-mobile-column {
+    flex-direction: column !important;
+  }
+
+  .text-center-mobile {
+    text-align: center !important;
+  }
+
+  .w-full-mobile {
+    width: 100% !important;
+  }
+
+  /* Improve readability on small screens */
+  body {
+    line-height: 1.5;
+  }
+
+  button {
+    min-height: 48px;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  /* Better spacing for small screens */
+  .categories-section,
+  .products-section,
+  .deals-section {
+    padding: 30px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 6px;
+  }
+
+  html {
+    font-size: 13px;
+  }
+
+  button {
+    min-height: 46px;
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+
+  /* Better spacing for very small screens */
+  .categories-section,
+  .products-section,
+  .deals-section {
+    padding: 25px 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 0 4px;
+  }
+
+  html {
+    font-size: 12px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+
+  /* Compact spacing for very small screens */
+  .categories-section,
+  .products-section,
+  .deals-section {
+    padding: 20px 4px;
+  }
+
+  /* Ensure minimum readability */
+  .category-info h3 {
+    font-size: 0.8rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .category-info p {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Improve accessibility and touch targets */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device styles */
+  button,
+  .btn,
+  a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .hover-effect:hover {
+    transform: none;
+  }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Optimize for retina displays */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Optimize for landscape mobile viewing */
+  .mobile-landscape-adjust {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+/* Print styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

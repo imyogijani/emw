@@ -1,0 +1,213 @@
+.cart-float-wrapper {
+  position: fixed !important;
+  bottom: 32px;
+  right: 32px;
+  z-index: 99999 !important;
+  pointer-events: none;
+  /* Ensure it's always visible */
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* Create new stacking context */
+  isolation: isolate;
+  /* Prevent any parent from affecting positioning */
+  transform: translateZ(0);
+}
+
+.cart-float-btn {
+  position: relative !important;
+  background: #ff9900;
+  color: #fff;
+  border: none;
+  border-radius: 50px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+  /* padding: 0.7rem 1.5rem 0.7rem 1.1rem; */
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+.cart-float-btn:hover {
+  background: #e88700;
+  box-shadow: 0 8px 32px rgba(255, 153, 0, 0.18);
+  transform: translateY(-2px);
+}
+
+.cart-float-icon {
+  font-size: 1.5rem;
+  /* margin-right: 0.2rem; */
+}
+
+.cart-float-count {
+  background: #ff9900;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  margin-right: 0.3rem;
+  margin-left: -0.5rem;
+  min-width: 24px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  border: 2px solid #fff;
+}
+
+.cart-float-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Tablet Styles */
+@media (max-width: 1024px) {
+  .cart-float-wrapper {
+    bottom: 24px;
+    right: 24px;
+  }
+
+  .cart-float-btn {
+    padding: 0.6rem 1.3rem 0.6rem 1rem;
+    font-size: 1rem;
+    border-radius: 28px;
+  }
+
+  .cart-float-icon {
+    font-size: 1.3rem;
+  }
+
+  .cart-float-label {
+    font-size: 1rem;
+  }
+
+  .cart-float-count {
+    font-size: 0.9rem;
+    min-width: 22px;
+    padding: 1px 7px;
+  }
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .cart-float-wrapper {
+    bottom: 20px;
+    right: 16px;
+    z-index: 99999 !important;
+    /* Force visibility on mobile */
+    position: fixed !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .cart-float-btn {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+    border-radius: 50%;
+    gap: 0;
+    width: 56px;
+    height: 56px;
+    justify-content: center;
+  }
+
+  .cart-float-icon {
+    font-size: 1.4rem;
+    margin-right: 0;
+  }
+
+  .cart-float-label {
+    display: none;
+  }
+
+  .cart-float-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.75rem;
+    min-width: 18px;
+    padding: 1px 5px;
+    margin: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .cart-float-wrapper {
+    bottom: 16px;
+    right: 12px;
+  }
+
+  .cart-float-btn {
+    padding: 0.7rem;
+    width: 52px;
+    height: 52px;
+  }
+
+  .cart-float-icon {
+    font-size: 1.3rem;
+  }
+
+  .cart-float-count {
+    top: -3px;
+    right: -3px;
+    font-size: 0.7rem;
+    min-width: 16px;
+    padding: 1px 4px;
+  }
+}
+
+/* Extra Small Mobile Styles */
+@media (max-width: 360px) {
+  .cart-float-wrapper {
+    bottom: 12px;
+    right: 8px;
+  }
+
+  .cart-float-btn {
+    padding: 0.6rem;
+    width: 48px;
+    height: 48px;
+  }
+
+  .cart-float-icon {
+    font-size: 1.2rem;
+  }
+
+  .cart-float-count {
+    top: -2px;
+    right: -2px;
+    font-size: 0.65rem;
+    min-width: 14px;
+    padding: 1px 3px;
+  }
+}
+
+/* Additional fixes to prevent disappearing during scroll */
+.cart-float-wrapper {
+  /* Force it to stay in place during scroll */
+  position: fixed !important;
+  /* Ensure it's never hidden */
+  overflow: visible !important;
+  /* Prevent any clipping */
+  clip: auto !important;
+  /* Ensure it's in its own layer */
+  will-change: transform;
+  /* Prevent interference from other elements */
+  pointer-events: none !important;
+}
+
+.cart-float-btn {
+  /* Re-enable pointer events for the button */
+  pointer-events: auto !important;
+  /* Ensure button is always visible */
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}

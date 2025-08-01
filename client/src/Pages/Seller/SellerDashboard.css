@@ -1,0 +1,477 @@
+.seller-dashboard {
+  padding: 2rem;
+  background: var(--bg-color);
+  min-height: 100vh;
+}
+
+.seller-header {
+  background: linear-gradient(135deg, var(--dark-blue), rgba(0, 0, 20, 0.95));
+  padding: 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.seller-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+  pointer-events: none;
+}
+
+.seller-header h1 {
+  font-size: 2.5rem;
+  color: white;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff, var(--yellow));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.seller-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 0;
+  justify-content: center;
+  align-items: start;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.stat-title {
+  color: var(--text-color-dark);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color-dark);
+  margin-bottom: 0.25rem;
+}
+
+.stat-change {
+  font-size: 0.875rem;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chart-container {
+  background: var(--bg-color-light);
+  padding: 2rem;
+  border-radius: 16px;
+  height: 400px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sales-overview-title {
+  color: var(--text-color-dark);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+/* Recent Orders Table */
+.recent-orders {
+  background: var(--bg-color-light);
+  padding: 2rem;
+  border-radius: 16px;
+  margin-top: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.recent-orders h2 {
+  color: var(--text-color-dark);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 1400px) {
+  .seller-dashboard {
+    padding: 1.5rem;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .chart-container {
+    padding: 1.5rem;
+    height: 380px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .seller-dashboard {
+    padding: 1.2rem;
+  }
+
+  .seller-header {
+    padding: 1.5rem;
+  }
+
+  .seller-header h1 {
+    font-size: 2.2rem;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .chart-container {
+    padding: 1.2rem;
+    height: 350px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .seller-dashboard {
+    padding: 1rem;
+  }
+
+  .seller-header {
+    padding: 1.2rem;
+  }
+
+  .seller-header h1 {
+    font-size: 2rem;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .chart-container {
+    padding: 1rem;
+    height: 320px;
+  }
+
+  .recent-orders {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .seller-dashboard {
+    padding: 0.8rem;
+  }
+
+  .seller-header {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .seller-header h1 {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+
+  .seller-subtitle {
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+
+  .stat-card {
+    padding: 1.2rem;
+    text-align: center;
+  }
+
+  .chart-container {
+    padding: 1rem;
+    height: 300px;
+  }
+
+  .sales-overview-title {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .recent-orders {
+    padding: 1.2rem;
+  }
+
+  .recent-orders h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .seller-dashboard {
+    padding: 0.8rem;
+  }
+
+  .seller-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .seller-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .chart-container {
+    padding: 0.8rem;
+    height: 280px;
+  }
+
+  .sales-overview-title {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .recent-orders {
+    padding: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .recent-orders h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .seller-dashboard {
+    padding: 0.5rem;
+  }
+
+  .seller-header {
+    padding: 0.8rem;
+    border-radius: 12px;
+  }
+
+  .seller-header h1 {
+    font-size: 1.4rem;
+    line-height: 1.3;
+  }
+
+  .seller-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .stat-card {
+    padding: 0.8rem;
+  }
+
+  .stat-title {
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .stat-change {
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  .chart-container {
+    padding: 0.6rem;
+    height: 260px;
+  }
+
+  .sales-overview-title {
+    font-size: 1.1rem;
+  }
+
+  .recent-orders {
+    padding: 0.8rem;
+  }
+
+  .recent-orders h2 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .seller-dashboard {
+    padding: 0.4rem;
+  }
+
+  .seller-header {
+    padding: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .seller-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .seller-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .dashboard-stats {
+    gap: 0.6rem;
+  }
+
+  .stat-card {
+    padding: 0.6rem;
+  }
+
+  .stat-title {
+    font-size: 0.85rem;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .stat-change {
+    font-size: 0.75rem;
+  }
+
+  .chart-container {
+    padding: 0.5rem;
+    height: 240px;
+  }
+
+  .sales-overview-title {
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .recent-orders {
+    padding: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  .recent-orders h2 {
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .seller-dashboard {
+    padding: 0.3rem;
+  }
+
+  .seller-header {
+    padding: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .seller-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .seller-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-stats {
+    gap: 0.5rem;
+  }
+
+  .stat-card {
+    padding: 0.5rem;
+  }
+
+  .stat-title {
+    font-size: 0.8rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .stat-change {
+    font-size: 0.7rem;
+  }
+
+  .chart-container {
+    padding: 0.4rem;
+    height: 220px;
+  }
+
+  .sales-overview-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .recent-orders {
+    padding: 0.5rem;
+    margin-top: 0.8rem;
+  }
+
+  .recent-orders h2 {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .stat-card:hover {
+    transform: none;
+  }
+
+  .stat-card {
+    min-height: 44px;
+    padding: 1rem;
+  }
+}
