@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8080/",
+  baseURL: "https://localhost:8080/",
   timeout: 15000, // Increased timeout for file uploads
 });
 
@@ -24,9 +24,20 @@ instance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const publicPaths = ["/", "/menu", "/offer", "/shops", "/product", "/login", "/register", "/pricing"];
+      const publicPaths = [
+        "/",
+        "/menu",
+        "/offer",
+        "/shops",
+        "/product",
+        "/login",
+        "/register",
+        "/pricing",
+      ];
       const currentPath = window.location.pathname;
-      const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+      const isPublicPath = publicPaths.some((path) =>
+        currentPath.startsWith(path)
+      );
 
       if (!isPublicPath) {
         localStorage.removeItem("token");
