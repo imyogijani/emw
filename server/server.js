@@ -12,7 +12,7 @@ import { exec } from "child_process";
 import crypto from "crypto";
 
 import { expireDeals } from "./cronExpireDeals.js";
-import crypto from "crypto";
+// import crypto from "crypto";
 
 // Resolve __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -24,21 +24,12 @@ console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // MongoDB connection
 import connectDB from "./config/db.js";
-<<<<<<< Updated upstream
-=======
-import { exec } from "child_process";
-
-//mongodb Connection
->>>>>>> Stashed changes
 connectDB();
 
 // Create Express app
 const app = express();
-<<<<<<< Updated upstream
-=======
 // const crypto = require("crypto");
 // const { exec } = require("child_process");
->>>>>>> Stashed changes
 
 // Webhook secret (change to your real GitHub webhook secret)
 const WEBHOOK_SECRET = "your_github_secret_here";
@@ -137,13 +128,9 @@ import menuRoutes from "./routes/menuItemRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testNotificationRouter from "./routes/testNotification.js";
-<<<<<<< Updated upstream
-
-=======
 import variantRoutes from "./routes/variantRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
->>>>>>> Stashed changes
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
