@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import axios from "../../utils/axios";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
+import { trackEvent } from "../../analytics/trackEvent";
 
 const mallInfo = {
   name: "E-Mall World",
@@ -36,40 +37,40 @@ export default function Offers() {
   const [loading, setLoading] = useState(true);
   const [dealsProduct, setDealsProduct] = useState([]);
 
-  useEffect(() => {
-    const fetchOffers = async () => {
-      try {
-        const res = await axios.get("/api/offers/today");
-        const data = res.data;
-        if (data && data.offers) {
-          const mapped = data.offers.map((offer) => ({
-            _id: offer._id,
-            title: offer.title,
-            description: offer.description,
-            product: offer.product,
-            dealPrice:
-              offer.price || offer.product?.price * (1 - offer.discount / 100),
-            originalPrice: offer.product?.price,
-            discountPercentage: offer.discount,
-            seller: offer.shop,
-            badge: "TODAY'S OFFER",
-            endDate: "Today only",
-            moneySaved:
-              offer.product?.price && offer.discount
-                ? `₹${Math.round((offer.product.price * offer.discount) / 100)}`
-                : "₹0",
-          }));
-          setOffers(mapped);
-        }
-      } catch (e) {
-        console.error("Error fetching offers:", e);
-        setOffers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOffers();
-  }, []);
+  // useEffect(() => {
+  //   const fetchOffers = async () => {
+  //     try {
+  //       const res = await axios.get("/api/offers/today");
+  //       const data = res.data;
+  //       if (data && data.offers) {
+  //         const mapped = data.offers.map((offer) => ({
+  //           _id: offer._id,
+  //           title: offer.title,
+  //           description: offer.description,
+  //           product: offer.product,
+  //           dealPrice:
+  //             offer.price || offer.product?.price * (1 - offer.discount / 100),
+  //           originalPrice: offer.product?.price,
+  //           discountPercentage: offer.discount,
+  //           seller: offer.shop,
+  //           badge: "TODAY'S OFFER",
+  //           endDate: "Today only",
+  //           moneySaved:
+  //             offer.product?.price && offer.discount
+  //               ? `₹${Math.round((offer.product.price * offer.discount) / 100)}`
+  //               : "₹0",
+  //         }));
+  //         setOffers(mapped);
+  //       }
+  //     } catch (e) {
+  //       console.error("Error fetching offers:", e);
+  //       setOffers([]);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchOffers();
+  // }, []);
 
   useEffect(() => {
     const fetchDealsProduct = async () => {
@@ -151,7 +152,7 @@ export default function Offers() {
     return filtered;
   };
 
-  const handleAddToCart = async (e, deal) => {
+  const handleAddToCart = async (e, deal, sourcePage = "DealPage") => {
     e.stopPropagation();
 
     try {
@@ -172,6 +173,19 @@ export default function Offers() {
       };
 
       await addToCartAPI(userId, productData);
+
+      await trackEvent("add_to_cart", {
+        user_id: userId,
+        product_id: deal.product?._id,
+        name: deal.product.name,
+        category: deal.product.category?.name,
+        quantity: 1,
+        price: deal.dealPrice,
+
+        discount: deal.discountPercentage,
+        source_page: sourcePage,
+        location: window.location.pathname,
+      });
       toast.success("Added to cart!");
     } catch (err) {
       console.error("Add to cart error:", err);
@@ -218,91 +232,115 @@ export default function Offers() {
     return "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
   };
 
-  const DealCard = ({ deal }) => (
-    <div
-      className="deal-card-modern"
-      onClick={() =>
-        navigate(`/product/${deal.product?._id}`, { state: { item: deal } })
-      }
-    >
-      <div className="deal-image-container">
-        <img
-          src={processImageUrl(deal.product?.image)}
-          alt={deal.product?.name || deal.title}
-          loading="lazy"
-        />
+  const DealCard = ({ deal }) => {
+    const navigate = useNavigate();
 
-        <div className="deal-badge-container">
-          {deal.discountPercentage && (
-            <div className="deal-discount-badge">
-              -{deal.discountPercentage}%
-            </div>
-          )}
-          {deal.badge && <div className="deal-special-badge">{deal.badge}</div>}
-        </div>
+    const handleProductClick = async () => {
+      // Track the click event
+      await trackEvent("view_product_card_click", {
+        product_id: deal.product._id,
+        name: deal.product.name,
+        category: deal.product.category.name,
+        price: deal.dealPrice,
+        location: window.location.pathname,
+      });
 
-        <div className="deal-timer">
-          <Clock size={12} />
-          <span>{deal.endDate || "Limited time"}</span>
-        </div>
-      </div>
+      // Then navigate to product detail page
+      navigate(`/product/${deal.product?._id}`, { state: { item: deal } });
+    };
 
-      <div className="deal-content">
-        <div className="deal-header">
-          <h3 className="deal-title">{deal.product?.name || deal.title}</h3>
-          <p className="deal-description">
-            {deal.product?.description || deal.description}
-          </p>
-        </div>
+    return (
+      <div
+        className="deal-card-modern"
+        // onClick={() =>
+        //   navigate(`/product/${deal.product?._id}`, { state: { item: deal } })
+        // }
+        onClick={handleProductClick}
+      >
+        <div className="deal-image-container">
+          <img
+            src={processImageUrl(deal.product?.image)}
+            alt={deal.product?.name || deal.title}
+            loading="lazy"
+          />
 
-        <div className="deal-rating-section">
-          <div className="deal-stars">
-            {renderStars(deal.product?.averageRating || 0)}
-          </div>
-          <span className="deal-rating-text">
-            {deal.product?.averageRating || 0}
-          </span>
-          <span className="deal-reviews">
-            ({deal.product?.totalReviews || 0})
-          </span>
-        </div>
-
-        <div className="deal-pricing">
-          <div className="deal-price-row">
-            <span className="deal-current-price">₹{deal.dealPrice || 0}</span>
-            {deal.originalPrice && (
-              <span className="deal-original-price">₹{deal.originalPrice}</span>
-            )}
-          </div>
-          <div className="deal-savings">
-            <span className="savings-text">Save {deal.moneySaved || "₹0"}</span>
+          <div className="deal-badge-container">
             {deal.discountPercentage && (
-              <span className="savings-percent">
-                ({deal.discountPercentage}% off)
-              </span>
+              <div className="deal-discount-badge">
+                -{deal.discountPercentage}%
+              </div>
             )}
+            {deal.badge && (
+              <div className="deal-special-badge">{deal.badge}</div>
+            )}
+          </div>
+
+          <div className="deal-timer">
+            <Clock size={12} />
+            <span>{deal.endDate || "Limited time"}</span>
           </div>
         </div>
 
-        <div className="deal-store-info">
-          <Tag size={14} />
-          <span>
-            By {deal.seller?.shopName || deal.seller?.names || "Store"}
-          </span>
+        <div className="deal-content">
+          <div className="deal-header">
+            <h3 className="deal-title">{deal.product?.name || deal.title}</h3>
+            <p className="deal-description">
+              {deal.product?.description || deal.description}
+            </p>
+          </div>
+
+          <div className="deal-rating-section">
+            <div className="deal-stars">
+              {renderStars(deal.product?.averageRating || 0)}
+            </div>
+            <span className="deal-rating-text">
+              {deal.product?.averageRating || 0}
+            </span>
+            <span className="deal-reviews">
+              ({deal.product?.totalReviews || 0})
+            </span>
+          </div>
+
+          <div className="deal-pricing">
+            <div className="deal-price-row">
+              <span className="deal-current-price">₹{deal.dealPrice || 0}</span>
+              {deal.originalPrice && (
+                <span className="deal-original-price">
+                  ₹{deal.originalPrice}
+                </span>
+              )}
+            </div>
+            <div className="deal-savings">
+              <span className="savings-text">
+                Save {deal.moneySaved || "₹0"}
+              </span>
+              {deal.discountPercentage && (
+                <span className="savings-percent">
+                  ({deal.discountPercentage}% off)
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="deal-store-info">
+            <Tag size={14} />
+            <span>
+              By {deal.seller?.shopName || deal.seller?.names || "Store"}
+            </span>
+          </div>
+
+          <button
+            className="deal-add-to-cart"
+            onClick={(e) => handleAddToCart(e, deal)}
+          >
+            <ShoppingCart size={16} />
+            Add to Cart
+          </button>
         </div>
-
-        <button
-          className="deal-add-to-cart"
-          onClick={(e) => handleAddToCart(e, deal)}
-        >
-          <ShoppingCart size={16} />
-          Add to Cart
-        </button>
       </div>
-    </div>
-  );
-
-  const allDeals = [...dealsProduct, ...offers];
+    );
+  };
+  const allDeals = [...dealsProduct];
   const filteredDeals = filterDeals(allDeals);
 
   return (

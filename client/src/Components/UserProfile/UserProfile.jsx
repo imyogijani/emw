@@ -160,6 +160,13 @@ const UserProfile = ({ onClose }) => {
     }
   };
 
+  const processImageUrl = (image) => {
+    if (image && image.startsWith("/uploads")) {
+      return `http://localhost:8080${image}`;
+    }
+    return image || "/images/offer1.png";
+  };
+
   if (loading) {
     return (
       <div className="profile-modal">
@@ -191,9 +198,7 @@ const UserProfile = ({ onClose }) => {
             <div className="avatar-container">
               <img
                 src={
-                  formData.avatar
-                    ? `/uploads/avatars${formData.avatar}`
-                    : MaleUser
+                  formData.avatar ? processImageUrl(formData.avatar) : MaleUser
                 }
                 alt="Profile"
                 className={`profile-avatar ${isLoading ? "loading" : ""}`}

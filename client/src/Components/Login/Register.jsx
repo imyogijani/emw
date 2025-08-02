@@ -17,6 +17,7 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "../../firebase/firebase";
+import { trackEvent } from "../../analytics/trackEvent";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -54,6 +55,9 @@ const Register = () => {
     };
 
     fetchSubscriptions();
+    trackEvent("register_page_view", {
+      page_location: window.location.pathname,
+    });
   }, []);
 
   const handleChange = (e) => {
@@ -68,6 +72,11 @@ const Register = () => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    trackEvent("register_attempt", {
+      email: formData.email,
+      role: formData.role,
+      location: window.location.pathname,
+    });
 
     if (formData.role === "shopowner") {
       // Redirect to pricing page with form data
@@ -94,6 +103,12 @@ const Register = () => {
       const response = await axios.post("/api/auth/register", submitData);
       if (response.data.success) {
         toast.success("Registration successful! Please login.");
+        trackEvent("register_success", {
+          email: formData.email,
+          role: formData.role,
+          location: window.location.pathname,
+        });
+
         navigate("/login");
       } else {
         setError(response.data.message);
@@ -104,6 +119,14 @@ const Register = () => {
       //   err.response?.data?.message || "Registration failed. Please try again.";
       // setError(errorMessage);
       // toast.error(errorMessage);
+
+      trackEvent("register_failed", {
+        email: formData.email,
+        role: formData.role,
+        reason: err.message || err.code,
+        location: window.location.pathname,
+      });
+
       console.error("Firebase registration error:", err);
 
       const errorCode = err.code;

@@ -40,7 +40,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const router = express.Router();
-
 router.post("/ga-event", async (req, res) => {
   try {
     const { payload } = req.body;
@@ -54,8 +53,6 @@ router.post("/ga-event", async (req, res) => {
     const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID;
     const GA_API_SECRET = process.env.GA_API_SECRET;
 
-    console.log("Google analytics ", GA_MEASUREMENT_ID, GA_API_SECRET);
-
     if (!GA_MEASUREMENT_ID || !GA_API_SECRET) {
       return res
         .status(500)
@@ -68,12 +65,23 @@ router.post("/ga-event", async (req, res) => {
       headers: { "Content-Type": "application/json" },
     });
 
+    // Safe optional logging
+    console.log(
+      "GA Event Tracked:",
+      payload?.events?.[0]?.name,
+      payload?.events?.[0]?.params
+    );
+
     res.status(gaRes.status).json({ success: true });
   } catch (error) {
+    console.error(
+      "GA Event Proxy Error:",
+      error?.response?.data || error.message
+    );
     res.status(500).json({
       success: false,
       message: "Error proxying GA event",
-      error: error.message,
+      error: error?.response?.data || error.message,
     });
   }
 });
