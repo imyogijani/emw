@@ -43,7 +43,7 @@ export default function CartModal({ open, onClose }) {
           return;
         }
         setCartData(response);
-        console.log("Cart fetch item", response.cart.items[0].variantId._id);
+        // console.log("Cart fetch item", response.cart.items[0]?.variantId?._id);
         // console.log("Cart Moadal", response);
         setLoading(false);
 
@@ -161,6 +161,7 @@ export default function CartModal({ open, onClose }) {
 
   const handleRemoveItem = useCallback(
     async (productId, variantId) => {
+      console.log("Remove VariantId:", variantId, typeof variantId);
       try {
         trackEvent("cart_remove_item", {
           user_id: userId,
@@ -172,10 +173,18 @@ export default function CartModal({ open, onClose }) {
         toast.success("Item removed from cart");
 
         setCartData((prevCartData) => {
-          const updatedItems = prevCartData.cart.items.filter(
-            (item) =>
-              item.productId !== productId || item.variantId !== variantId // check for variant match
-          );
+          if (!prevCartData?.cart?.items) return prevCartData;
+
+          const updatedItems = prevCartData.cart.items.filter((item) => {
+            const productMatch =
+              item.productId._id?.toString() === productId?.toString();
+
+            const variantMatch =
+              (item.variantId?._id?.toString() ||
+                item.variantId?.toString()) === variantId?.toString();
+
+            return !(productMatch && variantMatch);
+          });
 
           const newTotalPrice = updatedItems.reduce(
             (acc, item) => acc + item.price * item.quantity,
@@ -280,7 +289,7 @@ export default function CartModal({ open, onClose }) {
                       <button
                         onClick={() =>
                           handleRemoveItem(
-                            item.productId,
+                            item.productId._id,
                             item.variantId?._id?.toString() ||
                               item.variantId?.toString() ||
                               null

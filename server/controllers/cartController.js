@@ -82,7 +82,11 @@ export const getUserCart = async (req, res) => {
     const { userId } = req.params;
 
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        select:
+          "_id name description price discount finalPrice category seller activeDeal stock",
+      })
       .populate("items.variantId");
 
     if (cart.items.length === 0) {
@@ -130,12 +134,17 @@ export const removeFromCart = async (req, res) => {
     }
 
     // Properly filter out the specific productId and variantId
+    const incomingVariantId = variantId || null;
+
     cart.items = cart.items.filter((item) => {
       const isProductMatch = item.productId.toString() === productId;
-      const isVariantMatch =
-        (item.variantId?.toString() || null) === (variantId || null);
 
-      // Keep item if it's NOT the one we want to remove
+      // Normalize DB value and request value to string or null
+      const dbVariantId = item.variantId ? item.variantId.toString() : null;
+
+      const isVariantMatch = dbVariantId === incomingVariantId;
+
+      // Remove if both product and variant match
       return !(isProductMatch && isVariantMatch);
     });
 

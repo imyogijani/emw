@@ -6,7 +6,9 @@ import Offer from "../models/offerModel.js";
 
 export const checkoutSummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const cart = await Cart.findOne({ userId }).populate("items.productId");
+  const cart = await Cart.findOne({ userId })
+    .populate("items.productId")
+    .populate("items.variantId", "price finalPrice stock size color");
 
   if (!cart || cart.items.length === 0) {
     return res.status(400).json({ message: "Cart is empty." });
@@ -18,9 +20,16 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
   const items = await Promise.all(
     cart.items.map(async (item) => {
       const product = item.productId;
-
+      const variant = item.variantId;
       const quantity = item.quantity;
+
+      let basePrice = product.price;
       let finalPrice = product.finalPrice; // default: price after discount
+
+      if (variant) {
+        basePrice = variant.price ?? product.price;
+        finalPrice = variant.finalPrice ?? variant.price ?? product.finalPrice;
+      }
 
       // If product has an activeDeal, check if it's still active
       if (product.activeDeal) {
@@ -43,9 +52,11 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       return {
         product,
         productId: product._id,
+        variantId: variant?._id || null,
+        variant,
         sellerId: product.seller,
         quantity,
-        price: product.price,
+        price: basePrice,
         finalPrice,
         productTotal,
       };
@@ -203,7 +214,10 @@ export const applyCoupon = asyncHandler(async (req, res) => {
   const { code } = req.body;
   const userId = req.user._id;
 
-  const cart = await Cart.findOne({ userId }).populate("items.productId");
+  const cart = await Cart.findOne({ userId })
+    .populate("items.productId")
+    .populate("items.variantId", "price finalPrice stock size color");
+
   if (!cart || cart.items.length === 0) {
     return res.status(400).json({ message: "Cart is empty." });
   }
@@ -240,8 +254,30 @@ export const applyCoupon = asyncHandler(async (req, res) => {
   const items = await Promise.all(
     cart.items.map(async (item) => {
       const product = item.productId;
-      const finalPrice = await getFinalPrice(product);
-      const quantity = item.quantity;
+      const variant = item.variantId;
+
+      let basePrice = product.price;
+      let finalPrice = await getFinalPrice(product);
+      let quantity = item.quantity;
+
+      if (variant) {
+        basePrice = variant.price ?? product.price;
+        finalPrice = variant.finalPrice ?? variant.price ?? product.finalPrice;
+      }
+
+      if (product.activeDeal) {
+        const now = new Date();
+        const deal = await Deal.findOne({
+          _id: product.activeDeal,
+          startDate: { $lte: now },
+          endDate: { $gte: now },
+        });
+
+        if (deal) {
+          finalPrice = deal.dealPrice;
+        }
+      }
+
       const productTotal = finalPrice * quantity;
       subTotal += productTotal;
 
@@ -261,6 +297,7 @@ export const applyCoupon = asyncHandler(async (req, res) => {
 
       return {
         productId: product._id,
+        variantId: variant?._id || null,
         sellerId: product.seller,
         quantity,
         finalPrice,
