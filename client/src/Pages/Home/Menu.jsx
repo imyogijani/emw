@@ -94,6 +94,7 @@ export default function Menu() {
   const handleAddToCart = async (
     e,
     product,
+    variant = null,
     sourcePage = "Browse_ProductPage"
   ) => {
     e.stopPropagation();
@@ -111,11 +112,16 @@ export default function Menu() {
 
       const productData = {
         productId: product._id,
+        variantId: variant?._id,
         quantity: 1,
-        price: product.price,
+        price: variant?.finalPrice || product.finalPrice,
+        image: variant?.image || product.image?.[0],
+        // price: product.price,
         title: product.name,
         // image: product.image,
         discount: product.discount,
+        color: variant?.color,
+        size: variant?.size,
       };
 
       const response = await addToCartAPI(userId, productData);

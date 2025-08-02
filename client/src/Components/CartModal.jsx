@@ -34,7 +34,16 @@ export default function CartModal({ open, onClose }) {
       if (!userId) return;
       try {
         const response = await getCartByUserAPI(userId);
+
+        if (!response?.success) {
+          // Handle cart not found or empty case
+          toast.info(response.message || "Cart is empty");
+          setCartData(null);
+          setLoading(false);
+          return;
+        }
         setCartData(response);
+        console.log("Cart fetch item", response.cart.items[0].variantId._id);
         // console.log("Cart Moadal", response);
         setLoading(false);
 
@@ -83,49 +92,51 @@ export default function CartModal({ open, onClose }) {
   // const user = useMemo(() => JSON.parse(localStorage.getItem("user")), []);
   // const userId = user?._id;
   const handleQuantityChange = useCallback(
-    async (productId, newQuantity) => {
+    async (productId, variantId, newQuantity) => {
       if (!userId || newQuantity < 1) return;
 
+      console.log("Variant id", variantId);
+
+      // ✅ STEP 1: Optimistically update the UI
+      setCartData((prevCartData) => {
+        const updatedItems = prevCartData.cart.items.map((item) =>
+          item.productId === productId &&
+          (item.variantId?.toString() || null) ===
+            (variantId?.toString() || null)
+            ? { ...item, quantity: newQuantity }
+            : item
+        );
+
+        const newTotalPrice = updatedItems.reduce(
+          (acc, item) => acc + item.quantity * item.price,
+          0
+        );
+
+        return {
+          ...prevCartData,
+          cart: { ...prevCartData.cart, items: updatedItems },
+          totalPrice: newTotalPrice,
+        };
+      });
+
       try {
-        await updateCartItemAPI(userId, productId, newQuantity);
+        // ✅ STEP 2: Update on server
+        await updateCartItemAPI(userId, productId, variantId, newQuantity);
 
-        setCartData((prevCartData) => {
-          const updatedItems = prevCartData.cart.items.map((item) =>
-            item.productId === productId
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
+        // ✅ STEP 3: Re-fetch actual cart from backend
+        const freshCart = await getCartByUserAPI(userId);
 
-          const newTotalPrice = updatedItems.reduce(
-            (acc, item) => acc + item.quantity * item.price,
-            0
-          );
-
-          return {
-            ...prevCartData,
-            cart: { ...prevCartData.cart, items: updatedItems },
-            totalPrice: newTotalPrice,
-          };
-        });
-
-        // const updatedProduct = cartData.cart.items.find(
-        //   (item) => item.productId === productId
-        // );
-        // if (updatedProduct) {
-        //   await trackEvent("cart_quantity_changed", {
-        //     product_id: productId,
-        //     new_quantity: newQuantity,
-        //     price: updatedProduct.price,
-        //     user_id: userId,
-        //     location: window.location.pathname,
-        //   });
-        // }
+        if (freshCart?.success) {
+          setCartData(freshCart); // 🟢 Update with accurate backend state
+        } else {
+          toast.error("Failed to refresh cart from server.");
+        }
       } catch (err) {
         console.error("Failed to update cart:", err);
         toast.error("Failed to update quantity");
       }
     },
-    [userId] // dependency
+    [userId]
   );
 
   const handleClearCart = useCallback(async () => {
@@ -149,7 +160,7 @@ export default function CartModal({ open, onClose }) {
   }, [userId]);
 
   const handleRemoveItem = useCallback(
-    async (productId) => {
+    async (productId, variantId) => {
       try {
         trackEvent("cart_remove_item", {
           user_id: userId,
@@ -157,12 +168,13 @@ export default function CartModal({ open, onClose }) {
           location: window.location.pathname,
         });
 
-        await removeCartItemAPI(userId, productId);
+        await removeCartItemAPI(userId, productId, variantId);
         toast.success("Item removed from cart");
 
         setCartData((prevCartData) => {
           const updatedItems = prevCartData.cart.items.filter(
-            (item) => item.productId !== productId
+            (item) =>
+              item.productId !== productId || item.variantId !== variantId // check for variant match
           );
 
           const newTotalPrice = updatedItems.reduce(
@@ -193,7 +205,7 @@ export default function CartModal({ open, onClose }) {
   const items = cart.items || [];
 
   const subtotal = useMemo(() => totalPrice || 0, [totalPrice]);
-  const discount = useMemo(() => (subtotal > 500 ? 50 : 0), [subtotal]);
+  const discount = useMemo(() => (subtotal > 500 ? 0 : 0), [subtotal]);
   const delivery = useMemo(() => (subtotal > 0 ? 25 : 0), [subtotal]);
   const total = useMemo(
     () => subtotal - discount + delivery,
@@ -216,13 +228,13 @@ export default function CartModal({ open, onClose }) {
           <>
             <ul className="cart-modal-list">
               {items.map((item) => {
-                const itemId = item.productId;
+                const itemId = item.productId._id;
                 const itemPrice = parseFloat(
                   item.price?.toString().replace(/[^0-9.]/g, "") || 0
                 );
 
                 return (
-                  <li key={itemId} className="cart-modal-item">
+                  <li key={itemId.productId} className="cart-modal-item">
                     <div className="cart-item-info">
                       <span className="cart-item-title">{item.title}</span>
                     </div>
@@ -236,7 +248,13 @@ export default function CartModal({ open, onClose }) {
                           <button
                             className="qty-btn"
                             onClick={() =>
-                              handleQuantityChange(itemId, item.quantity - 1)
+                              handleQuantityChange(
+                                itemId,
+                                item.variantId?._id?.toString() ||
+                                  item.variantId?.toString() ||
+                                  null,
+                                item.quantity - 1
+                              )
                             }
                           >
                             -
@@ -245,7 +263,13 @@ export default function CartModal({ open, onClose }) {
                           <button
                             className="qty-btn"
                             onClick={() =>
-                              handleQuantityChange(itemId, item.quantity + 1)
+                              handleQuantityChange(
+                                itemId,
+                                item.variantId?._id?.toString() ||
+                                  item.variantId?.toString() ||
+                                  null,
+                                item.quantity + 1
+                              )
                             }
                           >
                             +
@@ -254,7 +278,14 @@ export default function CartModal({ open, onClose }) {
                       </div>
 
                       <button
-                        onClick={() => handleRemoveItem(item.productId)}
+                        onClick={() =>
+                          handleRemoveItem(
+                            item.productId,
+                            item.variantId?._id?.toString() ||
+                              item.variantId?.toString() ||
+                              null
+                          )
+                        }
                         className="cart-modal-remove"
                       >
                         Remove
