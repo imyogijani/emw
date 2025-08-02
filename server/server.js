@@ -12,6 +12,7 @@ import { exec } from "child_process";
 import crypto from "crypto";
 
 import { expireDeals } from "./cronExpireDeals.js";
+// import crypto from "crypto";
 
 // Resolve __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +28,8 @@ connectDB();
 
 // Create Express app
 const app = express();
+// const crypto = require("crypto");
+// const { exec } = require("child_process");
 
 // Middleware to parse JSON and store raw body
 app.use(
@@ -133,7 +136,9 @@ import menuRoutes from "./routes/menuItemRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testNotificationRouter from "./routes/testNotification.js";
-
+import variantRoutes from "./routes/variantRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import checkoutRoutes from "./routes/checkoutRoutes.js";
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
@@ -142,8 +147,8 @@ import "./cronJobs/checkExpiredSubscriptions.js";
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/variants", variantRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api", subscriptionRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/deals", dealRoutes);
@@ -156,10 +161,13 @@ app.use("/api/offers", offerRoutes);
 app.use("/api/menu-items", menuRoutes);
 app.use("/api/sellers", sellerRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/checkout", checkoutRoutes);
 app.use("/api/test-notification", testNotificationRouter);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/analytics", gaProxyRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 // CRON: check for expired deals every hour
 cron.schedule("0 * * * *", async () => {

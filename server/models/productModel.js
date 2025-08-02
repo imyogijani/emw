@@ -45,6 +45,7 @@ const productSchema = new mongoose.Schema(
         inStock: { type: Boolean, default: true },
       },
     ],
+    // variants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variant" }],
     stock: {
       type: Number,
       required: true,
@@ -78,7 +79,7 @@ const productSchema = new mongoose.Schema(
     technicalDetails: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TechnicalDetails",
-      required: true,
+      // required: true,
     },
     activeDeal: {
       type: mongoose.Schema.Types.ObjectId,

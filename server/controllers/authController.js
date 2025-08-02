@@ -212,12 +212,11 @@ const registerController = async (req, res) => {
 };
 //login call back
 const loginController = async (req, res) => {
-      try {
-
-        const user = await userModel
-          .findOne({ email: req.body.email })
-          .populate("subscription")
-          .populate("sellerId");
+  try {
+    const user = await userModel
+      .findOne({ email: req.body.email })
+      .populate("subscription")
+      .populate("sellerId");
 
     if (!user) {
       return res.status(404).send({
@@ -230,7 +229,6 @@ const loginController = async (req, res) => {
       req.body.password,
       user.password
     );
-
     if (!comparePassword) {
       return res.status(401).send({
         success: false,
@@ -450,7 +448,7 @@ const uploadAvatarController = async (req, res) => {
     }
 
     // Create the URL for the uploaded avatar
-    const avatarUrl = `/public/uploads/avatars/${req.file.filename}`;
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
 
     // Remove old avatar file if it exists
     if (user.avatar) {

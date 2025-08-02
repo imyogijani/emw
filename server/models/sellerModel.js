@@ -59,6 +59,7 @@ const sellerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    cashfreeBeneId: String // Optional: For integration with Cashfree or similar payment gateways
   },
   { timestamps: true }
 );
