@@ -41,9 +41,7 @@ app.use(
 );
 
 // Webhook secret (change to your real GitHub webhook secret)
-const WEBHOOK_SECRET = "your_github_secret_here";
-
-// Webhook route
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 // Webhook route
 app.post("/webhook", (req, res) => {
@@ -60,14 +58,17 @@ app.post("/webhook", (req, res) => {
     console.log("✅ Valid webhook received");
 
     // Pull latest changes
-    exec("cd /var/www/emw && git pull origin main && cd client && npm run build", (err, stdout, stderr) => {
-      if (err) {
-        console.error("❌ Build error:", stderr);
-        return res.status(500).send("Deployment failed");
+    exec(
+      "cd /var/www/emw && git pull origin main && cd client && npm run build",
+      (err, stdout, stderr) => {
+        if (err) {
+          console.error("❌ Build error:", stderr);
+          return res.status(500).send("Deployment failed");
+        }
+        console.log("✅ Code pulled & frontend built");
+        res.send("Deployed");
       }
-      console.log("✅ Code pulled & frontend built");
-      res.send("Deployed");
-    });
+    );
   } catch (err) {
     console.error(err);
     res.status(500).send("Webhook error");
