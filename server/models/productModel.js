@@ -38,14 +38,14 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
     // VARIANTS ARRAY
-    variants: [
-      {
-        name: { type: String, required: true }, // "Default", "Premium", etc.
-        price: { type: Number, required: true },
-        inStock: { type: Boolean, default: true },
-      },
-    ],
-    // variants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variant" }],
+    // variants: [
+    //   {
+    //     name: { type: String, required: true }, // "Default", "Premium", etc.
+    //     price: { type: Number, required: true },
+    //     inStock: { type: Boolean, default: true },
+    //   },
+    // ],
+    variants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variant" }],
     stock: {
       type: Number,
       required: true,
