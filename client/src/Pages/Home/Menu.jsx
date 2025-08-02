@@ -20,7 +20,6 @@ import axios from "../../utils/axios";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
 import { trackEvent } from "../../analytics/trackEvent";
 
-
 // Mall info configuration
 const mallInfo = {
   name: "E-Mall World",
@@ -84,7 +83,19 @@ export default function Menu() {
     fetchData();
   }, [currentPage, activeTab, searchQuery, sortBy, priceRange, order]);
 
-  const handleAddToCart = async (e, product) => {
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    trackEvent("browse_products_view", {
+      user_id: user?._id,
+      location: window.location.pathname,
+    });
+  }, []);
+
+  const handleAddToCart = async (
+    e,
+    product,
+    sourcePage = "Browse_ProductPage"
+  ) => {
     e.stopPropagation();
 
     // const user = JSON.parse(localStorage.getItem("user"));
@@ -108,6 +119,18 @@ export default function Menu() {
       };
 
       const response = await addToCartAPI(userId, productData);
+      await trackEvent("add_to_cart", {
+        user_id: userId,
+        product_id: product._id,
+        name: product.name,
+        category: product.category?.name,
+        quantity: 1,
+        price:
+          product.activeDeal?.dealPrice ?? product.finalPrice ?? product.price,
+        discount: product.discount,
+        source_page: sourcePage,
+        location: window.location.pathname,
+      });
 
       toast.success(`${product.name} added to cart!`);
     } catch (err) {
@@ -322,8 +345,10 @@ export default function Menu() {
         `/api/products?${queryParams.toString()}`
       );
 
-      {/* const finalURL = `/api/products?${queryParams.toString()}`;
-      console.log("🟢 Final API URL called:", finalURL); */}
+      {
+        /* const finalURL = `/api/products?${queryParams.toString()}`;
+      console.log("🟢 Final API URL called:", finalURL); */
+      }
 
       {
         /* console.log(`/api/products?${queryParams.toString()}`) */

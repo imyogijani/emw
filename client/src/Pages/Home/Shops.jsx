@@ -23,6 +23,7 @@ import {
 import axios from "../../utils/axios";
 import { fetchStores } from "../../api/storeApi";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
+import { trackEvent } from "../../analytics/trackEvent";
 
 const mallInfo = {
   name: "E-Mall World",
@@ -156,6 +157,14 @@ export default function Shops() {
     loadStores();
   }, []);
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    trackEvent("stores_page_view", {
+      user_id: user?._id,
+      location: window.location.pathname,
+    });
+  }, []);
+
   const fetchProductsAndCategories = async () => {
     setLoading(true);
     try {
@@ -233,6 +242,14 @@ export default function Shops() {
   };
 
   const handleVisitStore = (store) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    trackEvent("store_click", {
+      user_id: user?._id,
+      store_id: store._id,
+      store_name: store.shopName,
+      location: window.location.pathname,
+    });
+
     navigate(`/store/${store._id}`, { state: { store } });
   };
 
@@ -246,7 +263,7 @@ export default function Shops() {
   //   toast.success(`${product.name} added to cart! 🛒`);
   // };
 
-  const handleAddToCart = async (e, product) => {
+  const handleAddToCart = async (e, product, sourcePage = "AllStoresPage") => {
     e.stopPropagation();
 
     // const user = JSON.parse(localStorage.getItem("user"));
@@ -270,7 +287,18 @@ export default function Shops() {
       };
 
       const response = await addToCartAPI(userId, productData);
-
+      await trackEvent("add_to_cart", {
+        user_id: userId,
+        product_id: product._id,
+        name: product.name,
+        category: product.category?.name,
+        quantity: 1,
+        price:
+          product.activeDeal?.dealPrice ?? product.finalPrice ?? product.price,
+        discount: product.discount,
+        source_page: sourcePage,
+        location: window.location.pathname,
+      });
       toast.success(`${product.name} added to cart!`);
     } catch (err) {
       console.error("Add to cart error:", err);
@@ -384,33 +412,51 @@ export default function Shops() {
     </div>
   );
 
-  const ProductCard = ({ product }) => (
-    <div
-      className="product-card-compact"
-      onClick={() => navigate(`/product/${product._id}`)}
-    >
-      <div className="product-image-wrapper">
-        <img
-          src={processImageUrl(product.image)}
-          alt={product.name}
-          loading="lazy"
-        />
+  const ProductCard = ({ product }) => {
+    const navigate = useNavigate();
+
+    const handleProductClick = async () => {
+      // Track the click event
+      await trackEvent("view_product_card_click", {
+        product_id: product._id,
+        name: product.name,
+        category: product.category.name,
+        price:
+          product.activeDeal && product.activeDeal.dealPrice
+            ? product.activeDeal.dealPrice
+            : product.finalPrice,
+
+        location: window.location.pathname,
+      });
+
+      // Then navigate to product detail page
+      navigate(`/product/${product._id}`, { state: { product } });
+    };
+    return (
+      <div className="product-card-compact" onClick={handleProductClick}>
+        <div className="product-image-wrapper">
+          <img
+            src={processImageUrl(product.image)}
+            alt={product.name}
+            loading="lazy"
+          />
+        </div>
+        <div className="product-details-compact">
+          <h4>{product.name}</h4>
+          {/* <p className="product-price">₹{product.price}</p> */}
+          <p className="product-price">
+            ₹{calculateDiscountedPriceFinal(product.price, product.discount)}
+          </p>
+          <button
+            className="add-to-cart-compact"
+            onClick={(e) => handleAddToCart(e, product)}
+          >
+            <ShoppingCart size={14} />
+          </button>
+        </div>
       </div>
-      <div className="product-details-compact">
-        <h4>{product.name}</h4>
-        {/* <p className="product-price">₹{product.price}</p> */}
-        <p className="product-price">
-          ₹{calculateDiscountedPriceFinal(product.price, product.discount)}
-        </p>
-        <button
-          className="add-to-cart-compact"
-          onClick={(e) => handleAddToCart(e, product)}
-        >
-          <ShoppingCart size={14} />
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const filteredStores = filterStores(featuredStores);
 
