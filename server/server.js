@@ -28,12 +28,8 @@ connectDB();
 // Create Express app
 const app = express();
 
-// Webhook secret (change to your real GitHub webhook secret)
-const WEBHOOK_SECRET = "your_github_secret_here";
-
-// Webhook raw body parsing
+// Middleware to parse JSON and store raw body
 app.use(
-  "/webhook",
   express.json({
     verify: (req, res, buf) => {
       req.rawBody = buf;
@@ -41,26 +37,38 @@ app.use(
   })
 );
 
+// Webhook secret (change to your real GitHub webhook secret)
+const WEBHOOK_SECRET = "your_github_secret_here";
+
+// Webhook route
+
 // Webhook route
 app.post("/webhook", (req, res) => {
-  const signature = req.headers["x-hub-signature-256"];
-  const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
-  const digest = "sha256=" + hmac.update(req.rawBody).digest("hex");
+  try {
+    const payload = req.rawBody;
+    const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
+    const digest = "sha256=" + hmac.update(payload).digest("hex");
+    const signature = req.get("X-Hub-Signature-256");
 
-  if (signature !== digest) {
-    return res.status(403).send("Signature mismatch");
-  }
-
-  console.log("✅ GitHub Webhook Received. Running deploy.sh...");
-
-  exec("bash /var/www/emw/deploy.sh", (err, stdout, stderr) => {
-    if (err) {
-      console.error(`❌ Deploy error:\n${stderr}`);
-      return res.status(500).send("Deployment failed.");
+    if (!signature || digest !== signature) {
+      return res.status(403).send("Invalid signature");
     }
-    console.log(`✅ Deploy output:\n${stdout}`);
-    return res.status(200).send("Deployment completed.");
-  });
+
+    console.log("✅ Valid webhook received");
+
+    // Pull latest changes
+    exec("cd /var/www/emw && git pull origin main && cd client && npm run build", (err, stdout, stderr) => {
+      if (err) {
+        console.error("❌ Build error:", stderr);
+        return res.status(500).send("Deployment failed");
+      }
+      console.log("✅ Code pulled & frontend built");
+      res.send("Deployed");
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Webhook error");
+  }
 });
 
 // Middleware
