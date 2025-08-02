@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import axios from "../../utils/axios";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
+import { trackEvent } from "../../analytics/trackEvent";
+
 
 // Mall info configuration
 const mallInfo = {
@@ -172,65 +174,87 @@ export default function Menu() {
 
     return "/images/offer1.png";
   };
-  const ProductCard = ({ item, isListView = false }) => (
-    <div
-      className={`modern-product-card ${isListView ? "list-view" : ""}`}
-      onClick={() => navigate(`/product/${item._id}`, { state: { item } })}
-    >
-      <div className="product-image-wrapper">
-        <img
-          src={processImageUrl(item.image)}
-          alt={item.title}
-          loading="lazy"
-        />
-        {item.discount && (
-          <div className="discount-label">-{item.discount}%</div>
-        )}
-        {item.prime && <div className="prime-badge">Prime</div>}
-      </div>
+  const ProductCard = ({ item, isListView = false }) => {
+    const navigate = useNavigate();
 
-      <div className="product-details">
-        <h3 className="product-name">{item.name}</h3>
-        <p className="product-description">{item.description}</p>
+    const handleProductClick = async () => {
+      // Track the click event
+      await trackEvent("view_product_card_click", {
+        product_id: item._id,
+        name: item.name,
+        category: item.category.name,
+        price:
+          item.activeDeal && item.activeDeal.dealPrice
+            ? item.activeDeal.dealPrice
+            : item.finalPrice,
 
-        <div className="product-rating-row">
-          <div className="rating-stars">
-            {renderStars(item.averageRating || 0)}
-          </div>
-          <span className="rating-value">{item.averageRating || 0}</span>
-          <span className="review-count">({item.totalReviews || 0})</span>
-        </div>
+        location: window.location.pathname,
+      });
 
-        <div className="pricing-section">
-          <span className="current-price">{item.price}</span>
-          {item.originalPrice && (
-            <span className="original-price">{item.originalPrice}</span>
-          )}
+      // Then navigate to product detail page
+      navigate(`/product/${item._id}`, { state: { item } });
+    };
+
+    return (
+      <div
+        className={`modern-product-card ${isListView ? "list-view" : ""}`}
+        onClick={handleProductClick}
+      >
+        <div className="product-image-wrapper">
+          <img
+            src={processImageUrl(item.image)}
+            alt={item.title}
+            loading="lazy"
+          />
           {item.discount && (
-            <span className="discount-percent">({item.discount}% off)</span>
+            <div className="discount-label">-{item.discount}%</div>
           )}
+          {item.prime && <div className="prime-badge">Prime</div>}
         </div>
 
-        <div className="delivery-info">
-          {item.freeDelivery && (
-            <span className="free-delivery">
-              <Truck size={14} />
-              FREE Delivery
-            </span>
-          )}
-          <span className="delivery-date">Get it by tomorrow</span>
-        </div>
+        <div className="product-details">
+          <h3 className="product-name">{item.name}</h3>
+          <p className="product-description">{item.description}</p>
 
-        <button
-          className="add-cart-button"
-          onClick={(e) => handleAddToCart(e, item)}
-        >
-          <ShoppingCart size={16} />
-          Add to Cart
-        </button>
+          <div className="product-rating-row">
+            <div className="rating-stars">
+              {renderStars(item.averageRating || 0)}
+            </div>
+            <span className="rating-value">{item.averageRating || 0}</span>
+            <span className="review-count">({item.totalReviews || 0})</span>
+          </div>
+
+          <div className="pricing-section">
+            <span className="current-price">{item.price}</span>
+            {item.originalPrice && (
+              <span className="original-price">{item.originalPrice}</span>
+            )}
+            {item.discount && (
+              <span className="discount-percent">({item.discount}% off)</span>
+            )}
+          </div>
+
+          <div className="delivery-info">
+            {item.freeDelivery && (
+              <span className="free-delivery">
+                <Truck size={14} />
+                FREE Delivery
+              </span>
+            )}
+            <span className="delivery-date">Get it by tomorrow</span>
+          </div>
+
+          <button
+            className="add-cart-button"
+            onClick={(e) => handleAddToCart(e, item)}
+          >
+            <ShoppingCart size={16} />
+            Add to Cart
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderContent = () => {
     if (isLoading) {

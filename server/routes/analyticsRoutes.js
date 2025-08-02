@@ -1,6 +1,14 @@
 import express from "express";
-import { getAdminAnalytics, getSellerAnalytics } from "../controllers/analyticsController.js";
-import { authenticateToken, authorizeAdmin } from "../middlewares/authMiddleware.js";
+import {
+  getAdminAnalytics,
+  getSellerAnalytics,
+  getUserAnalytics,
+} from "../controllers/analyticssController.js";
+import {
+  authenticateToken,
+  authorizeAdmin,
+  fetchUser,
+} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -8,6 +16,9 @@ const router = express.Router();
 router.get("/admin", authenticateToken, authorizeAdmin, getAdminAnalytics);
 
 // Seller analytics (requires seller)
-router.get("/seller", authenticateToken, getSellerAnalytics);
+router.get("/seller", authenticateToken, fetchUser, getSellerAnalytics);
+router.get("/user", authenticateToken, fetchUser, getUserAnalytics);
+router.get("/seller", authenticateToken, fetchUser, getSellerAnalytics);
+
 
 export default router;
