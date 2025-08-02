@@ -5,11 +5,11 @@ import colors from "colors";
 
 const connectDB = async () => {
   try {
-    if (!process.env.MONGO_URL) {
-      throw new Error("MONGO_URL is not defined in environment variables");
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is not defined in environment variables");
     }
 
-    const mongoURL = process.env.MONGO_URL.trim();
+    const mongoURL = process.env.MONGO_URI.trim();
     console.log("Attempting to connect to MongoDB...".yellow);
 
     await mongoose.connect(mongoURL);
