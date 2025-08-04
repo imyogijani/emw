@@ -46,7 +46,7 @@ export const trackEvent = async (eventName, params = {}) => {
   };
 
   try {
-    await axios.post("/api/analytics/ga-event", { payload });
+    await axios.post("/api/ga-proxy/ga-event", { payload });
     // Optionally: console.log("Event tracked");
   } catch (error) {
     console.error("Error tracking event:", error.message);

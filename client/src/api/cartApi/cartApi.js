@@ -14,12 +14,20 @@ export const getCartByUserAPI = async (userId) => {
   return response.data;
 };
 
-export const updateCartItemAPI = async (userId, productId, quantity) => {
+export const updateCartItemAPI = async (
+  userId,
+  productId,
+  variantId,
+  quantity
+) => {
   const response = await axios.post("/api/cart/update", {
     userId,
     productId,
+    variantId: variantId || null,
     quantity,
   });
+
+  // console.log("✅ Cart updated:", response.data);
   return response.data;
 };
 
@@ -28,10 +36,11 @@ export const clearCartAPI = async (userId) => {
   return response.data;
 };
 
-export const removeCartItemAPI = async (userId, productId) => {
+export const removeCartItemAPI = async (userId, productId, variantId) => {
   const response = await axios.post("/api/cart/remove", {
     userId,
     productId,
+    variantId,
   });
   return response.data;
 };

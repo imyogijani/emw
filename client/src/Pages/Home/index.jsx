@@ -23,6 +23,7 @@ import {
 import { addToCartAPI } from "../../api/cartApi/cartApi";
 import HeroImg from "../../images/hero-img.svg";
 import { requestPushPermission } from "../../utils/pushNotification";
+import { trackEvent } from "../../analytics/trackEvent";
 
 export default function Home() {
   // State management
@@ -73,40 +74,42 @@ export default function Home() {
   const fetchDeals = React.useCallback(async () => {
     try {
       // Fetch both offers and deals in parallel
-      const [offersRes, dealsRes] = await Promise.all([
-        axios.get("/api/offers/today"),
+      const [dealsRes] = await Promise.all([
+        // axios.get("/api/offers/today"),
         axios.get("/api/deals/active"),
       ]);
 
       // Extract offers data with fallback to empty array
-      const offers = offersRes?.data?.offers || [];
+      // const offers = offersRes?.data?.offers || [];
 
       // Map offers to consistent deal format
-      const mappedOffers = offers.map((offer) => {
-        // Destructure commonly used properties
-        const { product, _id, title, description, discount, price } = offer;
+      // const mappedOffers = offers.map((offer) => {
+      //   // Destructure commonly used properties
+      //   const { product, _id, title, description, discount, price } = offer;
 
-        return {
-          _id,
-          title: title || product?.name || "Today's Offer",
-          description:
-            description ||
-            product?.description ||
-            "Special offer for today only!",
-          image: processImageUrl(product?.image),
-          dealPrice: calculateDealPrice(offer),
-          originalPrice: product?.price || price,
-          discountPercentage: discount || 0,
-          shopName: getShopName(offer),
-          isOffer: true,
-          rating: product?.rating || 4.5,
-          reviewCount: product?.reviewCount || 100,
-        };
-      });
+      //   return {
+      //     _id,
+      //     title: title || product?.name || "Today's Offer",
+      //     description:
+      //       description ||
+      //       product?.description ||
+      //       "Special offer for today only!",
+      //     image: processImageUrl(product?.image),
+      //     dealPrice: calculateDealPrice(offer),
+      //     originalPrice: product?.price || price,
+      //     discountPercentage: discount || 0,
+      //     shopName: getShopName(offer),
+      //     isOffer: true,
+      //     rating: product?.rating || 4.5,
+      //     reviewCount: product?.reviewCount || 100,
+      //   };
+      // });
 
       // Combine offers with deals and update state
       const deals = dealsRes?.data?.deals || [];
-      setDeals([...mappedOffers, ...deals]);
+      // console.log(dealsRes?.data?.deals);
+
+      setDeals([...deals]);
     } catch (error) {
       console.error("Deals fetch error:", error);
       toast.error("Error fetching deals");
@@ -182,6 +185,13 @@ export default function Home() {
     }
   }, [userId]);
 
+  useEffect(() => {
+    trackEvent("home_page_view", {
+      user_id: userId?._id,
+      location: window.location.pathname,
+    });
+  }, []);
+
   const processImageUrl = (image) => {
     const getFullUrl = (img) =>
       img.startsWith("/uploads") ? `http://localhost:8080${img}` : img;
@@ -206,12 +216,11 @@ export default function Home() {
       offer.shop?.shopName || offer.shop?.names || offer.shop?.email || "Shop"
     );
   };
-
-  const handleAddToCart = async (e, product) => {
+  const handleAddToCart = async (e, product, sourcePage = "HomePage") => {
+    const user = JSON.parse(localStorage.getItem("user"));
     e.stopPropagation();
 
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
       if (!user?._id) {
         toast.error("Please login to add items to cart");
         return;
@@ -226,6 +235,19 @@ export default function Home() {
       };
 
       await addToCartAPI(user._id, productData);
+
+      await trackEvent("add_to_cart", {
+        user_id: userId,
+        product_id: product._id,
+        name: product.name,
+        category: product.category?.name,
+        quantity: 1,
+        price:
+          product.activeDeal?.dealPrice ?? product.finalPrice ?? product.price,
+        discount: product.discount,
+        source_page: sourcePage,
+        location: window.location.pathname,
+      });
       toast.success("Added to cart!");
     } catch (err) {
       console.error("Add to cart error:", err);
@@ -283,6 +305,26 @@ export default function Home() {
         processedImage ||
         "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg"
       );
+    };
+
+    // const navigate = useNavigate();
+
+    const handleProductClick = async () => {
+      // Track the click event
+      await trackEvent("view_product_card_click", {
+        product_id: product._id,
+        name: product.name,
+        category: product.category.name,
+        price:
+          product.activeDeal && product.activeDeal.dealPrice
+            ? product.activeDeal.dealPrice
+            : product.finalPrice,
+
+        location: window.location.pathname,
+      });
+
+      // Then navigate to product detail page
+      // navigate(`/product/${product._id}`, { state: { product } });
     };
 
     return (
@@ -691,15 +733,28 @@ const DealsSection = ({ deals }) => (
   </div>
 );
 
+const processImageUrl = (image) => {
+  const getFullUrl = (img) =>
+    img.startsWith("/uploads") ? `http://localhost:8080${img}` : img;
+
+  if (Array.isArray(image) && image.length > 0) {
+    return getFullUrl(image[0]);
+  } else if (typeof image === "string" && image.length > 0) {
+    return getFullUrl(image);
+  }
+
+  return "/images/offer1.png";
+};
 const DealCard = ({ deal }) => (
   <div className="card-base card-large deal-card">
     <div className="card-image-container">
       <img
-        src={
-          deal.image ||
-          "https://images.pexels.com/photos/3119215/pexels-photo-3119215.jpeg"
-        }
-        alt={deal.title || deal.name}
+        src={processImageUrl(deal?.product?.image)}
+        onError={(e) => {
+          e.target.src =
+            "https://images.pexels.com/photos/3119215/pexels-photo-3119215.jpeg";
+        }}
+        alt={deal?.title || deal?.name || "Deal image"}
         className="card-image"
       />
       <div className="card-badge card-badge-discount">
