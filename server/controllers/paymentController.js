@@ -39,7 +39,8 @@ export const initiatePayment = asyncHandler(async (req, res) => {
 
   for (const item of order.items) {
     const sellerId = item.productId.seller.toString();
-    const price = item.totalPrice || item.finalPrice * item.quantity;
+    // const price = item.totalPrice || item.finalPrice * item.quantity;
+    const price = item.finalPrice * item.quantity;
 
     sellerSplitMap[sellerId] = (sellerSplitMap[sellerId] || 0) + price;
     console.log("Seller Id ", sellerId);

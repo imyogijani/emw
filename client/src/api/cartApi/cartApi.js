@@ -27,7 +27,7 @@ export const updateCartItemAPI = async (
     quantity,
   });
 
-  // console.log("✅ Cart updated:", response.data);
+  // console.log(" Cart updated:", response.data);
   return response.data;
 };
 

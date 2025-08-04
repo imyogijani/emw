@@ -23,6 +23,9 @@ const notificationSchema = new mongoose.Schema(
         "order",
         "user_activity",
         "subscription_change",
+        "user",
+        "admin",
+        "seller",
       ],
       default: "system",
     },
@@ -43,7 +46,7 @@ const notificationSchema = new mongoose.Schema(
     relatedModel: {
       type: String,
       required: false,
-      enum: ["deals", "orders", "products", "users","payment"],
+      enum: ["deals", "orders", "products", "users", "payment"],
     },
     isRead: {
       type: Boolean,

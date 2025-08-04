@@ -5,9 +5,6 @@ import { sendEmail } from "../utils/sendEmail.js"; // tumhara nodemailer functio
 import { sendPushNotification } from "../utils/sendPush.js"; // firebase wali file
 
 
-
-
-
 export const createNotification = async ({
   recipient,
   title,

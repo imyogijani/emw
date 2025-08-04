@@ -95,9 +95,9 @@ export default function CartModal({ open, onClose }) {
     async (productId, variantId, newQuantity) => {
       if (!userId || newQuantity < 1) return;
 
-      console.log("Variant id", variantId);
+      // console.log("Variant id", variantId);
 
-      // ✅ STEP 1: Optimistically update the UI
+      //  STEP 1: Optimistically update the UI
       setCartData((prevCartData) => {
         const updatedItems = prevCartData.cart.items.map((item) =>
           item.productId === productId &&
