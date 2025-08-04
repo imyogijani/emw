@@ -234,7 +234,7 @@ export default function Home() {
         discount: product.discount,
       };
 
-      await addToCartAPI(user._id, productData);
+      await addToCartAPI(user._id, productData, null);
 
       await trackEvent("add_to_cart", {
         user_id: userId,

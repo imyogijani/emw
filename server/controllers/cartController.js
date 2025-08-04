@@ -1,4 +1,6 @@
 import Cart from "../models/cartModal.js";
+import Variant from "../models/variantsModel.js";
+import Product from "../models/productModel.js";
 
 export const addToCart = async (req, res) => {
   try {
@@ -15,13 +17,34 @@ export const addToCart = async (req, res) => {
       color,
       size,
     } = product;
+    let availableStock = 0;
 
-    // const discountAmount = (price * discount) / 100;
-    // const finalPrice = price - discountAmount;
-    // const finalPriceToStore = finalPrice;
-
+    // Step 1: Check stock from Variant or Product
+    if (variantId) {
+      const variant = await Variant.findById(variantId);
+      if (!variant) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Variant not found" });
+      }
+      availableStock = variant.stock;
+    } else {
+      const productData = await Product.findById(productId);
+      if (!productData) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Product not found" });
+      }
+      availableStock = productData.stock;
+    }
     let cart = await Cart.findOne({ userId });
+
     if (!cart) {
+      if (availableStock < quantity) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Not enough stock available" });
+      }
       cart = new Cart({
         userId,
         items: [
@@ -47,8 +70,21 @@ export const addToCart = async (req, res) => {
       );
 
       if (existingItem) {
-        existingItem.quantity += quantity;
+        const totalQuantity = existingItem.quantity + quantity;
+
+        if (availableStock < totalQuantity) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Stock limit exceeded" });
+        }
+
+        existingItem.quantity = totalQuantity;
       } else {
+        if (availableStock < quantity) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Not enough stock available" });
+        }
         cart.items.push({
           productId,
           variantId,
@@ -184,6 +220,31 @@ export const updateCartQuantity = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Item not found in cart" });
+    }
+    let availableStock = 0;
+
+    if (variantId) {
+      const variant = await Variant.findById(variantId);
+      if (!variant) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Variant not found" });
+      }
+      availableStock = variant.stock;
+    } else {
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Product not found" });
+      }
+      availableStock = product.stock;
+    }
+
+    if (quantity > availableStock) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Stock not available" });
     }
 
     item.quantity = quantity;

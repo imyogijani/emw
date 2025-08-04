@@ -7,6 +7,7 @@ const orderItemSchema = new mongoose.Schema({
     ref: "products",
     required: true,
   },
+  variantId: { type: mongoose.Schema.Types.ObjectId, ref: "Variant" },
   sellerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Seller",
@@ -41,7 +42,7 @@ const orderItemSchema = new mongoose.Schema({
     default: null,
   },
 
-  // 🎯 Return/Cancel Info
+  //  Return/Cancel Info
   isReturnRequested: { type: Boolean, default: false },
   isReturned: { type: Boolean, default: false },
   returnedAt: { type: Date, default: null },
@@ -73,6 +74,7 @@ const shippingAddressSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
+    orderId: { type: String, unique: true }, // customeId for uman readable
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
@@ -165,6 +167,8 @@ orderSchema.index({ userId: 1 });
 orderSchema.index({ "items.sellerId": 1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ createdAt: -1 });
+orderSchema.index({ "items.variantId": 1 });
+orderSchema.index({ paymentStatus: 1 });
 
 const Order = mongoose.model("orders", orderSchema);
 export default Order;

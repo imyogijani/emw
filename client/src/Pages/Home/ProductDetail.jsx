@@ -581,7 +581,7 @@ export default function ProductDetail() {
       //   product: cartData,
       // });
 
-      const response = await addToCartAPI(userId, cartData);
+      const response = await addToCartAPI(userId, cartData, null);
 
       await trackEvent("add_to_cart", {
         user_id: userId,
@@ -1195,15 +1195,19 @@ export default function ProductDetail() {
                   //   quantity: 1,
                   //   addedAt: new Date().toISOString(),
                   // });
-                  const response = await addToCartAPI(currentUserId, {
-                    productId: product._id, // Or selectedVariant._id if using variants
-                    quantity: 1,
-                    // productId: deal.product._id,
-                    // quantity: 1,
-                    price: product.finalPrice,
-                    title: product.name,
-                    discount: product.discount,
-                  });
+                  const response = await addToCartAPI(
+                    currentUserId,
+                    {
+                      productId: product._id, // Or selectedVariant._id if using variants
+                      quantity: 1,
+                      // productId: deal.product._id,
+                      // quantity: 1,
+                      price: product.finalPrice,
+                      title: product.name,
+                      discount: product.discount,
+                    },
+                    null
+                  );
                   toast.success(`${product.name} added to cart! 🛒`);
                 }}
               >

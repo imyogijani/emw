@@ -19,5 +19,23 @@ router.get("/unread-count", getUnreadCount);
 router.put("/:notificationId/read", markAsRead);
 router.put("/mark-all-read", markAllAsRead);
 router.delete("/:notificationId", deleteNotification);
+// routes/notifications.js
+router.post("/save", async (req, res) => {
+  const { title, message, type, relatedId, relatedModel } = req.body;
+
+  const notification = new Notification({
+    recipient: req.user._id,
+    title,
+    message,
+    type,
+    relatedId,
+    relatedModel,
+    channels: ["inApp"],
+    sent: { inApp: true },
+  });
+
+  await notification.save();
+  res.status(200).json({ success: true });
+});
 
 export default router;

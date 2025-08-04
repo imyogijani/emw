@@ -8,7 +8,11 @@ import Brand from "../models/brandModel.js";
 import Category from "../models/categoryModel.js";
 import mongoose from "mongoose";
 import Product from "../models/productModel.js";
-import Seller from "..//models/sellerModel.js";
+import Seller from "../models/sellerModel.js";
+import Variant from "../models/variantsModel.js";
+import { generateInvoicesForOrder } from "./invoiceController.js";
+import { createNotification } from "./notificationController.js";
+import Counter from "../models/counterModel.js";
 
 // export const getUserOrders = async (req, res) => {
 //   try {
@@ -123,7 +127,10 @@ export const createOrder = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Missing required fields." });
   }
 
-  const cart = await Cart.findOne({ userId }).populate("items.productId");
+  const cart = await Cart.findOne({ userId })
+    .populate("items.productId")
+    .populate("items.variantId", "price finalPrice stock size color");
+
   if (!cart || cart.items.length === 0) {
     return res.status(400).json({ message: "Cart is empty." });
   }
@@ -139,10 +146,17 @@ export const createOrder = asyncHandler(async (req, res) => {
   const items = await Promise.all(
     cart.items.map(async (item) => {
       const product = item.productId;
-
+      const variant = item.variantId;
       const quantity = item.quantity;
+
+      const discount = product.discount;
+      let basePrice = product.price;
       let finalPrice = product.finalPrice; // default: price after discount
 
+      if (variant) {
+        basePrice = variant.price ?? product.price;
+        finalPrice = variant.finalPrice ?? variant.price ?? product.finalPrice;
+      }
       // If product has an activeDeal, check if it's still active
       if (product.activeDeal) {
         const now = new Date();
@@ -164,10 +178,12 @@ export const createOrder = asyncHandler(async (req, res) => {
       return {
         product,
         productId: product._id,
+        variantId: item.variantId || null,
         sellerId: product.seller,
         quantity,
-        price: product.price,
+        price: basePrice,
         finalPrice,
+        discount,
         productTotal,
       };
     })
@@ -244,17 +260,54 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const orderItems = items.map((item) => ({
     productId: item.productId,
+    variantId: item.variantId || null,
     sellerId: item.sellerId,
     quantity: item.quantity,
     price: item.price,
     finalPrice: item.finalPrice,
+    discount: item.discount,
     deliveryStatus: "processing",
     deliveryPartner,
     deliveryCharge: 0,
     commission: 0,
   }));
 
+  for (const item of orderItems) {
+    if (item.variantId) {
+      const variant = await Variant.findById(item.variantId);
+      if (!variant)
+        return res.status(404).json({ message: "Variant not found" });
+
+      if (variant.stock < item.quantity) {
+        return res.status(400).json({
+          message: `Only ${variant.stock} left for selected variant.`,
+        });
+      }
+    } else {
+      const product = await Product.findById(item.productId);
+      if (!product)
+        return res.status(404).json({ message: "Product not found" });
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          message: `Only ${product.stock} left for selected product.`,
+        });
+      }
+    }
+  }
+  let counter = await Counter.findOneAndUpdate(
+    { name: "order" },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+
+  const orderId = `ORD-${new Date()
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, "")}-${counter.seq.toString().padStart(5, "0")}`;
+
   const order = new Order({
+    orderId,
     userId,
     items: orderItems,
     shippingAddress,
@@ -270,6 +323,43 @@ export const createOrder = asyncHandler(async (req, res) => {
   });
 
   await order.save();
+  await createNotification({
+    recipient: userId,
+    title: "Order Placed Successfully!",
+    message: `Your order #${order._id} has been placed with ${orderItems.length} items.`,
+    type: "order",
+    channels: ["inApp", "email", "push"], // Optional: depends on your setup
+  });
+  const uniqueSellerIds = [
+    ...new Set(orderItems.map((i) => i.sellerId.toString())),
+  ];
+
+  for (const sellerId of uniqueSellerIds) {
+    await createNotification({
+      recipient: sellerId,
+      title: "New Order Received!",
+      message: `You have received a new order #${order.orderId}. Please process the shipment.`,
+      type: "seller",
+      channels: ["inApp", "email", "push"],
+    });
+  }
+
+  await generateInvoicesForOrder(order._id);
+
+  // Reduce stock after successful order creation
+  await Promise.all(
+    orderItems.map(async (item) => {
+      if (item.variantId) {
+        await Variant.findByIdAndUpdate(item.variantId, {
+          $inc: { stock: -item.quantity },
+        });
+      } else {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -item.quantity },
+        });
+      }
+    })
+  );
 
   cart.items = [];
   await cart.save();
@@ -293,6 +383,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
       ],
     })
     .populate("items.sellerId", "shopName shopImage location")
+    .populate("items.variantId", "size color price finalPrice stock")
     .select("-__v");
 
   if (!order) {
@@ -309,6 +400,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
   // Format clean Amazon-style response
   const formattedOrder = {
     orderId: order._id,
+    customeOrderId: order?.orderId,
     user: {
       name: order.userId.names,
       email: order.userId.email,
@@ -345,6 +437,15 @@ export const getOrderById = asyncHandler(async (req, res) => {
       deliveryPartner: item.deliveryPartner,
       trackingId: item.deliveryTrackingId,
       expectedDeliveryDate: item.expectedDeliveryDate,
+      variant: item.variantId
+        ? {
+            size: item.variantId.size,
+            color: item.variantId.color,
+            price: item.variantId.price,
+            finalPrice: item.variantId.finalPrice,
+            stock: item.variantId.stock,
+          }
+        : null,
       seller: {
         shopName: item.sellerId?.shopName || "",
         shopImage: item.sellerId?.shopImage || "",
@@ -446,6 +547,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     .limit(Number(limit))
     .populate("userId", "names email")
     .populate("items.productId", "name image")
+    .populate("items.variantId", "size color price finalPrice stock")
     .select("userId items totalAmount paymentStatus orderStatus createdAt");
 
   //  Step 6: Format per seller
@@ -466,6 +568,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
 
     const formattedOrder = {
       orderId: order._id,
+      customeOrderId: order.orderId || "N/A",
       customer: {
         name: order.userId?.names || "N/A",
         email: order.userId?.email || "N/A",
@@ -474,15 +577,30 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
       orderStatus: order.orderStatus,
       createdAt: order.createdAt,
       orderTotal: parseFloat(orderTotal.toFixed(2)),
-      items: filteredItems.map((item) => ({
-        productId: item.productId._id,
-        productName: item.productId.name,
-        productImage: item.productId.image?.[0],
-        quantity: item.quantity,
-        finalPrice: item.finalPrice,
-        total: item.finalPrice * item.quantity,
-        deliveryStatus: item.deliveryStatus,
-      })),
+      items: filteredItems.map((item) => {
+        const isVariantUsed = item.variantId;
+
+        return {
+          productId: item.productId._id,
+          productName: item.productId.name,
+          productImage: item.productId.image?.[0],
+          quantity: item.quantity,
+          finalPrice: isVariantUsed
+            ? item.variantId.finalPrice
+            : item.finalPrice,
+          total:
+            (isVariantUsed ? item.variantId.finalPrice : item.finalPrice) *
+            item.quantity,
+          deliveryStatus: item.deliveryStatus,
+          ...(isVariantUsed && {
+            variant: {
+              size: item.variantId.size,
+              color: item.variantId.color,
+              stock: item.variantId.stock,
+            },
+          }),
+        };
+      }),
     };
 
     formattedOrders.push(formattedOrder);
@@ -518,15 +636,30 @@ export const cancelOrder = asyncHandler(async (req, res) => {
       .json({ message: "Cannot cancel after shipping has started" });
   }
 
-  // ✅ Handle Refund if Paid Online
+  //  Handle Refund if Paid Online
   let refundInfo = null;
   if (order.paymentStatus === "paid" && order.paymentMethod !== "COD") {
     refundInfo = {
       refundStatus: "initiated",
       refundedAt: new Date(),
     };
-    // You could also store refund txn ID here
+    // Add refund txn ID logic if needed
   }
+
+  //  Step 1: Restore Stock for each item
+  await Promise.all(
+    order.items.map(async (item) => {
+      if (item.variantId) {
+        await Variant.findByIdAndUpdate(item.variantId, {
+          $inc: { stock: item.quantity },
+        });
+      } else {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: item.quantity },
+        });
+      }
+    })
+  );
 
   //  Mark cancelled
   order.orderStatus = "cancelled";
@@ -583,7 +716,8 @@ export const getUserOrders = asyncHandler(async (req, res) => {
         { path: "category", model: Category, select: "name" },
       ],
     })
-    .populate("items.sellerId", "shopName"); // show seller name
+    .populate("items.sellerId", "shopName") // show seller name
+    .populate("items.variantId", "size color price finalPrice stock");
 
   res.status(200).json({
     success: true,
@@ -703,3 +837,5 @@ export const confirmAllItemsReceived = asyncHandler(async (req, res) => {
   await order.save();
   res.json({ success: true, message: "Order fully marked as delivered." });
 });
+
+

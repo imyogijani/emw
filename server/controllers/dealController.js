@@ -6,6 +6,7 @@ import User from "../models/userModel.js";
 import mongoose from "mongoose";
 import Seller from "../models/sellerModel.js";
 import Brand from "../models/brandModel.js";
+import { createNotification } from "./notificationController.js";
 
 // Create a new deal
 export const createDeal = async (req, res) => {
@@ -67,19 +68,17 @@ export const createDeal = async (req, res) => {
 
     // Create notification for admin approval
     const adminUsers = await User.find({ role: "admin" });
-    if (adminUsers.length > 0) {
-      for (const admin of adminUsers) {
-        const notification = new Notification({
-          title: "New Deal Request",
-          message: `A new deal "${title}" requires your approval`,
-          type: "deal_request",
-          recipient: admin._id,
-          sender: req.user._id,
-          relatedId: deal._id,
-          relatedModel: "deals",
-        });
-        await notification.save();
-      }
+    for (const admin of adminUsers) {
+      await createNotification({
+        recipient: admin._id,
+        title: "New Deal Created",
+        message: `A new deal titled "${deal.title}" has been created.`,
+        type: "deal_request",
+        channels: ["email", "inApp"],
+        relatedId: deal._id,
+        relatedModel: "deals",
+        // actionUrl: `/admin/deals/${deal._id}`, // optional: dashboard redirect
+      });
     }
 
     res.status(201).json({
@@ -130,16 +129,28 @@ export const approveDeal = async (req, res) => {
       });
     }
 
-    const notification = new Notification({
+    await createNotification({
+      recipient: deal.seller,
       title: "Deal Approved",
       message: `Deal "${deal.title}" has been approved and is now active`,
       type: "deal_approved",
+      channels: ["email", "inApp"],
       recipient: deal.seller,
       relatedId: deal._id,
       relatedModel: "deals",
+      // actionUrl: `/admin/deals/${deal._id}`, // frontend URL
+      priority: "medium",
     });
 
-    await notification.save();
+    //// Send notifications for all user
+
+    // await queue.add("notifyAllUsers", {
+    //   title: "New Deal!",
+    //   message: "A great deal is live now. Don't miss out!",
+    //   type: "deal_created",
+    //   relatedId: deal._id,
+    //   relatedModel: "deal",
+    // });
 
     res.status(200).json({
       message: "Deal approved",
@@ -164,7 +175,7 @@ export const rejectDeal = async (req, res) => {
     deal.rejectionReason = rejectionReason;
     await deal.save();
 
-    const notification = new Notification({
+    await createNotification({
       title: "Deal Rejected",
       message: `Deal "${deal.title}" has been rejected. Reason: ${rejectionReason}`,
       type: "deal_rejected",
@@ -172,8 +183,6 @@ export const rejectDeal = async (req, res) => {
       relatedId: deal._id,
       relatedModel: "deals",
     });
-
-    await notification.save();
 
     res.status(200).json({
       message: "Deal rejected",
