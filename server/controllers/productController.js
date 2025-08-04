@@ -47,19 +47,41 @@ export const addProduct = async (req, res) => {
     }
 
     // Parse variants
+    // let parsedVariants = [];
+    // if (variants) {
+    //   try {
+    //     parsedVariants = JSON.parse(variants);
+    //     if (!Array.isArray(parsedVariants)) {
+    //       return res
+    //         .status(400)
+    //         .json({ success: false, message: "Variants must be an array" });
+    //     }
+    //   } catch (err) {
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid variants JSON" });
+    //   }
+    // }
+    // Validate variants
     let parsedVariants = [];
+
     if (variants) {
-      try {
-        parsedVariants = JSON.parse(variants);
-        if (!Array.isArray(parsedVariants)) {
-          return res
-            .status(400)
-            .json({ success: false, message: "Variants must be an array" });
+      if (Array.isArray(variants)) {
+        parsedVariants = variants;
+      } else if (typeof variants === "string") {
+        //  Try this case
+        try {
+          const maybeArray = JSON.parse(variants);
+          if (Array.isArray(maybeArray)) {
+            parsedVariants = maybeArray;
+          } else {
+            parsedVariants = [variants]; // fallback to single
+          }
+        } catch (err) {
+          parsedVariants = [variants];
         }
-      } catch (err) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid variants JSON" });
+      } else {
+        parsedVariants = [variants];
       }
     }
 
@@ -192,31 +214,6 @@ export const addProduct = async (req, res) => {
   }
 };
 
-// export const getSellerProducts = async (req, res) => {
-//   try {
-//     const { populateCategory } = req.query;
-//     let query = Product.find({ seller: req.userId });
-
-//     if (populateCategory === "true") {
-//       query = query.populate("category");
-//     }
-
-//     const products = await query.sort({
-//       createdAt: -1,
-//     });
-//     res.status(200).json({
-//       success: true,
-//       products,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching products:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Error fetching products",
-//       error: error.message,
-//     });
-//   }
-// };
 export const getSellerProducts = async (req, res) => {
   try {
     const { populateCategory } = req.query;
@@ -253,101 +250,6 @@ export const getSellerProducts = async (req, res) => {
     });
   }
 };
-
-// export const updateProduct = async (req, res) => {
-//   try {
-//     const { id: productId } = req.params;
-//     const {
-//       category,
-//       subcategory,
-//       discount,
-//       brand,
-//       status,
-//       stock,
-//       price,
-//       ...otherUpdateData
-//     } = req.body;
-
-//     let updateData = { ...otherUpdateData };
-
-//     if (category) {
-//       const categoryDoc = await Category.findById(category);
-//       if (!categoryDoc) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "Category not found",
-//         });
-//       }
-//       updateData.category = category;
-//     }
-
-//     if (subcategory) {
-//       const subcategoryDoc = await Category.findById(subcategory);
-//       if (!subcategoryDoc) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "Subcategory not found",
-//         });
-//       }
-//       updateData.subcategory = subcategory;
-//     } else if (subcategory === "") {
-//       updateData.subcategory = undefined;
-//     }
-
-//     if (discount !== undefined && discount !== null && discount !== "") {
-//       updateData.discount = Number(discount);
-//     } else if (discount === "") {
-//       updateData.discount = undefined;
-//     }
-
-//     if (brand !== undefined && brand !== null && brand !== "") {
-//       updateData.brand = brand;
-//     } else if (brand === "") {
-//       updateData.brand = undefined;
-//     }
-
-//     // Handle specific fields for admin updates
-//     if (status !== undefined) {
-//       updateData.status = status;
-//     }
-//     if (stock !== undefined) {
-//       updateData.stock = Number(stock);
-//     }
-//     if (price !== undefined) {
-//       updateData.price = Number(price);
-//     }
-
-//     let findQuery = { _id: productId };
-
-//     // If the request is not from an admin, ensure the seller owns the product
-//     if (req.user && req.user.role !== "admin") {
-//       findQuery.seller = req.userId;
-//     }
-
-//     const product = await Product.findOneAndUpdate(findQuery, updateData, {
-//       new: true,
-//       runValidators: true,
-//     });
-//     if (!product) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Product not found",
-//       });
-//     }
-//     res.status(200).json({
-//       success: true,
-//       message: "Product updated successfully",
-//       product,
-//     });
-//   } catch (error) {
-//     console.error("Error updating product:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Error updating product",
-//       error: error.message,
-//     });
-//   }
-// };
 
 export const updateProduct = async (req, res) => {
   try {
@@ -406,22 +308,29 @@ export const updateProduct = async (req, res) => {
     } else if (subcategory === "") {
       product.subcategory = undefined;
     }
-
-    // Parse variants
+    let parsedVariants = [];
     if (variants) {
-      try {
-        const parsedVariants = JSON.parse(variants);
-        if (!Array.isArray(parsedVariants)) {
-          return res
-            .status(400)
-            .json({ success: false, message: "Variants must be an array" });
+      if (Array.isArray(variants)) {
+        parsedVariants = variants;
+      } else if (typeof variants === "string") {
+        //  Try this case
+        try {
+          const maybeArray = JSON.parse(variants);
+          if (Array.isArray(maybeArray)) {
+            parsedVariants = maybeArray;
+          } else {
+            parsedVariants = [variants]; // fallback to single
+          }
+        } catch (err) {
+          parsedVariants = [variants];
         }
-        product.variants = parsedVariants;
-      } catch (e) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid JSON in variants", e });
+      } else {
+        parsedVariants = [variants];
       }
+    }
+
+    if (parsedVariants.length > 0) {
+      product.variants = parsedVariants;
     }
 
     // Handle optional fields
@@ -442,55 +351,72 @@ export const updateProduct = async (req, res) => {
         .json({ success: false, message: "Seller profile not found" });
     }
 
-    // Subscription & premium validation
-    const userModel = (await import("../models/userModel.js")).default;
-    const user = await userModel.findById(req.userId).populate("subscription");
+    // // Subscription & premium validation
+    // const userModel = (await import("../models/userModel.js")).default;
+    // const user = await userModel.findById(req.userId).populate("subscription");
 
-    if (
-      !user.subscription ||
-      !user.subscriptionStartDate ||
-      !user.subscriptionEndDate ||
-      new Date() < user.subscriptionStartDate ||
-      new Date() > user.subscriptionEndDate
-    ) {
-      return res
-        .status(403)
-        .json({ message: "Subscription expired or not active." });
-    }
+    // if (
+    //   !user.subscription ||
+    //   !user.subscriptionStartDate ||
+    //   !user.subscriptionEndDate ||
+    //   new Date() < user.subscriptionStartDate ||
+    //   new Date() > user.subscriptionEndDate
+    // ) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Subscription expired or not active." });
+    // }
 
-    const features = Array.isArray(user.subscriptionFeatures)
-      ? user.subscriptionFeatures
-      : [];
+    // const features = Array.isArray(user.subscriptionFeatures)
+    //   ? user.subscriptionFeatures
+    //   : [];
 
-    const isTryingPremium = isPremium === true || isPremium === "true";
-    if (isTryingPremium) {
-      if (!features.includes("featuredListing")) {
-        return res.status(403).json({
-          message: "Your plan does not support premium listings.",
-        });
-      }
+    // const isTryingPremium = isPremium === true || isPremium === "true";
+    // if (isTryingPremium) {
+    //   if (!features.includes("featuredListing")) {
+    //     return res.status(403).json({
+    //       message: "Your plan does not support premium listings.",
+    //     });
+    //   }
 
-      const getFeatureLimit = (featuresArray, key) => {
-        const match = featuresArray.find((f) => f.startsWith(`${key}:`));
-        return match ? parseInt(match.split(":")[1], 10) : null;
-      };
+    //   const getFeatureLimit = (featuresArray, key) => {
+    //     const match = featuresArray.find((f) => f.startsWith(`${key}:`));
+    //     return match ? parseInt(match.split(":")[1], 10) : null;
+    //   };
 
-      const premiumLimit = getFeatureLimit(features, "premiumLimit") || 1;
-      const premiumCount = await Product.countDocuments({
-        seller: seller._id,
-        isPremium: true,
-        _id: { $ne: product._id }, // exclude current product
+    //   const premiumLimit = getFeatureLimit(features, "premiumLimit") || 1;
+    //   const premiumCount = await Product.countDocuments({
+    //     seller: seller._id,
+    //     isPremium: true,
+    //     _id: { $ne: product._id }, // exclude current product
+    //   });
+
+    //   if (premiumCount >= premiumLimit && !product.isPremium) {
+    //     return res.status(403).json({
+    //       message: `You can only add ${premiumLimit} premium products. Upgrade your plan.`,
+    //     });
+    //   }
+
+    //   product.isPremium = true;
+    // } else {
+    //   product.isPremium = false;
+    // }
+
+    const userSubs = await UserSubscription.find({
+      user: req.userId,
+      isActive: true,
+      paymentStatus: "paid",
+      endDate: { $gt: new Date() },
+    }).populate("subscription");
+
+    // console.log("Seller userSubs  ", userSubs);
+
+    //  If no active subscriptions found
+    if (!userSubs || userSubs.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "No active subscription found. Please purchase a plan.",
       });
-
-      if (premiumCount >= premiumLimit && !product.isPremium) {
-        return res.status(403).json({
-          message: `You can only add ${premiumLimit} premium products. Upgrade your plan.`,
-        });
-      }
-
-      product.isPremium = true;
-    } else {
-      product.isPremium = false;
     }
 
     // Handle technicalDetails
@@ -596,7 +522,7 @@ export const getAllProducts = async (req, res) => {
     if (populateSubcategory === "true") {
       query = query.populate("subcategory");
     }
-    query = query.populate({
+    query = query.populate("variants").populate({
       path: "activeDeal",
       match: { _id: { $ne: null } }, // OR use more filter like startDate
     });

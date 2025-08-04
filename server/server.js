@@ -166,7 +166,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/test-notification", testNotificationRouter);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/analytics", gaProxyRoutes);
+app.use("/api/ga-proxy", gaProxyRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
 

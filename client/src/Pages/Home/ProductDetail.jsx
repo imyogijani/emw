@@ -32,6 +32,7 @@ import {
 } from "../../api/reviewApi";
 import { getTechnicalDetailsById } from "../../api/technicalDetailsApi";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
+import { trackEvent } from "../../analytics/trackEvent";
 
 // Import product categories data
 // const mallItemsByCategory = {
@@ -343,6 +344,16 @@ export default function ProductDetail() {
       try {
         const response = await axios.get(`/api/products/${id}`);
         setItem(response.data.product);
+
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        trackEvent("product_detail_view", {
+          user_id: user?._id,
+          product_id: response.data.product._id,
+          name: response.data.product.name,
+          category: response.data.product.category?.name,
+          location: window.location.pathname,
+        });
         console.log("Product details", response.data.product);
         if (response.data.product.technicalDetails) {
           const techDetails = await getTechnicalDetailsById(
@@ -543,7 +554,7 @@ export default function ProductDetail() {
   // const token = JSON.parse(localStorage.getItem("token"));
   // console.log(token);
 
-  const handleAddToCart = async (e) => {
+  const handleAddToCart = async (e, sourcePage = "ProductDetailsPage") => {
     e.stopPropagation();
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -571,6 +582,19 @@ export default function ProductDetail() {
       // });
 
       const response = await addToCartAPI(userId, cartData);
+
+      await trackEvent("add_to_cart", {
+        user_id: userId,
+        product_id: id,
+        name: item.name,
+        category: item.category?.name,
+        quantity: quantity,
+        price: item.activeDeal?.dealPrice ?? item.finalPrice ?? item.price,
+        discount: item.discount,
+        source_page: sourcePage,
+        location: window.location.pathname,
+      });
+
       toast.success("Added to cart!");
 
       // if (response.data.success) {
@@ -1140,7 +1164,7 @@ export default function ProductDetail() {
         <div className="related-products-grid">
           {relatedProducts.map((product) => (
             <div
-              key={product.id}
+              key={product._id}
               className="related-product-card"
               onClick={() => navigate(`/product/${product._id}`)}
             >

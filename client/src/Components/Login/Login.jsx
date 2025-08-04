@@ -10,6 +10,7 @@ import {
   signInWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
+import { trackEvent } from "../../analytics/trackEvent";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -53,6 +54,11 @@ const Login = () => {
       }
     };
     checkAuth();
+
+    trackEvent("page_view", {
+      page_title: "Login",
+      page_location: window.location.pathname,
+    });
   }, [customerOnly, returnUrl, navigate]);
 
   const redirectBasedOnRole = (role) => {
@@ -87,6 +93,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    await trackEvent("login_attempt", {
+      email: formData.email,
+      location: window.location.pathname,
+    });
+
     if (!validateForm()) {
       return;
     }
@@ -136,6 +148,12 @@ const Login = () => {
         } else {
           redirectBasedOnRole(response.data.user.role);
         }
+
+        await trackEvent("login", {
+          method: "email",
+          role: response.data.user.role,
+          location: window.location.pathname,
+        });
       } else {
         const errorMsg = response.data.message || "Login failed";
         toast.error(errorMsg);
@@ -162,6 +180,12 @@ const Login = () => {
         ...prev,
         password: "",
       }));
+
+      await trackEvent("login_failed", {
+        reason: errorMsg,
+        email: formData.email,
+        location: window.location.pathname,
+      });
     } finally {
       setIsLoading(false);
     }
