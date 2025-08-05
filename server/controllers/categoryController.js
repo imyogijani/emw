@@ -9,9 +9,12 @@ import User from "../models/userModel.js";
 // Create Category
 export const createCategoryController = async (req, res) => {
   try {
-    console.log("[DEBUG] req.body:", req.body);
-    console.log("[DEBUG] req.file:", req.file);
-    let { name, parent, brands } = req.body;
+    // console.log("[DEBUG] req.body:", req.body);
+    // console.log("[DEBUG] req.file:", req.file);
+    let { name, parent, brands, gstPercentage } = req.body;
+    // Convert gstPercentage to number if string
+    gstPercentage = Number(gstPercentage) || 0;
+
     let image = "";
     if (req.file) {
       console.log("Category image upload:", req.file);
@@ -48,6 +51,7 @@ export const createCategoryController = async (req, res) => {
       parent: parent || null,
       image,
       brands: brands || [],
+      gstPercentage,
     });
 
     if (parent) {
@@ -57,6 +61,14 @@ export const createCategoryController = async (req, res) => {
         await parentCategory.save();
       }
     }
+
+    //  GST check for subcategory
+    if (parent && gstPercentage === 0) {
+      return res.status(400).json({
+        message: "GST percentage is required for subcategories",
+      });
+    }
+    
     await category.save();
     res.status(201).send({
       success: true,
@@ -210,7 +222,8 @@ export const deleteCategoryController = async (req, res) => {
 // Update category
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name, parent, brands } = req.body;
+    const { name, parent, brands, gstPercentage } = req.body;
+
     const updateData = {};
     if (name) {
       updateData.name = name;
@@ -221,6 +234,9 @@ export const updateCategoryController = async (req, res) => {
     }
     if (brands !== undefined) {
       updateData.brands = brands;
+    }
+    if (typeof gstPercentage !== "undefined") {
+      updateData.gstPercentage = gstPercentage;
     }
     let oldImagePath = null;
     if (req.file) {

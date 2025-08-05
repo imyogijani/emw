@@ -59,7 +59,24 @@ const sellerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    cashfreeBeneId: String // Optional: For integration with Cashfree or similar payment gateways
+    gstNumber: {
+      type: String,
+      default: null,
+    },
+    kycVerified: {
+      type: Boolean,
+      default: false,
+    },
+    razorpayContactId: {
+      type: String,
+      default: null,
+    },
+
+    razorpayFundAccountId: {
+      type: String,
+      default: null,
+    },
+    cashfreeBeneId: String, // Optional: For integration with Cashfree or similar payment gateways
   },
   { timestamps: true }
 );

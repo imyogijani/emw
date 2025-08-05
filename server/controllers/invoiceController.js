@@ -23,7 +23,6 @@ export const generateInvoicesForOrder = async (orderId) => {
 
   // Group items by seller
   const sellerGroups = {};
-
   order.items.forEach((item) => {
     const sellerId = item.productId.seller.toString();
     if (!sellerGroups[sellerId]) sellerGroups[sellerId] = [];
@@ -31,23 +30,28 @@ export const generateInvoicesForOrder = async (orderId) => {
   });
 
   const invoices = [];
-
   const buyerId = order.userId;
   const paymentMethod = order.paymentMethod;
   const paymentStatus = order.paymentStatus;
-
   let suffix = "A";
 
   for (const [sellerId, items] of Object.entries(sellerGroups)) {
     let subTotal = 0;
+    let totalGST = 0;
     let deliveryCharge = 0;
 
     const invoiceItems = items.map((item) => {
-      const finalPrice = item.variantId?.finalPrice || item.productId.price;
-      const price = item.productId.price;
+      const price = item.price;
+      const finalPrice = item.finalPrice;
       const quantity = item.quantity;
-      const discount = price - finalPrice;
-      subTotal += finalPrice * quantity;
+      const discount = item.discount;
+      const gstPercentage = item.gstPercentage || 0;
+      const gstAmount = item.gstAmount || 0;
+
+      const itemTotal = finalPrice * quantity;
+
+      subTotal += itemTotal;
+      totalGST += gstAmount;
       deliveryCharge += item.deliveryCharge || 0;
 
       return {
@@ -57,10 +61,14 @@ export const generateInvoicesForOrder = async (orderId) => {
         price,
         discount,
         finalPrice,
+        gstPercentage,
+        gstAmount,
       };
     });
 
-    const totalAmount = subTotal + deliveryCharge;
+    const totalAmount = parseFloat(
+      (subTotal + totalGST + deliveryCharge).toFixed(2)
+    );
 
     const invoice = new Invoice({
       invoiceNumber: generateInvoiceNumber(order._id, suffix),
@@ -69,16 +77,18 @@ export const generateInvoicesForOrder = async (orderId) => {
       buyerId,
       items: invoiceItems,
       subTotal,
+      totalGST,
       deliveryCharge,
       totalAmount,
       paymentMethod,
       paymentStatus,
-      deliveryStatus: "processing", // default
+      deliveryStatus: "processing",
     });
 
     await invoice.save();
     invoices.push(invoice);
-    suffix = String.fromCharCode(suffix.charCodeAt(0) + 1); // A -> B -> C...
+
+    suffix = String.fromCharCode(suffix.charCodeAt(0) + 1); // A -> B -> C
   }
 
   return invoices;

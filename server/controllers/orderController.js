@@ -136,6 +136,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   let subTotal = 0;
+  let totalGST = 0;
   let deliveryCharge = 50;
   let couponDiscount = 0;
   let couponCode = null;
@@ -171,7 +172,13 @@ export const createOrder = asyncHandler(async (req, res) => {
           finalPrice = deal.dealPrice;
         }
       }
+      const gstPercentage = product.gstPercentage || 0;
 
+      const gstAmount = parseFloat(
+        ((finalPrice * gstPercentage) / 100) * quantity
+      ).toFixed(2);
+
+      totalGST += parseFloat(gstAmount);
       const productTotal = finalPrice * quantity;
       subTotal += productTotal;
 
@@ -185,6 +192,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         finalPrice,
         discount,
         productTotal,
+        gstAmount: parseFloat(gstAmount),
       };
     })
   );
@@ -255,7 +263,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   const totalAmount = parseFloat(
-    (subTotal + deliveryCharge - couponDiscount).toFixed(2)
+    (subTotal + totalGST + deliveryCharge - couponDiscount).toFixed(2)
   );
 
   const orderItems = items.map((item) => ({
@@ -313,6 +321,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     shippingAddress,
     subTotal,
     totalAmount,
+    totalGST,
     paymentMethod,
     paymentStatus: paymentMethod === "COD" ? "pending" : "pending",
     isPaid: false,
@@ -837,5 +846,3 @@ export const confirmAllItemsReceived = asyncHandler(async (req, res) => {
   await order.save();
   res.json({ success: true, message: "Order fully marked as delivered." });
 });
-
-

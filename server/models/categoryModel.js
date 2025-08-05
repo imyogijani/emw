@@ -29,6 +29,12 @@ const categorySchema = new mongoose.Schema(
       type: String, // URL or path to the image
       default: "",
     },
+    gstPercentage: {
+      type: Number,
+      min: 0,
+      max: 50,
+      default: 0, // default 0% GST
+    },
     brands: [
       {
         type: mongoose.Schema.Types.ObjectId,
