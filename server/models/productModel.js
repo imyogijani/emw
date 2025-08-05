@@ -91,6 +91,11 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    gstPercentage: {
+      type: Number,
+      default: 0, // Default 0% GST if not specified
+      required: true,
+    },
   },
   {
     timestamps: true,

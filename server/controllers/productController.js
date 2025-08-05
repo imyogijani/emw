@@ -30,6 +30,10 @@ export const addProduct = async (req, res) => {
       // isPremium,
     } = req.body;
 
+    // Get seller and user info
+    const seller = await Seller.findOne({ user: req.userId });
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
+
     // Validate category
     const categoryDoc = await Category.findById(category);
     if (!categoryDoc)
@@ -37,6 +41,7 @@ export const addProduct = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid category" });
 
+    let gstPercentage = 0;
     // Validate subcategory
     if (subcategory) {
       const subDoc = await Category.findById(subcategory);
@@ -44,6 +49,10 @@ export const addProduct = async (req, res) => {
         return res
           .status(400)
           .json({ success: false, message: "Invalid subcategory" });
+
+      if (seller.kycVerified && seller.gstNumber) {
+        gstPercentage = subDoc.gstPercentage || 0;
+      }
     }
 
     // Parse variants
@@ -84,10 +93,6 @@ export const addProduct = async (req, res) => {
         parsedVariants = [variants];
       }
     }
-
-    // Get seller and user info
-    const seller = await Seller.findOne({ user: req.userId });
-    if (!seller) return res.status(404).json({ message: "Seller not found" });
 
     //  Step 1: Get ALL active, paid subscriptions for this user
     const userSubs = await UserSubscription.find({
@@ -179,6 +184,7 @@ export const addProduct = async (req, res) => {
       variants: parsedVariants,
       technicalDetails: techRef,
       isPremium: allowPremium,
+      gstPercentage,
     });
 
     await product.save();

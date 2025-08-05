@@ -15,6 +15,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
   }
 
   let subTotal = 0;
+  let totalGST = 0;
   let deliveryCharge = 50;
 
   const items = await Promise.all(
@@ -47,7 +48,13 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       }
 
       const productTotal = finalPrice * quantity;
+      const gstPercentage = product.gstPercentage || 0;
+      const gstAmount = parseFloat(
+        ((finalPrice * gstPercentage) / 100) * quantity
+      ).toFixed(2);
+
       subTotal += productTotal;
+      totalGST += parseFloat(gstAmount);
 
       return {
         product,
@@ -59,18 +66,21 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
         price: basePrice,
         finalPrice,
         productTotal,
+        gstPercentage,
+        gstAmount: parseFloat(gstAmount),
       };
     })
   );
 
-  const totalAmount = subTotal + deliveryCharge;
+  const totalAmount = subTotal + totalGST + deliveryCharge;
 
   res.status(200).json({
     success: true,
     items,
-    subTotal,
+    subTotal: parseFloat(subTotal.toFixed(2)),
     deliveryCharge,
-    totalAmount,
+    totalAmount: parseFloat(totalAmount.toFixed(2)),
+    totalGST: parseFloat(totalGST.toFixed(2)),
   });
 });
 
@@ -112,6 +122,7 @@ export const applyCoupon = asyncHandler(async (req, res) => {
   }
 
   let subTotal = 0;
+  let totalGST = 0;
   const deliveryCharge = 50;
   const validItems = [];
 
@@ -141,8 +152,15 @@ export const applyCoupon = asyncHandler(async (req, res) => {
           finalPrice = deal.dealPrice;
         }
       }
-
       const productTotal = finalPrice * quantity;
+
+      //  GST Calculation
+      const gstPercentage = product.gstPercentage || 0;
+      const gstAmount = parseFloat(
+        ((finalPrice * gstPercentage) / 100) * quantity
+      ).toFixed(2);
+
+      totalGST += parseFloat(gstAmount);
       subTotal += productTotal;
 
       const isProductMatched = offer.products?.includes(product._id);
@@ -165,7 +183,9 @@ export const applyCoupon = asyncHandler(async (req, res) => {
         sellerId: product.seller,
         quantity,
         finalPrice,
-        productTotal,
+        productTotal: parseFloat(productTotal),
+        gstPercentage,
+        gstAmount: parseFloat(gstAmount),
       };
     })
   );
@@ -197,7 +217,7 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     }
   }
 
-  const totalAmount = subTotal + deliveryCharge - discount;
+  const totalAmount = subTotal + totalGST + deliveryCharge - discount;
 
   res.status(200).json({
     success: true,
@@ -207,7 +227,8 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     subTotal,
     deliveryCharge,
     discount,
-    totalAmount,
+    totalAmount: parseFloat(totalAmount.toFixed(2)),
+    totalGST: parseFloat(totalGST.toFixed(2)),
     items,
   });
 });

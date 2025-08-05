@@ -69,6 +69,7 @@ const __dirname = path.dirname(__filename);
 //     });
 //   }
 // };
+
 const registerController = async (req, res) => {
   try {
     const {
@@ -87,6 +88,7 @@ const registerController = async (req, res) => {
       address,
       names,
       phone,
+      gstNumber,
     } = req.body;
 
     const files = req.files;
@@ -169,6 +171,34 @@ const registerController = async (req, res) => {
       parsedCategories = req.body.categories || [];
     }
 
+    // New add gst :
+    let validatedGST = null;
+
+    if (role === "shopowner" && gstNumber) {
+      const gstRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+      //  Check format
+      if (!gstRegex.test(gstNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid GST number format",
+        });
+      }
+
+      //  Check if already exists in another seller
+      const existingGST = await Seller.findOne({ gstNumber: gstNumber.trim() });
+      if (existingGST) {
+        return res.status(409).json({
+          success: false,
+          message: "GST number already in use",
+        });
+      }
+
+      //  Save for later use
+      validatedGST = gstNumber.trim();
+    }
+
     // 5. Save user
     const user = await new userModel(userData).save();
 
@@ -186,6 +216,8 @@ const registerController = async (req, res) => {
         address: user.address || "",
         specialist: [],
         status: "active",
+        gstNumber: validatedGST, //  save it here
+        kycVerified: false,
       });
 
       const savedSeller = await seller.save();
@@ -335,6 +367,43 @@ export const updateProfileController = async (req, res) => {
         const seller = await Seller.findOne({ user: user._id });
         const existingImages = seller?.shopImages || [];
         updateSellerData.shopImages = [...existingImages, ...newImages];
+      }
+
+      const seller = await Seller.findOne({ user: userId });
+
+      // === GST Number Handling ===
+      if (req.body.gstNumber !== undefined) {
+        const gst = req.body.gstNumber.trim();
+
+        // If GST is already set, prevent updating it
+        if (seller.gstNumber) {
+          return res.status(400).json({
+            success: false,
+            message: "GST Number is already set and cannot be changed",
+          });
+        }
+
+        // Validate format
+        const gstRegex =
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        if (!gstRegex.test(gst)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid GST Number format",
+          });
+        }
+
+        // Check uniqueness
+        const existingGST = await Seller.findOne({ gstNumber: gst });
+        if (existingGST) {
+          return res.status(409).json({
+            success: false,
+            message: "This GST Number is already used by another seller",
+          });
+        }
+
+        // Save it to update object
+        updateSellerData.gstNumber = gst;
       }
 
       // Handle categories (replace entirely)

@@ -83,9 +83,11 @@ const orderSchema = new mongoose.Schema(
     items: [orderItemSchema],
     shippingAddress: shippingAddressSchema,
 
-    totalAmount: { type: Number, required: true }, // includes product + delivery charges
+    totalAmount: { type: Number, required: true }, // includes product + delivery charges +GSt
     subTotal: { type: Number, required: true }, // only product total
-
+    totalGST: {
+      type: Number,
+    },
     paymentMethod: {
       type: String,
       enum: ["COD", "UPI", "QR", "NetBanking", "Card", "Wallet"],

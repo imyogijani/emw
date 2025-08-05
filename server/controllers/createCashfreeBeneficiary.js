@@ -15,6 +15,8 @@ import Seller from "../models/sellerModel.js";
 //   "address1": "Rajkot, Gujarat"
 // }
 // ```
+
+
 export const createCashfreeBeneficiary = async (req, res) => {
   try {
     const seller = {
