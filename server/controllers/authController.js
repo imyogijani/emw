@@ -93,7 +93,12 @@ const registerController = async (req, res) => {
 
     const files = req.files;
     const shopImage = files?.shopImage?.[0]?.filename || null;
-    const shopImages = files?.shopImages?.map((file) => file.filename) || [];
+    const shopImages =
+      files?.shopImages?.map((file) => `/uploads/shopowner/${file.filename}`) ||
+      [];
+    if (shopImage) {
+      shopImages.unshift(`/uploads/shopowner/${shopImage}`);
+    }
 
     // 1. Check existing user
     const existingUser = await userModel.findOne({ email });

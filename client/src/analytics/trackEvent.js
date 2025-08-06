@@ -44,7 +44,7 @@ export const trackEvent = async (eventName, params = {}) => {
       },
     ],
   };
-
+  // console.log("Payload of trake event:",payload)
   try {
     await axios.post("/api/ga-proxy/ga-event", { payload });
     // Optionally: console.log("Event tracked");

@@ -16,6 +16,27 @@ export default function AdminOffers() {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingOfferId, setEditingOfferId] = useState(null);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    code: "",
+    type: "CART", // CART, CATEGORY, BRAND, PRODUCT
+    discountType: "PERCENTAGE", // PERCENTAGE, FLAT
+    discountValue: 0,
+    maxDiscountAmount: 0,
+    minCartValue: 0,
+    categories: [],
+    brands: [],
+    products: [],
+    usageLimit: 0,
+    perUserLimit: 0,
+    startDate: "",
+    endDate: "",
+  });
+
   useEffect(() => {
     fetchShops();
     fetchAllProducts();
@@ -24,8 +45,9 @@ export default function AdminOffers() {
 
   const fetchShops = async () => {
     try {
-      const res = await axios.get("/api/admin/shops");
-      setShops(res.data.shops || []);
+      const res = await axios.get("/api/stores");
+      setShops(res.data.stores || []);
+      console.log("Admin offer page in trore fetch", res);
     } catch (e) {
       setShops([]);
     }
@@ -36,6 +58,7 @@ export default function AdminOffers() {
     try {
       const res = await axios.get("/api/products?populateCategory=true");
       setAllProducts(res.data.products || []);
+      console.log("Admin all products", res.data.products);
     } catch (e) {
       setAllProducts([]);
     }
@@ -44,8 +67,9 @@ export default function AdminOffers() {
   const fetchOffers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/api/admin/offers");
+      const res = await axios.get("/api/offers/all");
       setOffers(res.data.offers || []);
+      console.log("Admin Offers", res.data.offers);
     } catch (e) {
       setOffers([]);
     } finally {
@@ -53,30 +77,88 @@ export default function AdminOffers() {
     }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!selectedShop || !selectedProduct || !offerTitle || !offerDiscount)
+  //     return;
+  //   setLoading(true);
+  //   try {
+  //     await axios.post("/api/admin/offers", {
+  //       shop: selectedShop,
+  //       product: selectedProduct,
+  //       title: offerTitle,
+  //       description: offerDescription,
+  //       discount: offerDiscount,
+  //       price: offerPrice,
+  //     });
+  //     setOfferTitle("");
+  //     setOfferDescription("");
+  //     setOfferDiscount("");
+  //     setOfferPrice("");
+  //     fetchOffers();
+  //     toast.success("Offer added to Today's Deals!");
+  //   } catch (e) {
+  //     toast.error("Failed to add offer");
+  //   }
+  //   setLoading(false);
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedShop || !selectedProduct || !offerTitle || !offerDiscount)
-      return;
-    setLoading(true);
+    const token = localStorage.getItem("token");
+
+    const payload = {
+      ...formData,
+      discountValue: Number(formData.discountValue),
+      maxDiscountAmount: Number(formData.maxDiscountAmount),
+      minCartValue: Number(formData.minCartValue),
+      usageLimit: Number(formData.usageLimit),
+      perUserLimit: Number(formData.perUserLimit),
+    };
+
     try {
-      await axios.post("/api/admin/offers", {
-        shop: selectedShop,
-        product: selectedProduct,
-        title: offerTitle,
-        description: offerDescription,
-        discount: offerDiscount,
-        price: offerPrice,
-      });
-      setOfferTitle("");
-      setOfferDescription("");
-      setOfferDiscount("");
-      setOfferPrice("");
-      fetchOffers();
-      toast.success("Offer added to Today's Deals!");
-    } catch (e) {
-      toast.error("Failed to add offer");
+      if (isEditing && editingOfferId) {
+        await axios.put(`/api/offers/update/${editingOfferId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Offer updated successfully!");
+      } else {
+        await axios.post("/api/offers/create", payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Offer created successfully!");
+      }
+
+      fetchOffers(); // refresh list
+      resetForm(); // reset form
+    } catch (error) {
+      toast.error(
+        isEditing ? "Failed to update offer" : "Failed to create offer"
+      );
+      console.error(error);
     }
-    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      code: "",
+      type: "CART",
+      discountType: "PERCENTAGE",
+      discountValue: 0,
+      maxDiscountAmount: 0,
+      minCartValue: 0,
+      categories: [],
+      brands: [],
+      products: [],
+      usageLimit: 0,
+      perUserLimit: 0,
+      startDate: "",
+      endDate: "",
+    });
+    setIsEditing(false);
+    setEditingOfferId(null);
   };
 
   // Remove offer handler
@@ -84,7 +166,7 @@ export default function AdminOffers() {
     if (!window.confirm("Are you sure you want to remove this offer?")) return;
     setLoading(true);
     try {
-      await axios.delete(`/api/admin/offers/${offerId}`);
+      await axios.delete(`/api/offers/delete/${offerId}`);
       fetchOffers();
       toast.success("Offer removed successfully");
     } catch (e) {
@@ -177,14 +259,31 @@ export default function AdminOffers() {
         ) : (
           <ul>
             {offers.map((offer) => (
-              <li key={offer._id} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+              <li
+                key={offer._id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
                 <span>
                   <b>{offer.title}</b> - {offer.product?.name} (
-                  {offer.shop?.shopName || offer.shop?.names || offer.shop?.email}
+                  {offer.shop?.shopName ||
+                    offer.shop?.names ||
+                    offer.shop?.email}
                   ) - {offer.discount}% off
                 </span>
                 <button
-                  style={{ marginLeft: 16, background: '#dc3545', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}
+                  style={{
+                    marginLeft: 16,
+                    background: "#dc3545",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "4px 10px",
+                    cursor: "pointer",
+                  }}
                   onClick={() => handleRemoveOffer(offer._id)}
                   disabled={loading}
                 >

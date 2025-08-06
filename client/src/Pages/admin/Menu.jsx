@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../../utils/axios";
 import { FaEdit, FaTrash, FaPlus, FaEye } from "react-icons/fa";
 import "./Menu.css";
 import { toast } from "react-toastify";
@@ -14,17 +14,30 @@ const Menu = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [sellers, setSellers] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [categories, setCategories] = useState([]); // Added categories state
+  // const [categories, setCategories] = useState([]); // Added categories state
+  // const [formData, setFormData] = useState({
+  //   name: "",
+  //   description: "",
+  //   price: "",
+  //   category: "",
+  //   subcategory: "",
+  //   stock: "",
+  //   status: "In Stock",
+  //   image: null,
+  // });
+
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    subcategory: "",
-    stock: "",
-    status: "In Stock",
-    image: null,
+    title: "",
+    filterType: "custom",
+    filterValue: "",
+    customProducts: [],
+    productLimit: 5,
+    position: 0,
+    status: "active",
   });
 
   useEffect(() => {
@@ -35,29 +48,45 @@ const Menu = () => {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/categories", {
+      const response = await axios.get("/api/category/get-category", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCategories(response.data.categories || []);
+      console.log("Categories menu item page:", response.data.categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
       setCategories([]);
     }
   };
 
+  //  const fetchInitialData = async () => {
+  //   try {
+  //     const [catRes, brandRes, sellerRes, productRes] = await Promise.all([
+  //       axios.get("/api/category/get-category"),
+  //       axios.get("/api/brands"),
+  //       axios.get("/api/stores"),
+  //       axios.get("/api/menu-items/products"),
+  //     ]);
+  //     setCategories(catRes.data.categories || []);
+  //     setBrands(brandRes.data.brands || []);
+  //     setSellers(sellerRes.data.stores || []);
+  //     setProducts(productRes.data.products || []);
+  //   } catch (err) {
+  //     console.error("Failed to fetch:", err);
+  //   }
+  // };
+
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/menu-items", {
+      const response = await axios.get("/api/menu-items/products", {
         headers: { Authorization: `Bearer ${token}` },
         params: { populateCategory: "true" },
       });
 
-      if (!response.data.products || response.data.products.length === 0) {
-        const sampleProducts = [
-          // ... sample products data remains unchanged
-        ];
-        setProducts(sampleProducts);
+      if (response.data) {
+        setProducts(response.data);
+        console.log("Menu itempage product: ", response.data);
       } else {
         setProducts(response.data.products || []);
       }
@@ -125,16 +154,53 @@ const Menu = () => {
       console.error("Error saving product:", error);
     }
   };
+  const filteredProducts = Array.isArray(products)
+    ? products.filter((product) => {
+        const matchesSearch = product.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesCategory =
+          !categoryFilter || product.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+      })
+    : [];
+  // Create menu-items for home page --Use Case
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        productLimit: Number(formData.productLimit),
+        position: Number(formData.position),
+      };
 
-  // Filter products based on search term and category
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      !categoryFilter || product.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+      // If not custom, remove customProducts
+      if (formData.filterType !== "custom") {
+        delete payload.customProducts;
+      } else {
+        delete payload.filterValue;
+      }
+
+      await axios.post("/api/menu-items", payload);
+      toast.success("Menu Item created!");
+      resetForm();
+    } catch (err) {
+      toast.error("Failed to create menu item");
+      console.error(err);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      filterType: "custom",
+      filterValue: "",
+      customProducts: [],
+      productLimit: 5,
+      position: 0,
+      status: "active",
+    });
+  };
 
   return (
     <div className="admin-menu">
@@ -242,6 +308,6 @@ const Menu = () => {
 };
 
 // Add this route to render the AdminOffers page
-<Route path="/admin/offers" element={<AdminOffers />} />
+<Route path="/admin/offers" element={<AdminOffers />} />;
 
 export default Menu;

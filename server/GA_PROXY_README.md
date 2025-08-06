@@ -13,10 +13,10 @@ POST `/api/analytics/ga-event`
 
 Add these to your `.env` file:
 
-```
+<!-- ```
 GA_MEASUREMENT_ID=G-XXXXXXXXXX
 GA_API_SECRET=YOUR_GA4_API_SECRET
-```
+``` -->
 
 ## Example Frontend Usage
 

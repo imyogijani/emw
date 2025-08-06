@@ -34,6 +34,12 @@ export const addProduct = async (req, res) => {
     const seller = await Seller.findOne({ user: req.userId });
     if (!seller) return res.status(404).json({ message: "Seller not found" });
 
+    // if ( !seller.bankDetails || !seller.razorpayAccountId) {
+    //   return res.status(400).json({
+    //     error: "Please complete bank details and KYC before adding products.",
+    //   });
+    // }
+
     // Validate category
     const categoryDoc = await Category.findById(category);
     if (!categoryDoc)
