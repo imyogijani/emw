@@ -38,10 +38,11 @@ const userSubscriptionSchema = new mongoose.Schema({
     enum: ["paid", "failed", "pending"],
     default: "pending",
   },
+  isAutopay: { type: Boolean, default: false },
+  razorpaySubscriptionId: { type: String },
 });
 
 userSubscriptionSchema.index({ user: 1, isActive: 1, endDate: -1 });
-
 
 const UserSubscription = mongoose.model(
   "UserSubscription",

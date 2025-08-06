@@ -20,6 +20,7 @@ const payoutLogSchema = new mongoose.Schema(
       enum: ["online", "cod"],
       required: true,
     },
+    razorpayTransferId: String,
     isSettled: {
       type: Boolean,
       default: false,

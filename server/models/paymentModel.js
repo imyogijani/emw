@@ -119,7 +119,16 @@ const paymentSchema = new mongoose.Schema(
     },
     method: {
       type: String,
-      enum: ["UPI", "QR", "NetBanking", "Card", "Wallet", "COD"],
+      enum: [
+        "UPI",
+        "QR",
+        "NetBanking",
+        "Card",
+        "Wallet",
+        "COD",
+        "autopay",
+        "manual",
+      ],
       required: true,
     },
     gateway: {
@@ -142,6 +151,7 @@ const paymentSchema = new mongoose.Schema(
     receipt: {
       type: String,
     },
+    transferId: String,
     deliveryPartner: {
       type: String,
       enum: ["Shiprocket", "Delhivery", "Shadowfax", null],

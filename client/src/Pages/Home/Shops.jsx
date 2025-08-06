@@ -202,6 +202,8 @@ export default function Shops() {
       });
 
       setStores(response?.stores || []);
+
+      // console.log("Store Image", response.stores[1].shopImage);
       console.log("Store List Fetched:", response.stores);
     } catch (err) {
       console.error("Error loading stores:", err);
@@ -336,11 +338,10 @@ export default function Shops() {
       <div className="store-image-container">
         {/* <img src={store.shopImage} alt={store.shopName} loading="lazy" /> */}
         <img
-          src={processImageUrl(store.shopImage)}
+          src={processImageUrlSingle(store.shopImage)}
           alt={store.shopName}
           loading="lazy"
         />
-
         {store.verified && (
           <div className="store-verified-badge">
             <Award size={14} />
@@ -471,6 +472,13 @@ export default function Shops() {
     }
 
     return "/images/offer1.png";
+  };
+
+  const processImageUrlSingle = (image) => {
+    if (image && image.startsWith("/uploads")) {
+      return `http://localhost:8080${image}`;
+    }
+    return image || "/images/offer1.png";
   };
 
   const calculateDiscountedPriceFinal = (price, discount) => {

@@ -21,17 +21,17 @@ export const assignSubscriptionToUser = async (
       throw new Error("User not found");
     }
 
-    // // Check if same plan is already active
-    // const existingActive = await UserSubscription.findOne({
-    //   user: userId,
-    //   subscription: subscriptionId,
-    //   isActive: true,
-    // });
+    // Check if same plan is already active
+    const existingActive = await UserSubscription.findOne({
+      user: userId,
+      subscription: subscriptionId,
+      isActive: true,
+    });
 
-    // if (existingActive) {
-    //   throw new Error("User already has this subscription active.");
-    //   // Optional: return existingActive;
-    // }
+    if (existingActive) {
+      // throw new Error("User already has this subscription active.");
+      // Optional: return existingActive;
+    }
 
     const startDate = new Date();
     const endDate = new Date();

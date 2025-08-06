@@ -67,15 +67,23 @@ const sellerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    razorpayContactId: {
-      type: String,
-      default: null,
+
+    razorpayAccountId: String, // Routes Account ID
+    bankDetails: {
+      beneficiary_name: String,
+      account_number: String,
+      ifsc: String,
     },
 
-    razorpayFundAccountId: {
-      type: String,
-      default: null,
-    },
+    // razorpayContactId: {
+    //   type: String,
+    //   default: null,
+    // },
+
+    // razorpayFundAccountId: {
+    //   type: String,
+    //   default: null,
+    // },
     cashfreeBeneId: String, // Optional: For integration with Cashfree or similar payment gateways
   },
   { timestamps: true }
