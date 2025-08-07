@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaListAlt } from "react-icons/fa";
 import "../../App.css";
 import "./SellerCustomers.css";
+import axios from "../../utils/axios";
 
 const SellerCustomers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -14,6 +15,12 @@ const SellerCustomers = () => {
   // Applied filter states
   const [appliedSearchText, setAppliedSearchText] = useState("");
   const [appliedCitySearch, setAppliedCitySearch] = useState("");
+  const [customers, setCustomers] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const seller = JSON.parse(localStorage.getItem("user"));
 
   const handleApplyFilters = () => {
     setAppliedSearchText(searchText);
@@ -27,16 +34,72 @@ const SellerCustomers = () => {
     setAppliedCitySearch("");
   };
 
-  const handleViewCustomer = (customer) => {
+  const handleViewCustomer = async (customer) => {
     setSelectedCustomer(customer);
     setShowViewModal(true);
+
+    try {
+      const response = await axios.get(
+        `/api/users/customer/${customer.customerId}`
+      );
+
+      if (response.data.success) {
+        const userData = response.data.customer;
+
+        setSelectedCustomer({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          address: userData.address,
+          totalOrders: userData.totalOrders,
+          totalSpent: userData.totalSpent,
+          lastOrder: userData.lastOrder,
+          city: customer.city, // Optional: from list
+          orders: [], // placeholder if needed
+        });
+
+        setShowViewModal(true);
+      } else {
+        alert("Customer not found.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch customer details", error);
+      alert("Something went wrong while fetching customer data.");
+    }
   };
 
-  const handleViewOrders = (customer) => {
-    setSelectedCustomer(customer);
-    setShowOrdersModal(true);
-  };
+  // const handleViewOrders = (customer) => {
+  //   setSelectedCustomer(customer);
+  //   setShowOrdersModal(true);
+  // };
 
+  // console.log("sellerId", seller.sellerId._id);
+
+  const handleViewOrders = async (customer) => {
+    setSelectedCustomer(customer); // for modal header or name etc.
+    setShowOrdersModal(true); // to show modal
+
+    try {
+      const response = await axios.get("/api/sellers/customer-orders", {
+        params: {
+          customerId: customer.customerId,
+          sellerId: seller.sellerId._id,
+        },
+      });
+
+      const { data, overallTotalAmount, total } = response.data;
+
+      setSelectedCustomer((prevCustomer) => ({
+        ...prevCustomer,
+        orders: data,
+        totalSpent: overallTotalAmount,
+        totalOrders: total,
+      }));
+    } catch (err) {
+      console.error("Failed to fetch order history", err);
+    }
+  };
   const closeViewModal = () => {
     setShowViewModal(false);
     setSelectedCustomer(null);
@@ -48,15 +111,46 @@ const SellerCustomers = () => {
   };
 
   // Filter customers by id or name and city
-  const filteredCustomers = [].filter((customer) => {
-    const matchesText =
-      customer.id.toLowerCase().includes(appliedSearchText.toLowerCase()) ||
-      customer.name.toLowerCase().includes(appliedSearchText.toLowerCase());
-    const matchesCity = customer.city
-      .toLowerCase()
-      .includes(appliedCitySearch.toLowerCase());
-    return matchesText && matchesCity;
-  });
+  // const filteredCustomers = [].filter((customer) => {
+  //   const matchesText =
+  //     customer.id.toLowerCase().includes(appliedSearchText.toLowerCase()) ||
+  //     customer.name.toLowerCase().includes(appliedSearchText.toLowerCase());
+  //   const matchesCity = customer.city
+  //     .toLowerCase()
+  //     .includes(appliedCitySearch.toLowerCase());
+  //   return matchesText && matchesCity;
+  // });
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      setLoading(true);
+      try {
+        const params = {
+          page,
+          limit: 10,
+        };
+
+        if (appliedSearchText) params.search = appliedSearchText;
+        if (appliedCitySearch) params.city = appliedCitySearch;
+
+        const response = await axios.get("/api/sellers/seller-customer", {
+          params,
+        });
+
+        setCustomers(response.data.data);
+        setTotalPages(Math.ceil(response.data.total / 10)); // If backend gives total
+      } catch (error) {
+        console.error("Failed to fetch customers", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, [page, appliedSearchText, appliedCitySearch]);
+
+  // console.log("selectedCustomer data:", selectedCustomer);
+  const filteredCustomers = customers;
 
   return (
     <div className="admin-users">
@@ -101,18 +195,31 @@ const SellerCustomers = () => {
             <p className="no-customers-found">No customers found.</p>
           ) : (
             filteredCustomers.map((customer) => (
-              <div key={customer.id} className="customer-card">
+              <div key={customer.customerId} className="customer-card">
                 <div className="customer-card-header">
-                  <h3>{customer.name}</h3>
-                  <span className="customer-id">ID: {customer.id}</span>
+                  <h3>{customer.customerName}</h3>
+                  <span className="customer-id">ID: {customer.customerId}</span>
                 </div>
                 <div className="customer-card-body">
-                  <p><strong>Email:</strong> {customer.email}</p>
-                  <p><strong>Phone:</strong> {customer.phone}</p>
-                  <p><strong>City:</strong> {customer.city}</p>
-                  <p><strong>Total Orders:</strong> {customer.orders.length}</p>
-                  <p><strong>Total Spent:</strong> ₹{customer.totalSpent.toFixed(2)}</p>
-                  <p><strong>Last Order:</strong> {customer.lastOrder}</p>
+                  <p>
+                    <strong>Email:</strong> {customer.email}
+                  </p>
+                  <p>
+                    <strong>Phone:</strong> {customer.phone}
+                  </p>
+                  <p>
+                    <strong>City:</strong> {customer.city}
+                  </p>
+                  <p>
+                    <strong>Total Orders:</strong> {customer.orderCount}
+                  </p>
+                  <p>
+                    <strong>Total Spent:</strong> ₹
+                    {customer.totalSpent.toFixed(2)}
+                  </p>
+                  <p>
+                    <strong>Last Order:</strong> {customer.latestOrderDate}
+                  </p>
                 </div>
                 <div className="customer-card-actions">
                   <button
@@ -161,11 +268,10 @@ const SellerCustomers = () => {
                   <strong>Phone:</strong> {selectedCustomer.phone}
                 </p>
                 <p>
-                  <strong>City:</strong> {selectedCustomer.city}
+                  <strong>Address:</strong> {selectedCustomer.address}
                 </p>
                 <p>
-                  <strong>Total Orders:</strong>{" "}
-                  {selectedCustomer.orders.length}
+                  <strong>Total Orders:</strong> {selectedCustomer.totalOrders}
                 </p>
                 <p>
                   <strong>Total Spent:</strong> ₹
@@ -193,7 +299,7 @@ const SellerCustomers = () => {
             <div className="modal-body">
               <div className="customer-info">
                 <p>
-                  <strong>Customer ID:</strong> {selectedCustomer.id}
+                  <strong>Customer ID:</strong> {selectedCustomer.customerId}
                 </p>
                 <p>
                   <strong>Email:</strong> {selectedCustomer.email}
@@ -202,8 +308,7 @@ const SellerCustomers = () => {
                   <strong>Phone:</strong> {selectedCustomer.phone}
                 </p>
                 <p>
-                  <strong>Total Orders:</strong>{" "}
-                  {selectedCustomer.orders.length}
+                  <strong>Total Orders:</strong> {selectedCustomer.totalOrders}
                 </p>
                 <p>
                   <strong>Total Spent:</strong> ₹
@@ -212,58 +317,54 @@ const SellerCustomers = () => {
               </div>
               <div className="order-history">
                 <h3>Order History</h3>
-                {selectedCustomer.orders.map((order) => (
-                  <div key={order.id} className="order-card">
-                    <div className="order-header">
-                      <h4>Order #{order.id}</h4>
-                      <span
-                        className={`status-badge ${order.status
-                          .toLowerCase()
-                          .replace(" ", "-")}`}
-                      >
-                        {order.status}
-                      </span>
-                    </div>
-                    <div className="order-details">
-                      <p>
-                        <strong>Date:</strong> {order.date}
-                      </p>
-                      <p>
-                        <strong>Items:</strong> {order.items}
-                      </p>
-                      <table className="items-table">
-                        <thead>
-                          <tr>
-                            <th>Item</th>
-                            <th>Quantity</th>
-                            <th>Rate</th>
-                            <th>Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {order.orderDetails.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.name}</td>
-                              <td>{item.quantity}</td>
-                              <td>₹{item.rate.toFixed(2)}</td>
-                              <td>₹{item.total.toFixed(2)}</td>
+                {Array.isArray(selectedCustomer.orders) &&
+                selectedCustomer.orders.length > 0 ? (
+                  selectedCustomer.orders.map((order) => (
+                    <div key={order.orderId} className="order-card">
+                      <div className="order-header">
+                        <h4>Order #{order.orderId}</h4>
+                      </div>
+                      <div className="order-details">
+                        <p>
+                          <strong>Date:</strong>{" "}
+                          {new Date(order.orderDate).toLocaleDateString()}
+                        </p>
+                        <table className="items-table">
+                          <thead>
+                            <tr>
+                              <th>Product ID</th>
+                              <th>Quantity</th>
+                              <th>Rate</th>
+                              <th>Total</th>
                             </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr>
-                            <td colSpan="3" className="total-label">
-                              Order Total:
-                            </td>
-                            <td className="total-amount">
-                              ₹{order.total.toFixed(2)}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {order.products.map((product, index) => (
+                              <tr key={index}>
+                                <td>{product.productId}</td>
+                                <td>{product.quantity}</td>
+                                <td>₹{product.finalPrice.toFixed(2)}</td>
+                                <td>₹{product.totalPrice.toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr>
+                              <td colSpan="3" className="total-label">
+                                Order Total:
+                              </td>
+                              <td className="total-amount">
+                                ₹{order.totalAmount.toFixed(2)}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p>No orders found for this customer.</p>
+                )}
               </div>
             </div>
           </div>

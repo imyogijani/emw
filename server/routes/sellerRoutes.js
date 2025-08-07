@@ -4,6 +4,8 @@ import {
   getRecentOrdersForSeller,
   getSalesData,
   getSellerOrderHistory,
+  getSellerCustomer,
+  getCustomerOrdersBySeller,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -36,11 +38,25 @@ router.get(
   getSellerOrderHistory
 );
 
-router.post(
-  "/create-cashfree-beneficiary",
+router.get(
+  "/seller-customer",
   authenticateToken,
   authorizeSeller,
-  createCashfreeBeneficiary
+  getSellerCustomer
 );
+
+router.get(
+  "/customer-orders",
+  authenticateToken,
+  authorizeSeller,
+  getCustomerOrdersBySeller
+);
+
+// router.post(
+//   "/create-cashfree-beneficiary",
+//   authenticateToken,
+//   authorizeSeller,
+//   createCashfreeBeneficiary
+// );
 
 export default router;

@@ -91,18 +91,20 @@ const SellerProducts = () => {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editProduct) return;
+
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `/api/products/${editProduct._id}`,
-        {
-          category: editCategory,
-          status: editStatus,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+
+      //  Create payload dynamically
+      const updatePayload = {
+        category: editCategory,
+        status: editStatus,
+      };
+
+      await axios.patch(`/api/products/${editProduct._id}`, updatePayload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       toast.success("Product updated successfully");
       closeEditModal();
       fetchProducts();
@@ -166,7 +168,11 @@ const SellerProducts = () => {
               <div key={product._id} className="product-card">
                 <div className="product-card-header">
                   <img
-                    src={product.images && product.images.length > 0 ? product.images[0] : "https://via.placeholder.com/150"}
+                    src={
+                      product.images && product.images.length > 0
+                        ? product.images[0]
+                        : "https://via.placeholder.com/150"
+                    }
                     alt={product.name}
                     className="product-card-image"
                   />

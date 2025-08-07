@@ -14,47 +14,6 @@ import { generateInvoicesForOrder } from "./invoiceController.js";
 import { createNotification } from "./notificationController.js";
 import Counter from "../models/counterModel.js";
 
-// export const getUserOrders = async (req, res) => {
-//   try {
-//     const orders = await Order.find({ user: req.userId }).sort({
-//       createdAt: -1,
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       orders,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching user orders:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Error fetching orders",
-//       error: error.message,
-//     });
-//   }
-// };
-
-// export const getAllOrdersAdmin = async (req, res) => {
-//   try {
-//     const orders = await Order.find()
-//       .populate("user", "name email")
-//       .sort({ createdAt: -1 });
-//     res.status(200).json({
-//       success: true,
-//       orders,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching all orders for admin:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Error fetching all orders",
-//       error: error.message,
-//     });
-//   }
-// };
-// GET /admin/orders?page=1&limit=10&orderStatus=delivered&paymentStatus=paid&paymentMethod=UPI&fromDate=2024-07-01&toDate=2024-07-31
-// Authorization: Bearer <admin-token>
-
 export const getAllOrdersAdmin = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;
@@ -153,6 +112,31 @@ export const createOrder = asyncHandler(async (req, res) => {
       const discount = product.discount;
       let basePrice = product.price;
       let finalPrice = product.finalPrice; // default: price after discount
+
+      //  Product Out of Stock Check
+      if (product.status === "Out of Stock") {
+        return res.status(400).json({
+          success: false,
+          message: `${product.name} is out of stock.`,
+        });
+      }
+
+      //  Stock Availability Check
+      let availableStock = 0;
+      if (variant) {
+        availableStock = variant.stock ?? 0;
+      } else {
+        availableStock = product.stock ?? 0;
+      }
+
+      if (availableStock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `${
+            product.title || product.name
+          } has only ${availableStock} in stock.`,
+        });
+      }
 
       if (variant) {
         basePrice = variant.price ?? product.price;
@@ -499,16 +483,16 @@ export const getOrderTimeline = asyncHandler(async (req, res) => {
 export const getSellerOrderHistory = asyncHandler(async (req, res) => {
   const userId = req.userId;
 
-  //  Step 1: Find seller by userId
   const seller = await Seller.findOne({ user: userId });
   if (!seller) {
-    return res.status(404).json({ message: "Seller not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Seller not found" });
   }
-
   const sellerId = seller._id;
 
-  //  Step 2: Build filters
-  const {
+  // Query Params
+  let {
     page = 1,
     limit = 10,
     orderStatus,
@@ -516,68 +500,81 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     productId,
     from,
     to,
+    date,
+    city,
   } = req.query;
 
+  page = parseInt(page);
+  limit = parseInt(limit);
   const skip = (page - 1) * limit;
 
-  //  Step 3: Seller's product IDs
-  const sellerProducts = await Product.find({ seller: sellerId }).select("_id");
-  const productIds = sellerProducts.map((p) => p._id);
+  //  Default date range = last 30 days (if not filtering by singleDate(date))
+  const now = new Date();
+  const defaultFrom = new Date();
+  defaultFrom.setDate(now.getDate() - 30);
 
+  // Date logic
+  let createdAtFilter = {};
+  if (date) {
+    const parsedDate = new Date(date);
+    if (!isNaN(parsedDate)) {
+      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
+      createdAtFilter = { $gte: startOfDay, $lte: endOfDay };
+    }
+  } else {
+    from = from ? new Date(from) : defaultFrom;
+    to = to ? new Date(to) : now;
+    createdAtFilter = { $gte: from, $lte: to };
+  }
+
+  //  Build match filter
   const matchStage = {
-    "items.productId": { $in: productIds },
+    "items.sellerId": sellerId,
+    createdAt: createdAtFilter,
   };
 
-  if (orderStatus) {
-    matchStage.orderStatus = orderStatus;
-  }
-
-  if (paymentStatus) {
-    matchStage.paymentStatus = paymentStatus;
-  }
-
+  if (orderStatus) matchStage.orderStatus = orderStatus;
+  if (paymentStatus) matchStage.paymentStatus = paymentStatus;
   if (productId && mongoose.Types.ObjectId.isValid(productId)) {
     matchStage["items.productId"] = mongoose.Types.ObjectId(productId);
   }
 
-  if (from || to) {
-    matchStage.createdAt = {};
-    if (from) matchStage.createdAt.$gte = new Date(from);
-    if (to) matchStage.createdAt.$lte = new Date(to);
+  //  City Filter (case-insensitive)
+  if (city) {
+    matchStage["shippingAddress.city"] = { $regex: new RegExp(city, "i") };
   }
 
-  //  Step 4: Total count
+  // Count total
   const totalOrders = await Order.countDocuments(matchStage);
 
-  //  Step 5: Fetch orders
+  // Fetch orders
   const orders = await Order.find(matchStage)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(Number(limit))
+    .limit(limit)
     .populate("userId", "names email")
     .populate("items.productId", "name image")
     .populate("items.variantId", "size color price finalPrice stock")
-    .select("userId items totalAmount paymentStatus orderStatus createdAt");
+    .select(
+      "userId items totalAmount paymentStatus orderStatus createdAt shippingAddress"
+    );
 
-  //  Step 6: Format per seller
-  // Step 6: Group products by order
   const formattedOrders = [];
 
   for (const order of orders) {
-    const filteredItems = order.items.filter((item) =>
-      productIds.some((pid) => pid.toString() === item.productId._id.toString())
+    const sellerItems = order.items.filter(
+      (item) => item.sellerId.toString() === sellerId.toString()
     );
+    if (sellerItems.length === 0) continue;
 
-    if (filteredItems.length === 0) continue; // skip irrelevant orders
-
-    const orderTotal = filteredItems.reduce(
+    const orderTotal = sellerItems.reduce(
       (sum, item) => sum + item.finalPrice * item.quantity,
       0
     );
 
     const formattedOrder = {
       orderId: order._id,
-      customeOrderId: order.orderId || "N/A",
       customer: {
         name: order.userId?.names || "N/A",
         email: order.userId?.email || "N/A",
@@ -586,13 +583,16 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
       orderStatus: order.orderStatus,
       createdAt: order.createdAt,
       orderTotal: parseFloat(orderTotal.toFixed(2)),
-      items: filteredItems.map((item) => {
+      shippingAddress: {
+        city: order.shippingAddress?.city || "N/A",
+        state: order.shippingAddress?.state || "N/A",
+      },
+      items: sellerItems.map((item) => {
         const isVariantUsed = item.variantId;
-
         return {
-          productId: item.productId._id,
-          productName: item.productId.name,
-          productImage: item.productId.image?.[0],
+          productId: item.productId?._id,
+          productName: item.productId?.name || "Unknown",
+          productImage: item.productId?.image?.[0] || null,
           quantity: item.quantity,
           finalPrice: isVariantUsed
             ? item.variantId.finalPrice
@@ -617,8 +617,9 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
+    message: "Seller order history fetched",
     totalOrders,
-    currentPage: parseInt(page),
+    currentPage: page,
     totalPages: Math.ceil(totalOrders / limit),
     orders: formattedOrders,
   });

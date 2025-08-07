@@ -26,10 +26,12 @@ const SellerProfile = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data.user);
+      // console.log("User profile data:", res.data.user);
+
       setForm({
         names: res.data.user.names || "",
-        shopownerName: res.data.user.shopownerName || "",
-        shopName: res.data.user.shopName || "",
+        shopownerName: res.data.user.ownerName || res.data.user.names || "",
+        shopName: res.data.user.sellerId.shopName || "",
         email: res.data.user.email || "",
         phone: res.data.user.phone || "",
         address: res.data.user.address || "",

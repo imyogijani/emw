@@ -18,7 +18,7 @@ router.get("/admin", authenticateToken, authorizeAdmin, getAdminAnalytics);
 // Seller analytics (requires seller)
 router.get("/seller", authenticateToken, fetchUser, getSellerAnalytics);
 router.get("/user", authenticateToken, fetchUser, getUserAnalytics);
-router.get("/seller", authenticateToken, fetchUser, getSellerAnalytics);
+// router.get("/seller", authenticateToken, fetchUser, getSellerAnalytics);
 
 
 export default router;

@@ -313,7 +313,9 @@ const currentUserController = async (req, res) => {
   try {
     let userQuery = userModel.findById(req.userId);
     // Always populate subscription for shopowners
-    userQuery = userQuery.populate("subscription");
+    userQuery = userQuery
+      .populate("subscription")
+      .populate("sellerId", "shopName ownerName");
     const user = await userQuery;
     return res.status(200).send({
       success: true,
