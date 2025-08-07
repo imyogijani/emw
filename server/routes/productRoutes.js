@@ -22,14 +22,6 @@ router.post("/add", authenticateToken, upload.array("images", 10), addProduct);
 // Get seller's products
 router.get("/seller-products", authenticateToken, getSellerProducts);
 
-// Update product
-router.patch(
-  "/:productId",
-  authenticateToken,
-  upload.array("images", 10),
-  updateProduct
-);
-
 // Get all products
 router.get("/", getAllProducts);
 
@@ -37,6 +29,14 @@ router.get("/related/:productId", getRelatedProducts);
 
 //singleProduct
 router.get("/:id", getSingleProductById);
+
+// Update product
+router.patch(
+  "/:productId",
+  authenticateToken,
+  upload.array("images", 10),
+  updateProduct
+);
 
 // Delete product
 router.delete("/:productId", authenticateToken, deleteProduct);

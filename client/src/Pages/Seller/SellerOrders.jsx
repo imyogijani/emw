@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaEye, FaEdit, FaChevronDown } from "react-icons/fa";
 import "../../App.css";
 import "./SellerOrders.css";
+import axios from "../../utils/axios";
 
 const SellerOrders = () => {
   const [filters, setFilters] = useState({
@@ -18,6 +19,14 @@ const SellerOrders = () => {
   const dropdownRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
+  const [activePage, setActivePage] = useState(1);
+  const [activeTotalPages, setActiveTotalPages] = useState(1);
+
+  const [deliveredPage, setDeliveredPage] = useState(1);
+  const [deliveredTotalPages, setDeliveredTotalPages] = useState(1);
+
+  const ORDERS_PER_PAGE = 5;
+
   const orderStatuses = ["Preparing", "Out for Delivery", "Delivered"];
 
   useEffect(() => {
@@ -32,6 +41,84 @@ const SellerOrders = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchActiveOrders = async () => {
+      try {
+        const res = await axios.get("/api/orders/seller-history", {
+          params: {
+            orderStatus: ["processing", "confirmed", "in_transit"],
+            page: activePage,
+            limit: ORDERS_PER_PAGE,
+            city: filters.city,
+            date: filters.date,
+          },
+        });
+
+        const mapped = res.data.orders.map((o) => ({
+          id: o.orderId,
+          customer: o.customer.name,
+          city: o.shippingAddress?.city || "N/A",
+          date: new Date(o.createdAt).toLocaleDateString(),
+          items: o.items.length,
+          total: o.orderTotal,
+          status: o.orderStatus,
+          orderDetails: o.items.map((item) => ({
+            name: item.productName,
+            quantity: item.quantity,
+            rate: item.finalPrice,
+            total: item.total,
+          })),
+        }));
+
+        setActiveOrders(mapped);
+        setActiveTotalPages(Math.ceil(res.data.total / ORDERS_PER_PAGE));
+      } catch (err) {
+        console.error("Active orders fetch error:", err);
+      }
+    };
+
+    fetchActiveOrders();
+  }, [activePage]);
+
+  useEffect(() => {
+    const fetchDeliveredOrders = async () => {
+      try {
+        const res = await axios.get("/api/orders/seller-history", {
+          params: {
+            orderStatus: "delivered",
+            page: deliveredPage,
+            limit: ORDERS_PER_PAGE,
+            city: filters.city,
+            date: filters.date,
+          },
+        });
+
+        const mapped = res.data.orders.map((o) => ({
+          id: o.orderId,
+          customer: o.customer.name,
+          city: o.shippingAddress?.city || "N/A",
+          date: new Date(o.createdAt).toLocaleDateString(),
+          items: o.items.length,
+          total: o.orderTotal,
+          status: o.orderStatus,
+          orderDetails: o.items.map((item) => ({
+            name: item.productName,
+            quantity: item.quantity,
+            rate: item.finalPrice,
+            total: item.total,
+          })),
+        }));
+
+        setDeliveredOrders(mapped);
+        setDeliveredTotalPages(Math.ceil(res.data.total / ORDERS_PER_PAGE));
+      } catch (err) {
+        console.error("Delivered orders fetch error:", err);
+      }
+    };
+
+    fetchDeliveredOrders();
+  }, [deliveredPage]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;

@@ -1,4 +1,3 @@
-// src/utils/pushNotification.js
 import { messaging } from "../firebase/firebase";
 import { getToken, onMessage } from "firebase/messaging";
 import axios from "./axios";
@@ -8,19 +7,25 @@ export const requestPushPermission = async (userId) => {
     const permission = await Notification.requestPermission();
 
     if (permission === "granted") {
+      if (!messaging) {
+        console.error("Messaging is not initialized");
+        return;
+      }
+
       const token = await getToken(messaging, {
         vapidKey:
           "BPosDZ_1paK-111mavBiRyi_r7Jc2AjvVmH1uhEnQmXUd0GPi4U6lDRvFcpy4QBnpS7ios98WQg_A522k11XX4Q",
       });
 
       if (token) {
-        console.log("✅ Push Token:", token);
+        // console.log("Push Token:", token);
 
         await axios.post("/api/users/update-push-token", {
           userId,
           pushToken: token,
         });
-        // Listen to foreground push notifications
+
+        // Foreground push listener
         onMessage(messaging, (payload) => {
           console.log("📲 Foreground notification received:", payload);
           alert(payload?.notification?.title || "New Notification");

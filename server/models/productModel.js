@@ -55,7 +55,7 @@ const productSchema = new mongoose.Schema(
     brand: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Brand",
-      required: true,
+      // required: true,
     },
     seller: {
       type: mongoose.Schema.Types.ObjectId,
@@ -129,6 +129,18 @@ productSchema.pre("findOneAndUpdate", function (next) {
     }
 
     update.$set.finalPrice = final;
+  }
+
+  if (stock !== undefined) {
+    if (!update.$set) update.$set = {};
+
+    if (stock === 0) {
+      update.$set.status = "Out of Stock";
+    } else if (stock <= 5) {
+      update.$set.status = "Low Stock";
+    } else {
+      update.$set.status = "In Stock";
+    }
   }
 
   next();

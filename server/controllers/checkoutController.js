@@ -24,6 +24,32 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       const variant = item.variantId;
       const quantity = item.quantity;
 
+      //  Check product status
+      //  Product Out of Stock Check
+      if (product.status === "Out of Stock") {
+        return res.status(400).json({
+          success: false,
+          message: `${product.name} is out of stock.`,
+        });
+      }
+
+      //  Stock Availability Check
+      let availableStock = 0;
+      if (variant) {
+        availableStock = variant.stock ?? 0;
+      } else {
+        availableStock = product.stock ?? 0;
+      }
+
+      if (availableStock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `${
+            product.title || product.name
+          } has only ${availableStock} in stock.`,
+        });
+      }
+
       let basePrice = product.price;
       let finalPrice = product.finalPrice; // default: price after discount
 
@@ -68,6 +94,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
         productTotal,
         gstPercentage,
         gstAmount: parseFloat(gstAmount),
+        status: product.status,
       };
     })
   );
@@ -130,10 +157,35 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     cart.items.map(async (item) => {
       const product = item.productId;
       const variant = item.variantId;
+      let quantity = item.quantity;
+
+      //  Product Out of Stock Check
+      if (product.status === "Out of Stock") {
+        return res.status(400).json({
+          success: false,
+          message: `${product.name} is out of stock.`,
+        });
+      }
+
+      //  Stock Availability Check
+      let availableStock = 0;
+      if (variant) {
+        availableStock = variant.stock ?? 0;
+      } else {
+        availableStock = product.stock ?? 0;
+      }
+
+      if (availableStock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `${
+            product.title || product.name
+          } has only ${availableStock} in stock.`,
+        });
+      }
 
       let basePrice = product.price;
       let finalPrice = await getFinalPrice(product);
-      let quantity = item.quantity;
 
       if (variant) {
         basePrice = variant.price ?? product.price;

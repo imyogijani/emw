@@ -18,6 +18,7 @@ export const addToCart = async (req, res) => {
       size,
     } = product;
     let availableStock = 0;
+    let status = "In Stock";
 
     // Step 1: Check stock from Variant or Product
     if (variantId) {
@@ -28,6 +29,7 @@ export const addToCart = async (req, res) => {
           .json({ success: false, message: "Variant not found" });
       }
       availableStock = variant.stock;
+      status = variant.status;
     } else {
       const productData = await Product.findById(productId);
       if (!productData) {
@@ -36,6 +38,13 @@ export const addToCart = async (req, res) => {
           .json({ success: false, message: "Product not found" });
       }
       availableStock = productData.stock;
+      status = productData.status;
+    }
+
+    if (status === "Out of Stock") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Product is out of stock" });
     }
     let cart = await Cart.findOne({ userId });
 

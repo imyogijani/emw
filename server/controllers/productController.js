@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import Seller from "../models/sellerModel.js";
 import User from "../models/userModel.js";
 import UserSubscription from "../models/userSubscriptionModel.js";
+import Brand from "../models/brandModel.js";
 
 // import { attachActiveDeals } from "../utils/attachActiveDeals.js";
 import { getFeatureLimit } from "../helpers/checkSubscriptionFeature.js";
@@ -47,6 +48,20 @@ export const addProduct = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid category" });
 
+    //  Validate brand
+    if (!brand) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Brand is required" });
+    }
+
+    const brandDoc = await Brand.findById(brand);
+    if (!brandDoc) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid brand selected" });
+    }
+
     let gstPercentage = 0;
     // Validate subcategory
     if (subcategory) {
@@ -61,23 +76,7 @@ export const addProduct = async (req, res) => {
       }
     }
 
-    // Parse variants
-    // let parsedVariants = [];
-    // if (variants) {
-    //   try {
-    //     parsedVariants = JSON.parse(variants);
-    //     if (!Array.isArray(parsedVariants)) {
-    //       return res
-    //         .status(400)
-    //         .json({ success: false, message: "Variants must be an array" });
-    //     }
-    //   } catch (err) {
-    //     return res
-    //       .status(400)
-    //       .json({ success: false, message: "Invalid variants JSON" });
-    //   }
-    // }
-    // Validate variants
+
     let parsedVariants = [];
 
     if (variants) {
@@ -142,10 +141,10 @@ export const addProduct = async (req, res) => {
       }
     });
 
-    // console.log("🟢 Subscription Info:");
-    // console.log("👉 totalProductLimit:", totalProductLimit);
-    // console.log("👉 totalProductsUsed:", totalProductsUsed);
-    // console.log("👉 allowPremium:", allowPremium);
+    // console.log(" Subscription Info:");
+    // console.log(" totalProductLimit:", totalProductLimit);
+    // console.log(" totalProductsUsed:", totalProductsUsed);
+    // console.log(" allowPremium:", allowPremium);
 
     //  Step 3: Validate total product usage
     if (totalProductsUsed >= totalProductLimit) {
@@ -228,11 +227,17 @@ export const addProduct = async (req, res) => {
 
 export const getSellerProducts = async (req, res) => {
   try {
-    const { populateCategory } = req.query;
+    const {
+      populateCategory,
+      page = 1,
+      limit = 10,
+      status,
+      category,
+      search,
+    } = req.query;
 
-    // Step 1: Find Seller based on logged-in user ID
+    // Step 1: Find Seller
     const seller = await Seller.findOne({ user: req.userId });
-
     if (!seller) {
       return res.status(404).json({
         success: false,
@@ -240,18 +245,43 @@ export const getSellerProducts = async (req, res) => {
       });
     }
 
-    // Step 2: Use seller._id to find products
-    let query = Product.find({ seller: seller._id });
+    // Step 2: Build query object
+    const filter = { seller: seller._id };
+
+    if (status) {
+      filter.status = status; // e.g., "In Stock", "Out of Stock"
+    }
+
+    if (category) {
+      filter.category = category; // category ID
+    }
+
+    if (search) {
+      filter.title = { $regex: search, $options: "i" }; // case-insensitive search
+    }
+
+    // Step 3: Pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Step 4: Find products
+    let query = Product.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
 
     if (populateCategory === "true") {
       query = query.populate("category");
     }
 
-    const products = await query.sort({ createdAt: -1 });
+    const products = await query;
+    const total = await Product.countDocuments(filter);
 
     res.status(200).json({
       success: true,
       products,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
     });
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -353,6 +383,9 @@ export const updateProduct = async (req, res) => {
       product.discount = discount === "" ? undefined : Number(discount);
     if (stock !== undefined) product.stock = Number(stock);
     if (status !== undefined) product.status = status;
+    // if (brand === "" || brand === null) {
+    //   product.brand = undefined;
+    // }
     if (brand !== undefined) product.brand = brand === "" ? undefined : brand;
 
     // Get seller
@@ -363,56 +396,6 @@ export const updateProduct = async (req, res) => {
         .json({ success: false, message: "Seller profile not found" });
     }
 
-    // // Subscription & premium validation
-    // const userModel = (await import("../models/userModel.js")).default;
-    // const user = await userModel.findById(req.userId).populate("subscription");
-
-    // if (
-    //   !user.subscription ||
-    //   !user.subscriptionStartDate ||
-    //   !user.subscriptionEndDate ||
-    //   new Date() < user.subscriptionStartDate ||
-    //   new Date() > user.subscriptionEndDate
-    // ) {
-    //   return res
-    //     .status(403)
-    //     .json({ message: "Subscription expired or not active." });
-    // }
-
-    // const features = Array.isArray(user.subscriptionFeatures)
-    //   ? user.subscriptionFeatures
-    //   : [];
-
-    // const isTryingPremium = isPremium === true || isPremium === "true";
-    // if (isTryingPremium) {
-    //   if (!features.includes("featuredListing")) {
-    //     return res.status(403).json({
-    //       message: "Your plan does not support premium listings.",
-    //     });
-    //   }
-
-    //   const getFeatureLimit = (featuresArray, key) => {
-    //     const match = featuresArray.find((f) => f.startsWith(`${key}:`));
-    //     return match ? parseInt(match.split(":")[1], 10) : null;
-    //   };
-
-    //   const premiumLimit = getFeatureLimit(features, "premiumLimit") || 1;
-    //   const premiumCount = await Product.countDocuments({
-    //     seller: seller._id,
-    //     isPremium: true,
-    //     _id: { $ne: product._id }, // exclude current product
-    //   });
-
-    //   if (premiumCount >= premiumLimit && !product.isPremium) {
-    //     return res.status(403).json({
-    //       message: `You can only add ${premiumLimit} premium products. Upgrade your plan.`,
-    //     });
-    //   }
-
-    //   product.isPremium = true;
-    // } else {
-    //   product.isPremium = false;
-    // }
 
     const userSubs = await UserSubscription.find({
       user: req.userId,
@@ -490,6 +473,7 @@ export const getAllProducts = async (req, res) => {
       limit = 10,
     } = req.query;
 
+    console.log("Query Params:", req.query);
     //  1. Dynamic Filters
     const filter = {
       price: { $gte: Number(minPrice), $lte: Number(maxPrice) },

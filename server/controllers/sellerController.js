@@ -25,7 +25,7 @@ export const getSellerDashboard = async (req, res) => {
 
     const sellerId = seller._id;
 
-    // 📆 Dates
+    //  Dates
     const now = new Date();
     const startOfToday = new Date(now.setHours(0, 0, 0, 0));
     const endOfToday = new Date(now.setHours(23, 59, 59, 999));
@@ -288,7 +288,7 @@ export const getSalesData = async (req, res) => {
 export const getSellerOrderHistory = asyncHandler(async (req, res) => {
   const userId = req.userId;
 
-  // ✅ Step 1: Find seller by userId
+  //  Step 1: Find seller by userId
   const seller = await Seller.findOne({ user: userId });
   if (!seller) {
     return res.status(404).json({ message: "Seller not found" });
@@ -296,7 +296,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
 
   const sellerId = seller._id;
 
-  // ✅ Step 2: Build filters
+  //  Step 2: Build filters
   const {
     page = 1,
     limit = 10,
@@ -309,7 +309,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
 
   const skip = (page - 1) * limit;
 
-  // ✅ Step 3: Seller's product IDs
+  //  Step 3: Seller's product IDs
   const sellerProducts = await Product.find({ seller: sellerId }).select("_id");
   const productIds = sellerProducts.map((p) => p._id);
 
@@ -335,10 +335,10 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     if (to) matchStage.createdAt.$lte = new Date(to);
   }
 
-  // ✅ Step 4: Total count
+  //  Step 4: Total count
   const totalOrders = await Order.countDocuments(matchStage);
 
-  // ✅ Step 5: Fetch orders
+  //  Step 5: Fetch orders
   const orders = await Order.find(matchStage)
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -347,7 +347,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     .populate("items.productId", "name image")
     .select("userId items totalAmount paymentStatus orderStatus createdAt");
 
-  // ✅ Step 6: Format per seller
+  //  Step 6: Format per seller
   const formattedOrders = [];
 
   for (const order of orders) {
@@ -360,7 +360,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     const formattedOrder = {
       orderId: order._id,
       customer: {
-        name: order.userId?.name || "N/A",
+        name: order.userId?.names || "N/A",
         email: order.userId?.email || "N/A",
       },
       paymentStatus: order.paymentStatus,
@@ -386,4 +386,253 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     totalPages: Math.ceil(totalOrders / limit),
     orders: formattedOrders,
   });
+});
+
+export const getSellerCustomer = asyncHandler(async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      city,
+      startDate,
+      endDate,
+      search,
+    } = req.query;
+
+    // 1. Seller find
+    const seller = await Seller.findOne({ user: req.userId });
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+
+    // 2. Aggregation pipeline
+    const pipeline = [
+      // a. Unwind items array to handle each item separately
+      { $unwind: "$items" },
+
+      // b. Match seller's items and delivered/paid orders
+      {
+        $match: {
+          "items.sellerId": seller._id,
+          $or: [{ orderStatus: "delivered" }, { paymentStatus: "paid" }],
+          ...(city && { "shippingAddress.city": city }),
+          ...(startDate || endDate
+            ? {
+                createdAt: {
+                  ...(startDate && { $gte: new Date(startDate) }),
+                  ...(endDate && { $lte: new Date(endDate) }),
+                },
+              }
+            : {}),
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      // c. Group by customer
+      {
+        $group: {
+          _id: "$userId",
+          orderIds: { $addToSet: "$_id" }, // Unique orders
+          totalSpent: {
+            $sum: {
+              $multiply: ["$items.finalPrice", "$items.quantity"],
+            },
+          }, // Only this seller's product price
+          latestOrderCreatedAt: { $max: "$createdAt" },
+          latestCity: { $first: "$shippingAddress.city" },
+        },
+      },
+
+      // d. Lookup user details
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      { $unwind: "$userDetails" },
+
+      // e. Optional: Search by name or user ID
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "userDetails.names": { $regex: search, $options: "i" } },
+                  ...(search.length === 24
+                    ? [{ _id: new mongoose.Types.ObjectId(search) }]
+                    : []),
+                ],
+              },
+            },
+          ]
+        : []),
+
+      // f. Add order count
+      {
+        $addFields: {
+          orderCount: { $size: "$orderIds" },
+        },
+      },
+
+      // g. Sort by latest order
+      { $sort: { latestOrderCreatedAt: -1 } },
+
+      // h. Pagination
+      { $skip: (parseInt(page) - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) },
+    ];
+
+    // 3. Get paginated customer data
+    const customers = await Order.aggregate(pipeline);
+
+    // 4. Total count (without skip and limit)
+    const countPipeline = [...pipeline];
+    countPipeline.splice(-2); // Remove $skip and $limit
+    const totalCustomers = await Order.aggregate(countPipeline);
+    const total = totalCustomers.length;
+
+    // 5. Format response
+    const results = customers.map((cust) => ({
+      customerId: cust._id,
+      customerName: cust.userDetails.names,
+      email: cust.userDetails.email,
+      phone: cust.userDetails.phone,
+      city: cust.latestCity || "N/A",
+      orderCount: cust.orderCount,
+      totalSpent: cust.totalSpent,
+      latestOrderDate: cust.latestOrderCreatedAt,
+    }));
+
+    // 6. Final response
+    res.status(200).json({
+      success: true,
+      total,
+      page: parseInt(page),
+      data: results,
+    });
+  } catch (error) {
+    console.error("Error fetching seller customers:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// GET /api/seller/customer-orders?customerId=65a8c12...&sellerId=64bd0e4...&page=1&limit=5&timeRange=30days
+
+export const getCustomerOrdersBySeller = asyncHandler(async (req, res) => {
+  try {
+    const {
+      customerId,
+      sellerId,
+      page = 1,
+      limit = 10,
+      timeRange = "30days",
+      startDate,
+      endDate,
+    } = req.query;
+
+    if (!customerId || !sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "customerId and sellerId are required",
+      });
+    }
+
+    // 1️⃣ Time Filter
+    let dateFilter = {};
+    const now = new Date();
+
+    if (timeRange === "30days") {
+      const pastDate = new Date();
+      pastDate.setDate(now.getDate() - 30);
+      dateFilter = { createdAt: { $gte: pastDate } };
+    } else if (timeRange === "1year") {
+      const pastDate = new Date();
+      pastDate.setFullYear(now.getFullYear() - 1);
+      dateFilter = { createdAt: { $gte: pastDate } };
+    } else if (timeRange === "custom" && startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+      };
+    }
+
+    // 2️⃣ Aggregation
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(customerId),
+          ...dateFilter,
+        },
+      },
+      { $unwind: "$items" },
+      {
+        $match: {
+          "items.sellerId": new mongoose.Types.ObjectId(sellerId),
+          $or: [{ orderStatus: "delivered" }, { paymentStatus: "paid" }],
+        },
+      },
+      {
+        $addFields: {
+          "items.totalPrice": {
+            $multiply: ["$items.finalPrice", "$items.quantity"],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          orderDate: { $first: "$createdAt" },
+          totalSellerAmount: { $sum: "$items.totalPrice" },
+          sellerItems: {
+            $push: {
+              productId: "$items.productId",
+              name: "$items.name",
+              finalPrice: "$items.finalPrice",
+              quantity: "$items.quantity",
+              totalPrice: "$items.totalPrice",
+            },
+          },
+        },
+      },
+      { $sort: { orderDate: -1 } },
+      { $skip: (parseInt(page) - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) },
+    ];
+
+    const orders = await Order.aggregate(pipeline);
+
+    // 3️⃣ Total Count (for pagination)
+    const countPipeline = pipeline.slice(0, -2); // remove skip & limit
+    const totalOrders = await Order.aggregate(countPipeline);
+    const total = totalOrders.length;
+
+    // 4️⃣ Final Total Amount of All Orders
+    const overallTotalAmount = orders.reduce(
+      (sum, order) => sum + order.totalSellerAmount,
+      0
+    );
+
+    // 5️⃣ Final Response
+    res.status(200).json({
+      success: true,
+      page: parseInt(page),
+      total,
+      overallTotalAmount,
+      data: orders.map((order) => ({
+        orderId: order._id,
+        orderDate: order.orderDate,
+        totalAmount: order.totalSellerAmount,
+        products: order.sellerItems,
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching customer orders:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });

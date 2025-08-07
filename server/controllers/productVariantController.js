@@ -1,5 +1,14 @@
 import Variant from "../models/variantsModel.js";
+// import Product from "../models/productModel.js";
+import path from "path";
 import Product from "../models/productModel.js";
+import Category from "../models/categoryModel.js";
+import TechnicalDetails from "../models/technicalDetails.js";
+import { fileURLToPath } from "url";
+import Seller from "../models/sellerModel.js";
+import User from "../models/userModel.js";
+import UserSubscription from "../models/userSubscriptionModel.js";
+import Brand from "../models/brandModel.js";
 
 //  Create Variant
 // controllers/variantController.js
