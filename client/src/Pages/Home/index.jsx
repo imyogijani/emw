@@ -123,7 +123,7 @@ export default function Home() {
         "/api/products?populateCategory=true&populateSubcategory=true"
       );
       setProducts(response.data.products);
-      console.log("Index all product", response.data.products);
+      // console.log("Index all product", response.data.products);
     } catch (error) {
       console.error("Product fetch error:", error);
       toast.error("Error fetching products");

@@ -36,8 +36,8 @@ router.post("/login", loginController);
 // Get current user || GET
 router.get("/current-user", authenticateToken, currentUserController);
 
-// Update profile || PUT
-router.put(
+// Update profile || PATCH
+router.patch(
   "/update-profile",
   authenticateToken,
   upload.fields([

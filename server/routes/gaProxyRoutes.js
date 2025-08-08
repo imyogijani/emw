@@ -66,11 +66,11 @@ router.post("/ga-event", async (req, res) => {
     });
 
     // Safe optional logging
-    console.log(
-      "GA Event Tracked:",
-      payload?.events?.[0]?.name,
-      payload?.events?.[0]?.params
-    );
+    // console.log(
+    //   "GA Event Tracked:",
+    //   payload?.events?.[0]?.name,
+    //   payload?.events?.[0]?.params
+    // );
 
     res.status(gaRes.status).json({ success: true });
   } catch (error) {

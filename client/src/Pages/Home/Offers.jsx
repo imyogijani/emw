@@ -76,7 +76,7 @@ export default function Offers() {
     const fetchDealsProduct = async () => {
       try {
         const response = await axios.get("/api/deals/active");
-        console.log("Fetched deals:", response.data.deals);
+        // console.log("Fetched deals:", response.data.deals);
         setDealsProduct(response.data.deals || []);
       } catch (error) {
         console.error("Error fetching active deals:", error);

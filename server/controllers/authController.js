@@ -10,6 +10,7 @@ import Seller from "../models/sellerModel.js";
 import Category from "../models/categoryModel.js";
 import crypto from "crypto";
 // import { sendEmail } from "../utils/sendEmail.js";
+import Product from "../models/productModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,7 +86,11 @@ const registerController = async (req, res) => {
       description,
       // categories,
       location,
-      address,
+      addressLine,
+      city,
+      state,
+      pincode,
+      country,
       names,
       phone,
       gstNumber,
@@ -100,6 +105,8 @@ const registerController = async (req, res) => {
       shopImages.unshift(`/uploads/shopowner/${shopImage}`);
     }
 
+    console.log("Shop Images:", req.body);
+
     // 1. Check existing user
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
@@ -110,7 +117,25 @@ const registerController = async (req, res) => {
     }
 
     // 2. Hash password
+    console.log("Hashed Password:", password);
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    if (!addressLine || !city || !state || !pincode || !country) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "All address fields are required (addressLine, city, state, pincode, country)",
+      });
+    }
+
+    // construct address object
+    const address = {
+      addressLine,
+      city,
+      state,
+      pincode,
+      country: country || "India",
+    };
 
     // 3. Prepare base user data
     const userData = {
@@ -218,7 +243,8 @@ const registerController = async (req, res) => {
         description: description || "",
         categories: parsedCategories || [],
         location: location || "",
-        address: user.address || "",
+        // address: user.address || "",
+        // address: "",
         specialist: [],
         status: "active",
         gstNumber: validatedGST, //  save it here
@@ -255,13 +281,15 @@ const loginController = async (req, res) => {
       .populate("subscription")
       .populate("sellerId");
 
+    // Email check
     if (!user) {
       return res.status(404).send({
         success: false,
-        message: "Invalid credentials",
+        message: "Email not found",
       });
     }
 
+    // Password check
     const comparePassword = await bcrypt.compare(
       req.body.password,
       user.password
@@ -269,7 +297,7 @@ const loginController = async (req, res) => {
     if (!comparePassword) {
       return res.status(401).send({
         success: false,
-        message: "Invalid credentials",
+        message: "Password incorrect",
       });
     }
 
@@ -289,9 +317,11 @@ const loginController = async (req, res) => {
       }
     }
 
+    // Generate token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d", // Token expires in 1 day
+      expiresIn: "1d",
     });
+
     return res.status(200).send({
       success: true,
       message: "Login successful 🎉",
@@ -352,7 +382,23 @@ export const updateProfileController = async (req, res) => {
     const { names, phone, address } = req.body;
     if (names !== undefined) updateUserData.names = names;
     if (phone !== undefined) updateUserData.phone = phone;
-    if (address !== undefined) updateUserData.address = address;
+    // Validate and update address
+    if (address !== undefined) {
+      if (
+        !address.addressLine ||
+        !address.city ||
+        !address.state ||
+        !address.pincode ||
+        !address.country
+      ) {
+        return res.status(400).send({
+          success: false,
+          message:
+            "All address fields are required when updating address (addressLine, city, state, pincode, country).",
+        });
+      }
+      updateUserData.address = address; // save to user model
+    }
 
     // === SELLER FIELDS (Shopowner only) ===
     if (user.role === "shopowner") {
@@ -459,6 +505,19 @@ export const updateProfileController = async (req, res) => {
         { $set: updateSellerData },
         { new: true }
       );
+      // If seller address changed, update all their products' location
+      if (address !== undefined) {
+        await Product.updateMany(
+          { seller: updatedSeller._id }, // find products of this seller
+          {
+            $set: {
+              "location.city": address.city,
+              "location.state": address.state,
+              "location.country": address.country,
+            },
+          }
+        );
+      }
 
       // === Update User ===
       const updatedUser = await userModel
