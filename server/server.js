@@ -83,6 +83,8 @@ app.use(
       "http://localhost:5173",
       "http://192.168.1.101:5173",
       "http://89.116.23.115:5173",
+      "https://emallworld.com",
+      "https://www.emallworld.com",
     ], // Add production domain here if needed
 
     credentials: true,
