@@ -62,6 +62,11 @@ const productSchema = new mongoose.Schema(
       ref: "Seller",
       required: true,
     },
+    location: {
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+    },
     status: {
       type: String,
       required: true,
@@ -114,6 +119,7 @@ productSchema.pre("findOneAndUpdate", function (next) {
 
   const price = update.price;
   const discount = update.discount;
+  const stock = update.stock !== undefined ? update.stock : update.$set?.stock;
 
   if (price !== undefined || discount !== undefined) {
     // Use $set to ensure proper MongoDB behavior

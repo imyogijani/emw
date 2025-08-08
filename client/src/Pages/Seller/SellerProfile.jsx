@@ -64,7 +64,7 @@ const SellerProfile = () => {
         formData.append(key, value)
       );
       if (shopImage) formData.append("shopImage", shopImage);
-      await axios.put("/api/auth/update-profile", formData, {
+      await axios.patch("/api/auth/update-profile", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

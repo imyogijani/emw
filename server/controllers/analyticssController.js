@@ -10,8 +10,152 @@ import mongoose from "mongoose";
 export const getSellerAnalytics = asyncHandler(async (req, res) => {
   const sellerId = new mongoose.Types.ObjectId(req.user.sellerId);
   const now = new Date();
+  const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+  const endOfYesterday = new Date(startOfToday);
+  endOfYesterday.setMilliseconds(-1);
+
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Sunday
+
   const fourWeeksAgo = new Date(now);
   fourWeeksAgo.setDate(now.getDate() - 28);
+
+  // ----------------
+  // Today's Sales Revenue
+  // ----------------
+  const todaySalesAgg = await Order.aggregate([
+    { $unwind: "$items" },
+    {
+      $match: {
+        "items.sellerId": sellerId,
+        createdAt: { $gte: startOfToday },
+        $or: [{ orderStatus: "delivered" }, { paymentStatus: "success" }],
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: {
+          $sum: { $multiply: ["$items.quantity", "$items.finalPrice"] },
+        },
+      },
+    },
+  ]);
+  const todaySales = todaySalesAgg.length ? todaySalesAgg[0].totalRevenue : 0;
+
+  // Yesterday's Sales
+  const yesterdaySalesAgg = await Order.aggregate([
+    { $unwind: "$items" },
+    {
+      $match: {
+        "items.sellerId": sellerId,
+        orderStatus: "delivered",
+        createdAt: { $gte: startOfYesterday, $lt: startOfToday },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: {
+          $sum: { $multiply: ["$items.quantity", "$items.finalPrice"] },
+        },
+      },
+    },
+  ]);
+  const yesterdaySales = yesterdaySalesAgg.length
+    ? yesterdaySalesAgg[0].totalRevenue
+    : 0;
+
+  // Growth %
+  const salesGrowth =
+    yesterdaySales > 0
+      ? ((todaySales - yesterdaySales) / yesterdaySales) * 100
+      : 0;
+
+  // ----------------
+  // Total Products + New This Week
+  // ----------------
+  const totalProducts = await Product.countDocuments({ seller: sellerId });
+  const newThisWeek = await Product.countDocuments({
+    seller: sellerId,
+    createdAt: { $gte: startOfWeek },
+  });
+
+  // ----------------
+  // Pending Orders Count + Yesterday Difference
+  // ----------------
+  // Pending orders today (count each order only once)
+  const pendingAgg = await Order.aggregate([
+    {
+      $facet: {
+        today: [
+          {
+            $match: {
+              createdAt: { $gte: startOfToday },
+              "items.sellerId": sellerId,
+              orderStatus: { $in: ["processing", "in_transit"] },
+            },
+          },
+          { $group: { _id: "$_id" } },
+          { $count: "count" },
+        ],
+        yesterday: [
+          {
+            $match: {
+              createdAt: { $gte: startOfYesterday, $lt: startOfToday },
+              "items.sellerId": sellerId,
+              orderStatus: { $in: ["processing", "in_transit"] },
+            },
+          },
+          { $group: { _id: "$_id" } },
+          { $count: "count" },
+        ],
+      },
+    },
+    {
+      $project: {
+        todayCount: { $ifNull: [{ $arrayElemAt: ["$today.count", 0] }, 0] },
+        yesterdayCount: {
+          $ifNull: [{ $arrayElemAt: ["$yesterday.count", 0] }, 0],
+        },
+        difference: {
+          $let: {
+            vars: {
+              diff: {
+                $subtract: [
+                  { $ifNull: [{ $arrayElemAt: ["$today.count", 0] }, 0] },
+                  { $ifNull: [{ $arrayElemAt: ["$yesterday.count", 0] }, 0] },
+                ],
+              },
+            },
+            in: { $cond: [{ $gt: ["$$diff", 0] }, "$$diff", 0] },
+          },
+        },
+      },
+    },
+  ]);
+
+  const pendingOrdersToday = pendingAgg[0]?.todayCount || 0;
+  const pendingOrdersDiff = pendingAgg[0]?.difference || 0;
+
+  // tottal pending orders
+  // Total pending orders (all time) for this seller
+  const totalPendingAgg = await Order.aggregate([
+    {
+      $match: {
+        "items.sellerId": sellerId,
+        orderStatus: { $in: ["processing", "in_transit"] },
+      },
+    },
+    { $group: { _id: "$_id" } }, // ensure unique order count
+    { $count: "count" },
+  ]);
+
+  const totalPendingOrders =
+    totalPendingAgg.length > 0 ? totalPendingAgg[0].count : 0;
 
   const pipeline = [
     { $unwind: "$items" },
@@ -168,6 +312,15 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
   //   console.log(sellerReview[0].averageRating);
   const sellerReview = seller[0];
 
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const sellerProductIds = await Product.find({ seller: sellerId }).distinct(
+    "_id"
+  );
+  const reviewsThisMonth = await Review.countDocuments({
+    productId: { $in: sellerProductIds },
+    createdAt: { $gte: startOfMonth },
+  });
+
   // Top Reviewed Products
   const topReviewed = await Product.find({ seller: sellerId }) // <-- FIXED HERE
     .sort({ totalReviews: -1 })
@@ -198,6 +351,15 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
     })),
     averageRating: sellerReview.averageRating,
     totalReviews: sellerReview.totalReviews,
+    reviewsThisMonth: reviewsThisMonth,
+
+    todaySales: todaySales.toFixed(2),
+    salesGrowth: salesGrowth.toFixed(2), // %
+    totalProducts,
+    newProductsThisWeek: newThisWeek,
+    pendingOrdersToday: pendingOrdersToday,
+    pendingOrdersDiffYesterday: pendingOrdersDiff,
+    totalPendingOrders: totalPendingOrders,
   });
 });
 
