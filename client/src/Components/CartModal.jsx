@@ -62,6 +62,8 @@ export default function CartModal({ open, onClose }) {
   }, [open, userId]);
 
   const handleCheckout = () => {
+    console.log("Starting checkout process...");
+    
     trackEvent("start_checkout", {
       user_id: userId,
       item_count: cart?.items?.length || 0,
@@ -72,7 +74,10 @@ export default function CartModal({ open, onClose }) {
     // Check if user is logged in and is a customer
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "null");
+    console.log("Auth check - Token:", !!token, "User:", user?.role);
+    
     if (!token || !user || user.role !== "client") {
+      console.log("Auth failed, redirecting to login");
       toast.warning("Please login as a customer to checkout.");
       onClose();
       navigate("/login", {
@@ -81,6 +86,7 @@ export default function CartModal({ open, onClose }) {
       return;
     }
 
+    console.log("Auth passed, navigating to checkout");
     onClose();
     navigate("/checkout");
   };
