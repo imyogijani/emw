@@ -381,7 +381,7 @@ export default function ProductDetail() {
       try {
         const data = await getProductReviews(id); // calling your function
         setProductReviews(data.reviews); // make sure your API returns reviews key
-        console.log("Fetched reviews:", data.reviews);
+        // console.log("Fetched reviews:", data.reviews);
       } catch (error) {
         console.error("Error fetching reviews:", error.message);
       } finally {

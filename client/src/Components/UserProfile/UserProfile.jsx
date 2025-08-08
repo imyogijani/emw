@@ -82,9 +82,13 @@ const UserProfile = ({ onClose }) => {
           formData.role === "shopowner" ? formData.shopownerName : undefined,
       };
 
-      const response = await axios.put("/api/auth/update-profile", updateData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.patch(
+        "/api/auth/update-profile",
+        updateData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.data.success) {
         const updatedUser = response.data.user;

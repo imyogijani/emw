@@ -38,10 +38,13 @@ const sellerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    address: {
-      type: String, // Full address of the shop
-      default: "",
-    },
+    // address: {
+    //   addressLine: { type: String, required: false },
+    //   city: { type: String, required: false },
+    //   state: { type: String, required: false },
+    //   pincode: { type: String, required: false },
+    //   country: { type: String, required: false, default: "India" },
+    // },
     specialist: {
       type: [String],
       default: [],
@@ -84,7 +87,7 @@ const sellerSchema = new mongoose.Schema(
     //   type: String,
     //   default: null,
     // },
-    cashfreeBeneId: String, // Optional: For integration with Cashfree or similar payment gateways
+    // cashfreeBeneId: String, // Optional: For integration with Cashfree or similar payment gateways
   },
   { timestamps: true }
 );

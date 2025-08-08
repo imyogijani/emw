@@ -76,7 +76,6 @@ export const addProduct = async (req, res) => {
       }
     }
 
-
     let parsedVariants = [];
 
     if (variants) {
@@ -173,6 +172,25 @@ export const addProduct = async (req, res) => {
         .json({ message: "At least one image is required" });
     }
 
+    // Get seller and populate user info
+    const userPopulate = await Seller.findOne({ user: req.userId }).populate(
+      "user"
+    );
+    if (!userPopulate)
+      return res.status(404).json({ message: "Seller not found" });
+
+    // Extract location from user's address
+    let locationData = {};
+    if (userPopulate.user && userPopulate.user.address) {
+      locationData = {
+        city: userPopulate.user.address.city || "",
+        state: userPopulate.user.address.state || "",
+        country: userPopulate.user.address.country || "",
+      };
+    } else {
+      return res.status(400).json({ message: "User address not found" });
+    }
+
     // Create product
     const product = new Product({
       name,
@@ -190,6 +208,7 @@ export const addProduct = async (req, res) => {
       technicalDetails: techRef,
       isPremium: allowPremium,
       gstPercentage,
+      location: locationData,
     });
 
     await product.save();
@@ -396,7 +415,6 @@ export const updateProduct = async (req, res) => {
         .json({ success: false, message: "Seller profile not found" });
     }
 
-
     const userSubs = await UserSubscription.find({
       user: req.userId,
       isActive: true,
@@ -473,11 +491,24 @@ export const getAllProducts = async (req, res) => {
       limit = 10,
     } = req.query;
 
-    console.log("Query Params:", req.query);
+    // console.log("Query Params:", req.query);
+    // console.log("Logged-in User ID:", req.userId);
+
+    // Get logged-in user
+
+    // const user = await User.findById(req.userId);
+
+    // If user has a city in address, filter products by that city
+
     //  1. Dynamic Filters
     const filter = {
       price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
     };
+
+    // . If user is NOT a shopowner, filter by city
+    // if (user?.role === "client" && user?.address?.city) {
+    //   filter["locations.city"] = user.address.city;
+    // }
 
     if (categoryId && categoryId !== "undefined" && categoryId !== "") {
       filter.category = categoryId;
