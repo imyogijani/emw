@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import "./SellerDashboard.css";
-import {requestPushPermission} from "../../utils/pushNotification"
+import { requestPushPermission } from "../../utils/pushNotification";
 import {
   LineChart,
   Line,
@@ -26,18 +26,19 @@ const SellerDashboard = () => {
   const [salesData, setSalesData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({});
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [salesRes, statsRes, ordersRes] = await Promise.all([
+        const [salesRes, ordersRes] = await Promise.all([
           axios.get("/api/sellers/sale-data"),
-          axios.get("/api/sellers/dashboard-stats"),
+          // axios.get("/api/sellers/dashboard-stats"),
           axios.get("/api/sellers/recent-orders"),
         ]);
 
         setSalesData(salesRes.data); // Set sales data
-        setDashboardStats(statsRes.data); // Set dashboard stats
+        // setDashboardStats(statsRes.data); // Set dashboard stats
         setRecentOrders(ordersRes.data.orders); // Orders is inside { orders: [...] }
 
         // console.log("Seller DashBoard page", statsRes.data);
@@ -55,15 +56,33 @@ const SellerDashboard = () => {
 
     fetchAllData();
   }, []);
-
-    const userId = JSON.parse(localStorage.getItem("user"));
-    // console.log("User Login after userId for requestPushPermission", userId?._id);
-  
-    useEffect(() => {
-      if (userId?._id) {
-        requestPushPermission(userId._id);
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const response = await axios.get("/api/analytics/seller", {
+          withCredentials: true, // only if using cookies/session
+        });
+        setDashboardStats(response.data);
+        console.log("Dashboard Stats:", response.data);
+      } catch (err) {
+        console.error("Error fetching seller dashboard stats:", err);
+        setError(err.message || "Failed to fetch dashboard stats");
+      } finally {
+        setLoading(false);
       }
-    }, [userId]);
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  const userId = JSON.parse(localStorage.getItem("user"));
+  // console.log("User Login after userId for requestPushPermission", userId?._id);
+
+  useEffect(() => {
+    if (userId?._id) {
+      requestPushPermission(userId._id);
+    }
+  }, [userId]);
   return (
     <div className="seller-dashboard">
       <SellerNotification />
@@ -115,7 +134,7 @@ const SellerDashboard = () => {
                     gap: "4px",
                   }}
                 >
-                  <FaArrowUp /> +{dashboardStats.yesterdaySales}% from yesterday
+                  <FaArrowUp /> +{dashboardStats.salesGrowth}% from yesterday
                 </p>
               </div>
             </div>
@@ -198,7 +217,7 @@ const SellerDashboard = () => {
                     color: "#232f3e",
                   }}
                 >
-                  {dashboardStats.allPendingOrders}
+                  {dashboardStats.totalPendingOrders}
                 </p>
                 <p
                   className="card-description"
@@ -210,8 +229,8 @@ const SellerDashboard = () => {
                     gap: "4px",
                   }}
                 >
-                  <FaArrowUp /> +{dashboardStats.pendingOrdersYesterday} from
-                  yesterday
+                  <FaArrowUp /> +{dashboardStats.pendingOrdersDiffYesterday}{" "}
+                  from yesterday
                 </p>
               </div>
             </div>
@@ -258,7 +277,7 @@ const SellerDashboard = () => {
                     gap: "4px",
                   }}
                 >
-                  <FaArrowUp /> +{dashboardStats.ratingGrowth} this month
+                  <FaArrowUp /> +{dashboardStats.reviewsThisMonth} this month
                 </p>
               </div>
             </div>

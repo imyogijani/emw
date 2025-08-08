@@ -4,141 +4,7 @@ import Product from "../models/productModel.js";
 import userModel from "../models/userModel.js";
 import mongoose from "mongoose";
 
-// export const getAllStores = async (req, res) => {
-//   try {
-//     const {
-//       page = 1,
-//       limit = 10,
-//       sort = "createdAt",
-//       order = "desc",
-//       search = "",
-//       status,
-//     } = req.query;
 
-//     const matchStage = {};
-
-//     if (search) {
-//       matchStage.$or = [
-//         { shopName: { $regex: search, $options: "i" } },
-//         { ownerName: { $regex: search, $options: "i" } },
-//       ];
-//     }
-
-//     if (status) {
-//       matchStage.status = status;
-//     }
-
-//     const skip = (page - 1) * limit;
-//     const sortOrder = order === "asc" ? 1 : -1;
-
-//     const stores = await Seller.aggregate([
-//       { $match: matchStage },
-
-//       // Join user
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "user",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: "$user" },
-
-//       // Join products of this seller (based on user._id)
-//       {
-//         $lookup: {
-//           from: "products",
-//           localField: "user._id",
-//           foreignField: "seller",
-//           as: "products",
-//         },
-//       },
-
-//       // Flatten all product IDs for next stage
-//       {
-//         $addFields: {
-//           productIds: {
-//             $map: {
-//               input: "$products",
-//               as: "prod",
-//               in: "$$prod._id",
-//             },
-//           },
-//         },
-//       },
-
-//       // Join reviews of all products
-//       {
-//         $lookup: {
-//           from: "reviews",
-//           let: { pIds: "$productIds" },
-//           pipeline: [
-//             {
-//               $match: {
-//                 $expr: {
-//                   $in: ["$product", "$$pIds"],
-//                 },
-//               },
-//             },
-//           ],
-//           as: "reviews",
-//         },
-//       },
-
-//       // Add final counts and ratings
-//       {
-//         $addFields: {
-//           totalProducts: { $size: "$products" },
-//           totalReviews: { $size: "$reviews" },
-//           averageRating: {
-//             $cond: [
-//               { $gt: [{ $size: "$reviews" }, 0] },
-//               {
-//                 $avg: "$reviews.rating",
-//               },
-//               0,
-//             ],
-//           },
-//         },
-//       },
-
-//       // Cleanup
-//       {
-//         $project: {
-//           products: 0,
-//           productIds: 0,
-//           reviews: 0,
-//           "user.password": 0,
-//           "user.__v": 0,
-//         },
-//       },
-
-//       // Sort and Paginate
-//       { $sort: { [sort]: sortOrder } },
-//       { $skip: skip },
-//       { $limit: Number(limit) },
-//     ]);
-
-//     // Total sellers count (for pagination)
-//     const totalStores = await Seller.countDocuments(matchStage);
-
-//     res.status(200).json({
-//       success: true,
-//       totalStores,
-//       currentPage: Number(page),
-//       totalPages: Math.ceil(totalStores / limit),
-//       stores,
-//     });
-//   } catch (error) {
-//     console.error("Error in getAllStores:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to fetch stores",
-//       error: error.message,
-//     });
-//   }
-// };
 export const getAllStores = async (req, res) => {
   try {
     const {
@@ -202,7 +68,6 @@ export const getAllStores = async (req, res) => {
           shopName: 1,
           shopImage: 1,
           shopImages: 1,
-          address: 1,
           location: 1,
           categories: 1,
           description: 1,
@@ -288,7 +153,7 @@ export const getSingleStore = async (req, res) => {
         shopName: seller.shopName,
         shopImage: seller.shopImage,
         shopImages: seller.shopImages || [],
-        address: seller.address,
+        address: seller.user?.address || "",
         location: seller.location,
         categories: seller.categories,
         description: seller.description,

@@ -176,7 +176,7 @@ export default function Shops() {
       ]);
       setCategories(catRes.data.categories || []);
       setProducts(prodRes.data.products || []);
-      console.log("Shop Page --", prodRes.data.products);
+      // console.log("Shop Page --", prodRes.data.products);
       // console.log("Shop Page 111 --", catRes.data.categories);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -204,7 +204,7 @@ export default function Shops() {
       setStores(response?.stores || []);
 
       // console.log("Store Image", response.stores[1].shopImage);
-      console.log("Store List Fetched:", response.stores);
+      // console.log("Store List Fetched:", response.stores);
     } catch (err) {
       console.error("Error loading stores:", err);
       setError(err.message || "Something went wrong");

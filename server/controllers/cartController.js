@@ -134,7 +134,7 @@ export const getUserCart = async (req, res) => {
       })
       .populate("items.variantId");
 
-    if (cart.items.length === 0) {
+    if (!cart || !cart.items || cart.items.length === 0) {
       return res.status(200).json({
         success: true,
         message: "Cart is empty",
@@ -143,11 +143,11 @@ export const getUserCart = async (req, res) => {
       });
     }
 
-    if (!cart || cart.items.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Cart not found or empty" });
-    }
+    // if (!cart || cart.items.length === 0) {
+    //   return res
+    //     .status(404)
+    //     .json({ success: false, message: "Cart not found or empty" });
+    // }
 
     // Total price calculation
     const totalPrice = cart.items.reduce((total, item) => {
