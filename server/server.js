@@ -79,7 +79,12 @@ app.post("/webhook", (req, res) => {
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://192.168.1.101:5173"], // Add production domain here if needed
+    origin: [
+      "http://localhost:5173",
+      "http://192.168.1.101:5173",
+      "http://89.116.23.115:5173",
+    ], // Add production domain here if needed
+
     credentials: true,
     exposedHeaders: ["Content-Disposition"],
   })
@@ -187,7 +192,7 @@ cron.schedule("0 * * * *", async () => {
 // Start server
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, "0.0.0.0", "192.168.1.101", () => {
+app.listen(PORT, "0.0.0.0", "192.168.1.101", "89.116.23.115", () => {
   console.log(
     `Node server running in ${process.env.DEV_MODE} mode on Port ${PORT}`.bgBlue
       .white
