@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8080/",
+  // baseURL: "http://localhost:8080/",
+  baseURL: "http://api.emallworld.com/",
+
   timeout: 15000, // Increased timeout for file uploads
 });
 

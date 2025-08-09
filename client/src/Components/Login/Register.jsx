@@ -29,7 +29,13 @@ const Register = () => {
     shopownerName: "",
     shopName: "",
     phone: "",
-    address: "",
+    address: {
+      addressLine: "",
+      city: "",
+      state: "",
+      pincode: "",
+      country: "India",
+    },
     subscriptionId: "",
   });
   const [error, setError] = useState("");
@@ -62,10 +68,21 @@ const Register = () => {
 
   const handleChange = (e) => {
     setError("");
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    if (name.startsWith("address.")) {
+      setFormData({
+        ...formData,
+        address: {
+          ...formData.address,
+          [name.split(".")[1]]: value,
+        },
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
