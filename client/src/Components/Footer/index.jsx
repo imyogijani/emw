@@ -35,10 +35,18 @@ export default function Footer() {
             We won't spam, read our <a href="/email-policy">email policy</a>.
           </small>
           <div className="social-icons">
-            <i className="fab fa-facebook-f"></i>
-            <i className="fab fa-instagram"></i>
-            <i className="fab fa-tiktok"></i>
-            <i className="fab fa-snapchat-ghost"></i>
+            <a href="https://www.facebook.com/">
+              <i className="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://www.instagram.com/">
+              <i className="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.tiktok.com/">
+              <i className="fab fa-tiktok"></i>
+            </a>
+            <a href="https://www.snapchat.com/">
+              <i className="fab fa-snapchat-ghost"></i>
+            </a>
           </div>
         </div>
 
