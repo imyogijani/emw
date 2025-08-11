@@ -105,7 +105,7 @@ const registerController = async (req, res) => {
       shopImages.unshift(`/uploads/shopowner/${shopImage}`);
     }
 
-    console.log("Shop Images:", req.body);
+    console.log("register body request :", req.body);
 
     // 1. Check existing user
     const existingUser = await userModel.findOne({ email });

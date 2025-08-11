@@ -6,6 +6,7 @@ import {
   getSellerOrderHistory,
   getSellerCustomer,
   getCustomerOrdersBySeller,
+  getSellerSalesOverview,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -50,6 +51,13 @@ router.get(
   authenticateToken,
   authorizeSeller,
   getCustomerOrdersBySeller
+);
+
+router.get(
+  "/sales-overview",
+  authenticateToken,
+  authorizeSeller,
+  getSellerSalesOverview
 );
 
 // router.post(
