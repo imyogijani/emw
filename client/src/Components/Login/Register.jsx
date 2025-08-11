@@ -309,12 +309,63 @@ const Register = () => {
 
           <div className="form-group">
             <div className="input-group">
-              {/* <FaMapMarkerAlt className="input-icon" /> */}
               <input
                 type="text"
-                name="address"
-                placeholder="Address"
-                value={formData.address}
+                name="address.addressLine"
+                placeholder="Address Line"
+                value={formData.address.addressLine}
+                onChange={handleChange}
+                required
+                className="form-input"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="input-group">
+              <input
+                type="text"
+                name="address.city"
+                placeholder="City"
+                value={formData.address.city}
+                onChange={handleChange}
+                required
+                className="form-input"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="input-group">
+              <input
+                type="text"
+                name="address.state"
+                placeholder="State"
+                value={formData.address.state}
+                onChange={handleChange}
+                required
+                className="form-input"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="input-group">
+              <input
+                type="text"
+                name="address.pincode"
+                placeholder="Pincode"
+                value={formData.address.pincode}
+                onChange={handleChange}
+                required
+                className="form-input"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="input-group">
+              <input
+                type="text"
+                name="address.country"
+                placeholder="Country"
+                value={formData.address.country}
                 onChange={handleChange}
                 required
                 className="form-input"
