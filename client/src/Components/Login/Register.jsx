@@ -29,13 +29,11 @@ const Register = () => {
     shopownerName: "",
     shopName: "",
     phone: "",
-    address: {
-      addressLine: "",
-      city: "",
-      state: "",
-      pincode: "",
-      country: "India",
-    },
+    addressLine: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
     subscriptionId: "",
   });
   const [error, setError] = useState("");
@@ -66,23 +64,32 @@ const Register = () => {
     });
   }, []);
 
+  // const handleChange = (e) => {
+  //   setError("");
+  //   const { name, value } = e.target;
+  //   if (name.startsWith("address.")) {
+  //     setFormData({
+  //       ...formData,
+  //       address: {
+  //         ...formData.address,
+  //         [name.split(".")[1]]: value,
+  //       },
+  //     });
+  //   } else {
+  //     setFormData({
+  //       ...formData,
+  //       [name]: value,
+  //     });
+  //   }
+  // };
+
   const handleChange = (e) => {
     setError("");
     const { name, value } = e.target;
-    if (name.startsWith("address.")) {
-      setFormData({
-        ...formData,
-        address: {
-          ...formData.address,
-          [name.split(".")[1]]: value,
-        },
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
-    }
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -311,9 +318,9 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="address.addressLine"
+                name="addressLine"
                 placeholder="Address Line"
-                value={formData.address.addressLine}
+                value={formData.addressLine}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -324,9 +331,9 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="address.city"
+                name="city"
                 placeholder="City"
-                value={formData.address.city}
+                value={formData.city}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -337,9 +344,9 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="address.state"
+                name="state"
                 placeholder="State"
-                value={formData.address.state}
+                value={formData.state}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -350,9 +357,9 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="address.pincode"
+                name="pincode"
                 placeholder="Pincode"
-                value={formData.address.pincode}
+                value={formData.pincode}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -363,9 +370,9 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="address.country"
+                name="country"
                 placeholder="Country"
-                value={formData.address.country}
+                value={formData.country}
                 onChange={handleChange}
                 required
                 className="form-input"

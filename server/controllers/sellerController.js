@@ -163,9 +163,10 @@ export const getRecentOrdersForSeller = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const status = req.query.status; // ?status=pending
-    const fromDate = req.query.fromDate; // ?fromDate=2024-07-01
-    const toDate = req.query.toDate; // ?toDate=2024-07-31
+    const status = req.query.status;
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+    const timeRange = parseInt(req.query.timeRange); // ?timeRange=7 or 30
 
     //  Build dynamic filter query
     const filterQuery = {
@@ -176,10 +177,22 @@ export const getRecentOrdersForSeller = async (req, res) => {
       filterQuery.status = status;
     }
 
+    // Agar fromDate aur toDate diya hai to wahi use karo
     if (fromDate && toDate) {
       filterQuery.createdAt = {
         $gte: new Date(fromDate),
         $lte: new Date(toDate),
+      };
+    }
+    // Agar timeRange diya hai to current date se subtract karke filter lagao
+    else if (timeRange && (timeRange === 7 || timeRange === 30)) {
+      const today = new Date();
+      const pastDate = new Date();
+      pastDate.setDate(today.getDate() - timeRange);
+
+      filterQuery.createdAt = {
+        $gte: pastDate,
+        $lte: today,
       };
     }
 
@@ -636,3 +649,123 @@ export const getCustomerOrdersBySeller = asyncHandler(async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+// GET http://localhost:8080/api/sellers/sales-overview?productId=64f5b6f2e4a5b7d8c9f0a1b2&variantId=64f5b8a2e4a5b7d8c9f0a1c4
+
+export const getSellerSalesOverview = async (req, res) => {
+  try {
+    const { productId, variantId } = req.query;
+
+    //  Seller ID from logged-in user
+    const seller = await Seller.findOne({ user: req.userId }).select("_id");
+    if (!seller)
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    const sellerId = seller._id;
+
+    //  Date ranges
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    //  Aggregation
+    const matchStage = {
+      orderStatus: "delivered",
+      "items.sellerId": sellerId,
+    };
+
+    if (productId)
+      matchStage["items.productId"] = new mongoose.Types.ObjectId(productId);
+    if (variantId)
+      matchStage["items.variantId"] = new mongoose.Types.ObjectId(variantId);
+
+  const salesData = await Order.aggregate([
+  { $match: { orderStatus: "delivered", "items.sellerId": sellerId } },
+  { $unwind: "$items" },
+  { 
+    $match: { 
+      "items.sellerId": sellerId,
+      ...(productId && { "items.productId": new mongoose.Types.ObjectId(productId) }),
+      ...(variantId && { "items.variantId": new mongoose.Types.ObjectId(variantId) })
+    }
+  },
+  {
+    $group: {
+      _id: {
+        productId: "$items.productId",
+        month: { $month: "$createdAt" },
+        year: { $year: "$createdAt" },
+      },
+      totalQuantity: { $sum: "$items.quantity" },
+    },
+  },
+  {
+    $group: {
+      _id: "$_id.productId",
+      monthlyData: {
+        $push: {
+          month: "$_id.month",
+          year: "$_id.year",
+          quantity: "$totalQuantity",
+        },
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "products",
+      localField: "_id",
+      foreignField: "_id",
+      as: "product",
+    },
+  },
+  {
+    $project: {
+      productId: "$_id",
+      productName: { $arrayElemAt: ["$product.name", 0] },
+      monthlyData: 1,
+    },
+  },
+]);
+
+
+    //  Process last month vs this month diff
+    const result = salesData.map((prod) => {
+      let prevMonthsQty = 0;
+      let thisMonthQty = 0;
+
+      prod.monthlyData.forEach((m) => {
+        const dateCheck = new Date(m.year, m.month - 1, 1);
+
+        if (dateCheck >= startOfLastMonth && dateCheck <= endOfLastMonth) {
+          prevMonthsQty += m.quantity;
+        } else if (dateCheck >= startOfThisMonth) {
+          thisMonthQty += m.quantity;
+        }
+      });
+
+      const difference = thisMonthQty - prevMonthsQty;
+      const percentageChange =
+        prevMonthsQty > 0
+          ? ((difference / prevMonthsQty) * 100).toFixed(2)
+          : 100;
+
+      return {
+        productId: prod.productId,
+        productName: prod.productName,
+        lastMonthsQuantity: prevMonthsQty,
+        thisMonthQuantity: thisMonthQty,
+        difference,
+        percentageChange: `${percentageChange}%`,
+      };
+    });
+
+    res.json({ success: true, salesOverview: result });
+  } catch (err) {
+    console.error("Sales Overview Error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+
