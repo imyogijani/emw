@@ -10,7 +10,7 @@
   --primary-color: #fc8a06;
   --primary-color-hover: #d67e00;
   --button-text-color: #fff;
-  --button-radius: 8px;
+  --button-radius: 10px;
   --button-shadow: 0 2px 8px rgba(252, 138, 6, 0.08);
   --button-font-weight: 600;
   --button-font-size: 1rem;
@@ -221,8 +221,8 @@ button:focus,
 button:disabled {
   box-sizing: border-box;
   padding: 10px 15px;
-  min-width: 0;
-  min-height: 0;
+  /* min-width: 0;
+  min-height: 0; */
   font-size: 1rem;
 }
 
