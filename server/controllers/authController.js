@@ -87,6 +87,7 @@ const registerController = async (req, res) => {
       // categories,
       location,
       addressLine,
+      // addressLine2,
       city,
       state,
       pincode,
@@ -120,17 +121,30 @@ const registerController = async (req, res) => {
     console.log("Hashed Password:", password);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (!addressLine || !city || !state || !pincode || !country) {
+    if (!addressLine || !city || !state || !pincode) {
       return res.status(400).json({
         success: false,
         message:
-          "All address fields are required (addressLine, city, state, pincode, country)",
+          "All address fields are required (addressLine, city, state, pincode)",
       });
     }
+
+    // const requiredAddressFields = { addressLine, city, state, pincode };
+    // for (const [fieldName, fieldValue] of Object.entries(
+    //   requiredAddressFields
+    // )) {
+    //   if (!fieldValue || fieldValue.trim() === "") {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: `${fieldName} is required`,
+    //     });
+    //   }
+    // }
 
     // construct address object
     const address = {
       addressLine,
+      // addressLine2: addressLine2 ? addressLine2.trim() : "",
       city,
       state,
       pincode,
@@ -273,6 +287,7 @@ const registerController = async (req, res) => {
     });
   }
 };
+
 //login call back
 const loginController = async (req, res) => {
   try {

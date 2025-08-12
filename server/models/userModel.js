@@ -31,15 +31,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
-    // address: {
-    //   type: String,
-    //   required: function () {
-    //     return this.role === "client" || this.role === "shopowner";
-    //   },
-    // },
 
     address: {
       addressLine: { type: String, required: false },
+      addressLine2: { type: String, required: false },
       city: { type: String, required: false },
       state: { type: String, required: false },
       pincode: { type: String, required: false },

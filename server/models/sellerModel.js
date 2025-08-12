@@ -38,13 +38,22 @@ const sellerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // address: {
-    //   addressLine: { type: String, required: false },
-    //   city: { type: String, required: false },
-    //   state: { type: String, required: false },
-    //   pincode: { type: String, required: false },
-    //   country: { type: String, required: false, default: "India" },
-    // },
+    shopAddresses: [
+      {
+        addressLine1: { type: String },
+        addressLine2: { type: String },
+        city: { type: String },
+        state: { type: String },
+        pincode: { type: String },
+        country: { type: String, default: "India" },
+        isDefault: { type: Boolean, default: false }, // main address
+        type: {
+          type: String,
+          enum: ["store", "warehouse", "pickup"],
+          default: "store",
+        },
+      },
+    ],
     specialist: {
       type: [String],
       default: [],

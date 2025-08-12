@@ -12,6 +12,7 @@ import { exec } from "child_process";
 import crypto from "crypto";
 
 import { expireDeals } from "./cronExpireDeals.js";
+import { importHSNData } from "./importHSN.js";
 // import crypto from "crypto";
 
 // Resolve __dirname in ES module
@@ -24,7 +25,10 @@ console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // MongoDB connection
 import connectDB from "./config/db.js";
-connectDB();
+await connectDB();
+
+// await importHSNData();
+// console.log("HSN data import finished");
 
 // Create Express app
 const app = express();
@@ -145,6 +149,8 @@ import sellerRoutes from "./routes/sellerRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testNotificationRouter from "./routes/testNotification.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
+import shopAddressRoutes from "./routes/shopAddressRoutes.js";
 //import paymentRoutes from "./routes/paymentRoutes.js";
 //import payoutRoutes from "./routes/payoutRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
@@ -156,6 +162,7 @@ import "./cronJobs/checkExpiredSubscriptions.js";
 
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/location", locationRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/variants", productVariantRoutes);
 app.use("/api/orders", orderRoutes);
@@ -171,6 +178,7 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/menu-items", menuRoutes);
 app.use("/api/sellers", sellerRoutes);
+app.use("/api/shopaddress", shopAddressRoutes);
 app.use("/api/users", userRoutes);
 //app.use("/api/payment", paymentRoutes);
 // app.use("/api/payout", payoutRoutes);
