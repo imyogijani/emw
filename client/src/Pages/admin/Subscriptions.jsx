@@ -19,6 +19,7 @@ const Subscriptions = () => {
   const [formData, setFormData] = useState({
     planName: "",
     monthlyPrice: "",
+    yearlyPrice: "",
     includedFeatures: "",
   });
   const [featureState, setFeatureState] = useState({
@@ -37,6 +38,7 @@ const Subscriptions = () => {
     try {
       const response = await axios.get("/api/subscriptions");
       setSubscriptions(response.data.subscriptions);
+      console.log("Fetched subscriptions:", response.data.subscriptions);
       setLoading(false);
     } catch (error) {
       toast.error("Error fetching subscriptions.");
@@ -62,17 +64,25 @@ const Subscriptions = () => {
     e.preventDefault();
     // Build includedFeatures array
     const features = [];
-    if (featureState.productLimit) features.push(`productLimit:${featureState.productLimit}`);
+    if (featureState.productLimit)
+      features.push(`productLimit:${featureState.productLimit}`);
     ALL_FEATURES.forEach((f) => {
       if (featureState[f.key]) features.push(f.key);
     });
     const submitData = {
-      ...formData,
+      planName: formData.planName,
+      pricing: {
+        monthly: formData.monthlyPrice,
+        yearly: formData.yearlyPrice, // <-- add this in the form state
+      },
       includedFeatures: features,
     };
     try {
       if (currentSubscription) {
-        await axios.put(`/api/subscriptions/${currentSubscription._id}`, submitData);
+        await axios.put(
+          `/api/subscriptions/${currentSubscription._id}`,
+          submitData
+        );
         toast.success("Subscription updated successfully!");
       } else {
         await axios.post("/api/subscriptions", submitData);
@@ -84,6 +94,7 @@ const Subscriptions = () => {
       setFormData({
         planName: "",
         monthlyPrice: "",
+        yearlyPrice: "",
         includedFeatures: "",
       });
       setFeatureState({
@@ -102,18 +113,21 @@ const Subscriptions = () => {
   const handleEdit = (subscription) => {
     setCurrentSubscription(subscription);
     // Parse features
-    const features = Array.isArray(subscription.includedFeatures) ? subscription.includedFeatures : [];
-    const productLimit = features.find(f => f.startsWith("productLimit:"));
+    const features = Array.isArray(subscription.includedFeatures)
+      ? subscription.includedFeatures
+      : [];
+    const productLimit = features.find((f) => f.startsWith("productLimit:"));
     setFeatureState({
       analytics: features.includes("analytics"),
       prioritySupport: features.includes("prioritySupport"),
       featuredListing: features.includes("featuredListing"),
       customBranding: features.includes("customBranding"),
-      productLimit: productLimit ? productLimit.split(":")[1] : ""
+      productLimit: productLimit ? productLimit.split(":")[1] : "",
     });
     setFormData({
       planName: subscription.planName,
-      monthlyPrice: subscription.monthlyPrice,
+      monthlyPrice: subscription.pricing?.monthly || "",
+      yearlyPrice: subscription.pricing?.yearly || "",
       includedFeatures: features.join(", "),
     });
     setShowModal(true);
@@ -137,6 +151,7 @@ const Subscriptions = () => {
     setFormData({
       planName: "",
       monthlyPrice: "",
+      yearlyPrice: "",
       includedFeatures: "",
     });
     setFeatureState({
@@ -157,7 +172,9 @@ const Subscriptions = () => {
     <div className="subscriptions-container">
       <div className="admin-header">
         <h1>Subscription Plans</h1>
-        <p className="admin-subtitle">Manage your subscription plans and pricing</p>
+        <p className="admin-subtitle">
+          Manage your subscription plans and pricing
+        </p>
       </div>
 
       <div className="subscriptions-table-container">
@@ -186,13 +203,19 @@ const Subscriptions = () => {
                     {subscription.planName}
                   </div>
                 </td>
-                <td>₹{subscription.monthlyPrice}</td>
+                <td>₹{subscription.pricing.monthly}</td>
                 <td>{subscription.includedFeatures.join(", ")}</td>
                 <td>
-                  <button className="edit-btn" onClick={() => handleEdit(subscription)}>
+                  <button
+                    className="edit-btn"
+                    onClick={() => handleEdit(subscription)}
+                  >
                     <FaEdit />
                   </button>
-                  <button className="delete-btn" onClick={() => handleDelete(subscription._id)}>
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDelete(subscription._id)}
+                  >
                     <FaTrash />
                   </button>
                 </td>
@@ -206,7 +229,9 @@ const Subscriptions = () => {
         <div className="subscription-modal-overlay">
           <div className="subscription-modal-card">
             <h3 className="subscription-modal-title">
-              {currentSubscription ? "Edit Subscription" : "Add New Subscription"}
+              {currentSubscription
+                ? "Edit Subscription"
+                : "Add New Subscription"}
             </h3>
             <div className="subscription-modal-card-content">
               <form className="subscription-form" onSubmit={handleFormSubmit}>
@@ -232,9 +257,26 @@ const Subscriptions = () => {
                     required
                   />
                 </div>
+
+                <div className="subscription-form-group">
+                  <label className="subscription-label">Yearly Price:</label>
+                  <input
+                    type="number"
+                    name="yearlyPrice"
+                    className="subscription-input"
+                    value={formData.yearlyPrice}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
                 <div className="subscription-feature-group">
                   <div className="subscription-product-limit-row">
-                    <label htmlFor="productLimit" className="subscription-label">Product Limit:</label>
+                    <label
+                      htmlFor="productLimit"
+                      className="subscription-label"
+                    >
+                      Product Limit:
+                    </label>
                     <input
                       type="number"
                       name="productLimit"
@@ -246,9 +288,17 @@ const Subscriptions = () => {
                       placeholder="e.g. 10"
                     />
                   </div>
-                  <label className="subscription-label" style={{marginBottom: 0}}>Features:</label>
+                  <label
+                    className="subscription-label"
+                    style={{ marginBottom: 0 }}
+                  >
+                    Features:
+                  </label>
                   {ALL_FEATURES.map((f) => (
-                    <div key={f.key} className="subscription-feature-checkbox-row">
+                    <div
+                      key={f.key}
+                      className="subscription-feature-checkbox-row"
+                    >
                       <input
                         type="checkbox"
                         name={f.key}
@@ -257,7 +307,12 @@ const Subscriptions = () => {
                         checked={featureState[f.key]}
                         onChange={handleFeatureChange}
                       />
-                      <label htmlFor={f.key} className="subscription-feature-label">{f.label}</label>
+                      <label
+                        htmlFor={f.key}
+                        className="subscription-feature-label"
+                      >
+                        {f.label}
+                      </label>
                     </div>
                   ))}
                 </div>
@@ -265,7 +320,11 @@ const Subscriptions = () => {
                   <button type="submit" className="subscription-save-btn">
                     Save
                   </button>
-                  <button type="button" className="subscription-cancel-btn" onClick={() => setShowModal(false)}>
+                  <button
+                    type="button"
+                    className="subscription-cancel-btn"
+                    onClick={() => setShowModal(false)}
+                  >
                     Cancel
                   </button>
                 </div>
