@@ -3,8 +3,6 @@ import axios from "axios";
 console.log("Local API URL:", import.meta.env.VITE_API_BASE_URL_LOCAL);
 console.log("Prod API URL:", import.meta.env.VITE_API_BASE_URL_PROD);
 const instance = axios.create({
-  // baseURL: "http://localhost:8080/",
-  // baseURL: "https://api.emallworld.com/",
   // baseURL: import.meta.env.VITE_API_BASE_URL_LOCAL,
   baseURL: import.meta.env.VITE_API_BASE_URL_PROD,
   timeout: 15000, // Increased timeout for file uploads
