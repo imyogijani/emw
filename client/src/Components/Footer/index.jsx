@@ -21,7 +21,7 @@ export default function Footer() {
       <div className="footer-container">
         <div className="footer-left">
           <h2 className="logo">
-            <img src={mallimage} alt="E-Mall World" height={50} />
+            <img src={mallimage} alt="E-Mall World" style={{ height: "90px" }} />
           </h2>
           {/* <p style={{ fontSize: "15px" }}>
             Company # 490039-445, Registered with House of companies.

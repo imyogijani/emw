@@ -120,7 +120,7 @@ const Navbar = () => {
             className="custom-logo"
             style={{ textDecoration: "none" }}
           >
-            <img src={mallimage} alt="E-Mall World" height={50} />
+            <img src={mallimage} alt="E-Mall World" style={{height: "50px"}}/>
             {/* <FaStore className="logo-icon" /> */}
             <span className="logo-main">E-Mall</span>
             <span className="logo-uk">World</span>
