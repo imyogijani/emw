@@ -8,7 +8,7 @@ import ProtectedRoute from "./Components/ProtectedRoute";
 import "./App.css";
 import Home from "./Pages/Home/index";
 
-import Navbar from "./Pages/Home/Navbar";
+import Navbar from "./Components/Navbar";
 import Menu from "./Pages/Home/Menu";
 import Offers from "./Pages/Home/Offers";
 import Shops from "./Pages/Home/Shops";
