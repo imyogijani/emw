@@ -20,9 +20,9 @@ export default function Footer() {
       <div className="footer-container">
         <div className="footer-left">
           <h2 className="logo">E-Mall World</h2>
-          <p style={{ fontSize: "15px" }}>
+          {/* <p style={{ fontSize: "15px" }}>
             Company # 490039-445, Registered with House of companies.
-          </p>
+          </p> */}
         </div>
 
         <div className="footer-center">
