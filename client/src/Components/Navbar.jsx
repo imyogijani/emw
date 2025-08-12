@@ -8,11 +8,11 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
-import axios from "../../utils/axios";
-import "./Navbar.css";
-import UserProfile from "../../Components/UserProfile/UserProfile";
-import MaleUser from "../../images/MaleUser.png";
-import mallimage from "../../images/Mall1.png";
+import axios from "../utils/axios";
+import "../Components/Navbar.css";
+import UserProfile from "./UserProfile/UserProfile";
+import MaleUser from "../images/MaleUser.png";
+import mallimage from "../images/Mall1.png";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -120,7 +120,11 @@ const Navbar = () => {
             className="custom-logo"
             style={{ textDecoration: "none" }}
           >
-            <img src={mallimage} alt="E-Mall World" style={{height: "50px"}}/>
+            <img
+              src={mallimage}
+              alt="E-Mall World"
+              style={{ height: "50px" }}
+            />
             {/* <FaStore className="logo-icon" /> */}
             <span className="logo-main">E-Mall</span>
             <span className="logo-uk">World</span>
@@ -190,7 +194,7 @@ const Navbar = () => {
                         className="menu-item dashboard-dropdown"
                         onClick={() => {
                           setShowUserMenu(false);
-                          navigate('/profile-edit'); // Assuming a route for editing profile
+                          navigate("/profile-edit"); // Assuming a route for editing profile
                         }}
                       >
                         <FaCog /> Edit Profile
