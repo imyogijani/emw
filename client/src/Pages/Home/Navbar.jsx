@@ -12,6 +12,7 @@ import axios from "../../utils/axios";
 import "./Navbar.css";
 import UserProfile from "../../Components/UserProfile/UserProfile";
 import MaleUser from "../../images/MaleUser.png";
+import mallimage from "../../images/Mall1.png";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -119,7 +120,8 @@ const Navbar = () => {
             className="custom-logo"
             style={{ textDecoration: "none" }}
           >
-            <FaStore className="logo-icon" />
+            <img src={mallimage} alt="E-Mall World" height={50} />
+            {/* <FaStore className="logo-icon" /> */}
             <span className="logo-main">E-Mall</span>
             <span className="logo-uk">World</span>
           </Link>
