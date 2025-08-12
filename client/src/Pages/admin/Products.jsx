@@ -369,11 +369,12 @@ const Products = () => {
         <div className="product-cards-container">
           {products.map((product) => {
             let imageUrl = "";
+            const baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL || "";
             if (typeof product.image === "string" && product.image) {
               if (product.image.startsWith("/uploads/")) {
-                imageUrl = `http://localhost:8080${product.image}`;
+                imageUrl = `${baseURL}${product.image}`;
               } else {
-                imageUrl = `http://localhost:8080/uploads/products/${product.image}`;
+                imageUrl = `${baseURL}/uploads/products/${product.image}`;
               }
             }
             return (
