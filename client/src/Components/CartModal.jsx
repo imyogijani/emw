@@ -63,7 +63,7 @@ export default function CartModal({ open, onClose }) {
 
   const handleCheckout = () => {
     console.log("Starting checkout process...");
-    
+
     trackEvent("start_checkout", {
       user_id: userId,
       item_count: cart?.items?.length || 0,
@@ -75,7 +75,7 @@ export default function CartModal({ open, onClose }) {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "null");
     console.log("Auth check - Token:", !!token, "User:", user?.role);
-    
+
     if (!token || !user || user.role !== "client") {
       console.log("Auth failed, redirecting to login");
       toast.warning("Please login as a customer to checkout.");
@@ -126,14 +126,14 @@ export default function CartModal({ open, onClose }) {
       });
 
       try {
-        // ✅ STEP 2: Update on server
+        //  STEP 2: Update on server
         await updateCartItemAPI(userId, productId, variantId, newQuantity);
 
-        // ✅ STEP 3: Re-fetch actual cart from backend
+        //  STEP 3: Re-fetch actual cart from backend
         const freshCart = await getCartByUserAPI(userId);
 
         if (freshCart?.success) {
-          setCartData(freshCart); // 🟢 Update with accurate backend state
+          setCartData(freshCart); //  Update with accurate backend state
         } else {
           toast.error("Failed to refresh cart from server.");
         }
@@ -242,14 +242,18 @@ export default function CartModal({ open, onClose }) {
         ) : (
           <>
             <ul className="cart-modal-list">
-              {items.map((item) => {
-                const itemId = item.productId._id;
+              {items.map((item, index) => {
+                {
+                  /* const itemId = item.productId; */
+                }
+                const productId =
+                  item.productId?._id || item.productId || `unknown-${index}`;
                 const itemPrice = parseFloat(
                   item.price?.toString().replace(/[^0-9.]/g, "") || 0
                 );
 
                 return (
-                  <li key={itemId.productId} className="cart-modal-item">
+                  <li key={productId} className="cart-modal-item">
                     <div className="cart-item-info">
                       <span className="cart-item-title">{item.title}</span>
                     </div>
@@ -264,7 +268,7 @@ export default function CartModal({ open, onClose }) {
                             className="qty-btn"
                             onClick={() =>
                               handleQuantityChange(
-                                itemId,
+                                item.productId._id,
                                 item.variantId?._id?.toString() ||
                                   item.variantId?.toString() ||
                                   null,
@@ -279,7 +283,7 @@ export default function CartModal({ open, onClose }) {
                             className="qty-btn"
                             onClick={() =>
                               handleQuantityChange(
-                                itemId,
+                                item.productId._id,
                                 item.variantId?._id?.toString() ||
                                   item.variantId?.toString() ||
                                   null,

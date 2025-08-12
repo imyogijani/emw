@@ -97,7 +97,7 @@ const SellerProfile = () => {
   };
 
   // Show preview of new shop image if selected
-  const BACKEND_URL = "http://localhost:8080"; // Change if needed for production
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL_LOCAL; // Change if needed for production
   const shopImagePreview = shopImage
     ? URL.createObjectURL(shopImage)
     : profile && profile.shopImage

@@ -305,12 +305,13 @@ const Categories = () => {
         {!loading && categories.length === 0 && <p>No categories found.</p>}
         <div className="category-list enhanced-category-list">
           {categories.map((cat) => (
+            
             <div key={cat._id} className="category-item enhanced-category-card">
               <div className="category-image-wrapper">
                 <img
                   src={
                     cat.image
-                      ? `http://localhost:8080${cat.image}`
+                      ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}{cat.image}`
                       : "/vite.svg"
                   }
                   alt={cat.name}

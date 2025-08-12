@@ -531,7 +531,7 @@ export default function ProductDetail() {
 
   const processImageUrl = (image) => {
     const getFullUrl = (img) =>
-      img.startsWith("/uploads") ? `http://localhost:8080${img}` : img;
+      img.startsWith("/uploads") ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${img}` : img;
 
     if (Array.isArray(image) && image.length > 0) {
       return getFullUrl(image[0]);

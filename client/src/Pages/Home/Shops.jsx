@@ -463,7 +463,7 @@ export default function Shops() {
 
   const processImageUrl = (image) => {
     const getFullUrl = (img) =>
-      img.startsWith("/uploads") ? `http://localhost:8080${img}` : img;
+      img.startsWith("/uploads") ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${img}` : img;
 
     if (Array.isArray(image) && image.length > 0) {
       return getFullUrl(image[0]);
@@ -476,7 +476,7 @@ export default function Shops() {
 
   const processImageUrlSingle = (image) => {
     if (image && image.startsWith("/uploads")) {
-      return `http://localhost:8080${image}`;
+      return `${import.meta.env.VITE_API_BASE_URL_LOCAL}${image}`;
     }
     return image || "/images/offer1.png";
   };

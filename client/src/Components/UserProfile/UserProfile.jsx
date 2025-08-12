@@ -165,8 +165,9 @@ const UserProfile = ({ onClose }) => {
   };
 
   const processImageUrl = (image) => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL || "";
     if (image && image.startsWith("/uploads")) {
-      return `http://localhost:8080${image}`;
+      return `${baseURL}${image}`;
     }
     return image || "/images/offer1.png";
   };

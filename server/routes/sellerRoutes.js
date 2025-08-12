@@ -7,6 +7,7 @@ import {
   getSellerCustomer,
   getCustomerOrdersBySeller,
   getSellerSalesOverview,
+  getSellerOrdersAnalytics,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -59,7 +60,12 @@ router.get(
   authorizeSeller,
   getSellerSalesOverview
 );
-
+router.get(
+  "/orders-analytics",
+  authenticateToken,
+  authorizeSeller,
+  getSellerOrdersAnalytics
+);
 // router.post(
 //   "/create-cashfree-beneficiary",
 //   authenticateToken,

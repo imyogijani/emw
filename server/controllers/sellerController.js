@@ -680,55 +680,58 @@ export const getSellerSalesOverview = async (req, res) => {
     if (variantId)
       matchStage["items.variantId"] = new mongoose.Types.ObjectId(variantId);
 
-  const salesData = await Order.aggregate([
-  { $match: { orderStatus: "delivered", "items.sellerId": sellerId } },
-  { $unwind: "$items" },
-  { 
-    $match: { 
-      "items.sellerId": sellerId,
-      ...(productId && { "items.productId": new mongoose.Types.ObjectId(productId) }),
-      ...(variantId && { "items.variantId": new mongoose.Types.ObjectId(variantId) })
-    }
-  },
-  {
-    $group: {
-      _id: {
-        productId: "$items.productId",
-        month: { $month: "$createdAt" },
-        year: { $year: "$createdAt" },
-      },
-      totalQuantity: { $sum: "$items.quantity" },
-    },
-  },
-  {
-    $group: {
-      _id: "$_id.productId",
-      monthlyData: {
-        $push: {
-          month: "$_id.month",
-          year: "$_id.year",
-          quantity: "$totalQuantity",
+    const salesData = await Order.aggregate([
+      { $match: { orderStatus: "delivered", "items.sellerId": sellerId } },
+      { $unwind: "$items" },
+      {
+        $match: {
+          "items.sellerId": sellerId,
+          ...(productId && {
+            "items.productId": new mongoose.Types.ObjectId(productId),
+          }),
+          ...(variantId && {
+            "items.variantId": new mongoose.Types.ObjectId(variantId),
+          }),
         },
       },
-    },
-  },
-  {
-    $lookup: {
-      from: "products",
-      localField: "_id",
-      foreignField: "_id",
-      as: "product",
-    },
-  },
-  {
-    $project: {
-      productId: "$_id",
-      productName: { $arrayElemAt: ["$product.name", 0] },
-      monthlyData: 1,
-    },
-  },
-]);
-
+      {
+        $group: {
+          _id: {
+            productId: "$items.productId",
+            month: { $month: "$createdAt" },
+            year: { $year: "$createdAt" },
+          },
+          totalQuantity: { $sum: "$items.quantity" },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.productId",
+          monthlyData: {
+            $push: {
+              month: "$_id.month",
+              year: "$_id.year",
+              quantity: "$totalQuantity",
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      {
+        $project: {
+          productId: "$_id",
+          productName: { $arrayElemAt: ["$product.name", 0] },
+          monthlyData: 1,
+        },
+      },
+    ]);
 
     //  Process last month vs this month diff
     const result = salesData.map((prod) => {
@@ -768,4 +771,212 @@ export const getSellerSalesOverview = async (req, res) => {
   }
 };
 
+export const getSellerOrdersAnalytics = async (req, res) => {
+  try {
+    const { timeRange, startDate, endDate, categoryId, city, status } =
+      req.query;
 
+    // 1️⃣ Seller ID find
+    const seller = await Seller.findOne({ user: req.userId }).select("_id");
+    if (!seller)
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    const sellerId = seller._id;
+
+    // 2️⃣ Date Range set
+    const now = new Date();
+    let start, end;
+    if (timeRange === "7d") {
+      start = new Date();
+      start.setDate(now.getDate() - 7);
+      end = now;
+    } else if (timeRange === "30d") {
+      start = new Date();
+      start.setDate(now.getDate() - 30);
+      end = now;
+    } else if (timeRange === "custom" && startDate && endDate) {
+      start = new Date(startDate);
+      end = new Date(endDate);
+    } else {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = now;
+    }
+
+    // 3️⃣ Match stage for seller-specific items
+    const matchStage = {
+      "items.sellerId": sellerId,
+      createdAt: { $gte: start, $lte: end },
+    };
+    if (status) matchStage["items.deliveryStatus"] = status;
+    if (city) matchStage["shippingAddress.city"] = city;
+
+    // 4️⃣ Aggregation pipeline
+    const analytics = await Order.aggregate([
+      { $match: matchStage },
+      { $unwind: "$items" }, // each item as separate row
+      { $match: { "items.sellerId": sellerId } }, // ensure only current seller items
+
+      // Product info join
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+      { $unwind: "$product" },
+
+      // Optional category filter
+      ...(categoryId
+        ? [
+            {
+              $match: {
+                "product.categoryId": new mongoose.Types.ObjectId(categoryId),
+              },
+            },
+          ]
+        : []),
+
+      {
+        $facet: {
+          // a) Total Revenue & Orders
+          revenue: [
+            {
+              $group: {
+                _id: null,
+                totalRevenue: {
+                  $sum: { $multiply: ["$items.quantity", "$items.finalPrice"] },
+                },
+                totalOrders: { $sum: 1 },
+              },
+            },
+          ],
+
+          // b) Product-wise Quantity
+          productWise: [
+            {
+              $group: {
+                _id: "$items.productId",
+                quantity: { $sum: "$items.quantity" },
+                revenue: {
+                  $sum: { $multiply: ["$items.quantity", "$items.finalPrice"] },
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "products",
+                localField: "_id",
+                foreignField: "_id",
+                as: "product",
+              },
+            },
+            { $unwind: "$product" },
+            {
+              $project: {
+                productId: "$_id",
+                productName: "$product.name",
+                quantity: 1,
+                revenue: 1,
+              },
+            },
+          ],
+
+          // c) Status Breakdown
+          statusWise: [
+            {
+              $group: {
+                _id: "$items.deliveryStatus",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+
+          // d) City-wise
+          cityWise: [
+            {
+              $group: {
+                _id: "$shippingAddress.city",
+                orders: { $sum: 1 },
+              },
+            },
+          ],
+
+          // e) Category-wise Trends
+          categoryWise: [
+            {
+              $group: {
+                _id: "$product.categoryId",
+                totalSales: {
+                  $sum: { $multiply: ["$items.quantity", "$items.finalPrice"] },
+                },
+                totalQuantity: { $sum: "$items.quantity" },
+              },
+            },
+            {
+              $lookup: {
+                from: "categories",
+                localField: "_id",
+                foreignField: "_id",
+                as: "category",
+              },
+            },
+            { $unwind: "$category" },
+            {
+              $project: {
+                categoryId: "$_id",
+                categoryName: "$category.name",
+                totalSales: 1,
+                totalQuantity: 1,
+              },
+            },
+          ],
+
+          // f) Repeat Customers
+          repeatCustomers: [
+            {
+              $group: {
+                _id: "$userId",
+                ordersCount: { $sum: 1 },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalCustomers: { $sum: 1 },
+                repeatCustomers: {
+                  $sum: { $cond: [{ $gt: ["$ordersCount", 1] }, 1, 0] },
+                },
+              },
+            },
+            {
+              $project: {
+                totalCustomers: 1,
+                repeatCustomers: 1,
+                repeatPercent: {
+                  $cond: [
+                    { $gt: ["$totalCustomers", 0] },
+                    {
+                      $multiply: [
+                        { $divide: ["$repeatCustomers", "$totalCustomers"] },
+                        100,
+                      ],
+                    },
+                    0,
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    res.json({ success: true, analytics: analytics[0] });
+  } catch (err) {
+    console.error("Analytics Error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};

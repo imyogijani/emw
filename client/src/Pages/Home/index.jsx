@@ -194,7 +194,9 @@ export default function Home() {
 
   const processImageUrl = (image) => {
     const getFullUrl = (img) =>
-      img.startsWith("/uploads") ? `http://localhost:8080${img}` : img;
+      img.startsWith("/uploads")
+        ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${img}`
+        : img;
 
     if (Array.isArray(image) && image.length > 0) {
       return getFullUrl(image[0]);
@@ -624,7 +626,7 @@ const CategoryCard = ({ category, setActiveCategory }) => (
       <img
         src={
           category.image
-            ? `http://localhost:8080${category.image}`
+            ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${category.image}`
             : "https://images.pexels.com/photos/11077404/pexels-photo-11077404.jpeg"
         }
         alt={category.name}
@@ -735,7 +737,7 @@ const DealsSection = ({ deals }) => (
 
 const processImageUrl = (image) => {
   const getFullUrl = (img) =>
-    img.startsWith("/uploads") ? `http://localhost:8080${img}` : img;
+    img.startsWith("/uploads") ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${img}` : img;
 
   if (Array.isArray(image) && image.length > 0) {
     return getFullUrl(image[0]);

@@ -6,6 +6,7 @@ import User from "../models/userModel.js";
 import Seller from "../models/sellerModel.js";
 import UserSubscription from "../models/userSubscriptionModel.js";
 import mongoose from "mongoose";
+import Category from "../models/categoryModel.js";
 
 export const getSellerAnalytics = asyncHandler(async (req, res) => {
   const sellerId = new mongoose.Types.ObjectId(req.user.sellerId);
@@ -327,6 +328,94 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
     .limit(10)
     .select("_id name totalReviews averageRating price image");
 
+  const orders = await Order.find({
+    "items.sellerId": sellerId,
+    orderStatus: "delivered",
+  })
+    .populate({
+      path: "items.productId",
+      select: "category subcategory ",
+      model: "products",
+    })
+    .lean(); // get plain JS objects
+
+  console.log("DEBUG: Total orders fetched:", orders.length);
+  const categoryMap = new Map();
+
+  orders.forEach((order, orderIndex) => {
+    order.items.forEach((item, itemIndex) => {
+      console.log("Raw productId for item:", item.productId);
+      if (item.sellerId.toString() !== sellerId.toString()) return;
+
+      const product = item.productId; // populated product object
+      if (!product) {
+        // console.log(
+        //   `DEBUG: Order ${order._id} item ${itemIndex} has no populated product`
+        // );
+        return;
+      }
+
+      console.log("prduct categories", product.category);
+      if (!product.category) {
+        console.log(
+          `DEBUG: Order ${order._id} item ${itemIndex} product ${product._id} missing category`
+        );
+        return;
+      }
+
+      const catId = product.category.toString();
+      console.log(
+        `DEBUG: Processing order ${order._id} item ${itemIndex} with category ${catId}`
+      );
+
+      if (!categoryMap.has(catId)) {
+        categoryMap.set(catId, {
+          categoryId: catId,
+          totalOrders: 0,
+          totalQuantity: 0,
+          totalRevenue: 0,
+        });
+        console.log(`DEBUG: New category added to map: ${catId}`);
+      }
+
+      const catData = categoryMap.get(catId);
+
+      catData.totalOrders += 1; // count each item occurrence as an order
+      catData.totalQuantity += item.quantity;
+      catData.totalRevenue += item.quantity * item.finalPrice;
+
+      console.log(
+        `DEBUG: Updated category ${catId} -> orders: ${
+          catData.totalOrders
+        }, quantity: ${
+          catData.totalQuantity
+        }, revenue: ${catData.totalRevenue.toFixed(2)}`
+      );
+    });
+  });
+
+  const categoryIds = Array.from(categoryMap.keys());
+  const categories = await Category.find({ _id: { $in: categoryIds } })
+    .select("name")
+    .lean();
+  console.log("DEBUG: Categories fetched from DB:", categories.length);
+
+  const categoryNameMap = {};
+  // const categoryNameMap = {};
+  categories.forEach((cat) => {
+    categoryNameMap[cat._id.toString()] = cat.name;
+    console.log(`DEBUG: Category name mapped: ${cat._id} -> ${cat.name}`);
+  });
+  const categoryWiseOrders = Array.from(categoryMap.values()).map((cat) => ({
+    categoryId: cat.categoryId,
+    categoryName: categoryNameMap[cat.categoryId] || "Unknown",
+    totalOrders: cat.totalOrders,
+    totalQuantity: cat.totalQuantity,
+    totalRevenue: cat.totalRevenue,
+  }));
+
+  console.log("DEBUG: Final categoryWiseOrders:", categoryWiseOrders);
+
   res.json({
     totalOrders,
     deliveredOrders,
@@ -343,6 +432,9 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
       quantitySold: p.quantitySold,
       revenue: p.revenue.toFixed(2),
     })),
+    categoryWiseOrders: categoryWiseOrders.sort(
+      (a, b) => b.totalOrders - a.totalOrders
+    ),
     topReviewedProducts: topReviewed.map((p) => ({
       productId: p._id,
       name: p.name,
