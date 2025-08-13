@@ -14,6 +14,11 @@ import {
   updateShopownerSubscription,
   getShopownerDetails,
   getSellerDetails,
+  getAllLocations,
+  addState,
+  addCity,
+  deleteState,
+  deleteCity,
 } from "../controllers/adminController.js";
 import {
   updateProduct,
@@ -68,5 +73,12 @@ router.get("/menu-stats", getMenuStats);
 
 // Shopowner details (for admin)
 router.get("/shopowner/:id", getShopownerDetails);
+
+// Location management
+router.get("/locations", getAllLocations);
+router.post("/locations/state", addState);
+router.post("/locations/city", addCity);
+router.delete("/locations/state/:stateName", deleteState);
+router.delete("/locations/city/:stateName/:cityName", deleteCity);
 
 export default router;

@@ -4,11 +4,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaHome,
   FaBox,
+  FaMapMarkerAlt,
+  FaBookOpen,
+  FaProductHunt,
   FaShoppingCart,
   FaUsers,
   FaSignOutAlt,
-  FaSun,
-  FaMoon,
+  FaHandshake,
+  FaTag,
+  FaBell,
 } from "react-icons/fa";
 import { useTheme } from "../ThemeContext";
 import { toast } from "react-toastify";
@@ -17,20 +21,34 @@ import "./AdminSidebar.css";
 const adminLinks = [
   { name: "Dashboard", path: "/admin/dashboard", icon: <FaHome /> },
   {
+    name: "Manage Locations",
+    path: "/admin/locations",
+    icon: <FaMapMarkerAlt />,
+  },
+
+  {
     name: "Products",
     path: "/admin/products",
-    icon: <FaBox />,
+    icon: <FaProductHunt />,
     subLinks: [
-      { name: "All Products", path: "/admin/products" },
-      { name: "Categories", path: "/admin/categories" },
+      {
+        name: "All Products",
+        path: "/admin/products",
+      },
+      {
+        name: "Categories",
+        path: "/admin/categories",
+      },
     ],
   },
   { name: "Orders", path: "/admin/orders", icon: <FaShoppingCart /> },
   { name: "Users", path: "/admin/users", icon: <FaUsers /> },
-  { name: "Deals", path: "/admin/deals", icon: <FaBox /> },
-  { name: "Subscriptions", path: "/admin/subscriptions", icon: <FaBox /> },
-  { name: "Menu", path: "/admin/menu", icon: <FaBox /> },
-  { name: "Today's Offers", path: "/admin/offers", icon: <FaBox /> },
+  { name: "Deals", path: "/admin/deals", icon: <FaHandshake /> },
+
+  { name: "Subscriptions", path: "/admin/subscriptions", icon: <FaTag /> },
+
+  { name: "Menu", path: "/admin/menu", icon: <FaBookOpen /> },
+  { name: "Today's Offers", path: "/admin/offers", icon: <FaBell /> },
 ];
 
 const AdminSidebar = ({ onClose }) => {

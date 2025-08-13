@@ -29,17 +29,21 @@ const Register = () => {
     shopownerName: "",
     shopName: "",
     phone: "",
-    addressLine: "",
+    addressLine1: "",
+    addressLine2: "",
     city: "",
     state: "",
     pincode: "",
-    country: "India",
     subscriptionId: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState(false); // State to store subscription plans
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true); // State for loading subscriptions
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,7 +62,24 @@ const Register = () => {
       }
     };
 
+    const fetchStates = async () => {
+      setLoadingStates(true);
+      try {
+        const response = await axios.get("/api/location/states");
+        if (response.data.success) {
+          setStates(response.data.data);
+        } else {
+          toast.error("Failed to fetch states");
+        }
+      } catch (err) {
+        toast.error("Failed to fetch states");
+      } finally {
+        setLoadingStates(false);
+      }
+    };
+
     fetchSubscriptions();
+    fetchStates();
     trackEvent("register_page_view", {
       page_location: window.location.pathname,
     });
@@ -83,13 +104,46 @@ const Register = () => {
   //   }
   // };
 
+  const fetchCities = async (stateName) => {
+    setLoadingCities(true);
+    try {
+      const response = await axios.get(`/api/location/cities/${encodeURIComponent(stateName)}`);
+      if (response.data.success) {
+        setCities(response.data.data);
+      } else {
+        toast.error("Failed to fetch cities");
+        setCities([]);
+      }
+    } catch (err) {
+      toast.error("Failed to fetch cities");
+      setCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
+  };
+
   const handleChange = (e) => {
     setError("");
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    
+    // If state changes, fetch cities and reset city selection
+    if (name === "state") {
+      setFormData({
+        ...formData,
+        [name]: value,
+        city: "", // Reset city when state changes
+      });
+      if (value) {
+        fetchCities(value);
+      } else {
+        setCities([]);
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -123,6 +177,9 @@ const Register = () => {
       const submitData = {
         ...formData,
         names: `${formData.firstName} ${formData.lastName}`.trim(),
+        addressLine: formData.addressLine1, // Map addressLine1 to addressLine for backend compatibility
+        addressLine2: formData.addressLine2,
+        country: "India", // Set India as default country
       };
       const response = await axios.post("/api/auth/register", submitData);
       if (response.data.success) {
@@ -318,64 +375,81 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="addressLine"
-                placeholder="Address Line"
-                value={formData.addressLine}
+                name="addressLine1"
+                placeholder="Address Line 1 (House/Building/Street)"
+                value={formData.addressLine1}
                 onChange={handleChange}
                 required
                 className="form-input"
               />
             </div>
           </div>
+          
           <div className="form-group">
             <div className="input-group">
               <input
                 type="text"
-                name="city"
-                placeholder="City"
-                value={formData.city}
+                name="addressLine2"
+                placeholder="Address Line 2 (Area/Locality) - Optional"
+                value={formData.addressLine2}
                 onChange={handleChange}
-                required
                 className="form-input"
               />
             </div>
           </div>
+
           <div className="form-group">
             <div className="input-group">
-              <input
-                type="text"
+              <select
                 name="state"
-                placeholder="State"
                 value={formData.state}
                 onChange={handleChange}
                 required
                 className="form-input"
-              />
+                disabled={loadingStates}
+              >
+                <option value="">Select State</option>
+                {states.map((state, index) => (
+                  <option key={index} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+
+          <div className="form-group">
+            <div className="input-group">
+              <select
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                className="form-input"
+                disabled={loadingCities || !formData.state}
+              >
+                <option value="">Select City</option>
+                {cities.map((city, index) => (
+                  <option key={index} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="form-group">
             <div className="input-group">
               <input
                 type="text"
                 name="pincode"
-                placeholder="Pincode"
+                placeholder="Pincode (6 digits)"
                 value={formData.pincode}
                 onChange={handleChange}
                 required
                 className="form-input"
-              />
-            </div>
-          </div>
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="text"
-                name="country"
-                placeholder="Country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-                className="form-input"
+                pattern="[0-9]{6}"
+                maxLength="6"
               />
             </div>
           </div>

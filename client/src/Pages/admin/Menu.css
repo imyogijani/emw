@@ -21,8 +21,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .admin-header {
@@ -39,7 +43,7 @@
 }
 
 .admin-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -387,6 +391,7 @@
   justify-content: center;
   z-index: 1000;
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 .modal-content {
@@ -503,12 +508,12 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  
+
   .menu-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .menu-table {
     min-width: 800px;
   }
@@ -745,23 +750,23 @@
   .stat-card:hover {
     transform: none;
   }
-  
+
   .action-btn {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   .status-badge,
   .premium-badge {
     min-height: 32px;
     display: inline-flex;
     align-items: center;
   }
-  
+
   .search-box input {
     min-height: 44px;
   }
-  
+
   .category-filter {
     min-height: 44px;
   }
