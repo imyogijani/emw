@@ -86,17 +86,6 @@ const sellerSchema = new mongoose.Schema(
       account_number: String,
       ifsc: String,
     },
-
-    // razorpayContactId: {
-    //   type: String,
-    //   default: null,
-    // },
-
-    // razorpayFundAccountId: {
-    //   type: String,
-    //   default: null,
-    // },
-    // cashfreeBeneId: String, // Optional: For integration with Cashfree or similar payment gateways
   },
   { timestamps: true }
 );
