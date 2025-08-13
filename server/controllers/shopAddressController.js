@@ -2,6 +2,7 @@ import Seller from "../models/sellerModel.js";
 import User from "../models/userModel.js";
 
 //  Add a new shop address
+// controller
 export const addShopAddress = async (req, res) => {
   try {
     const sellerId = req.params.sellerId;
@@ -9,7 +10,9 @@ export const addShopAddress = async (req, res) => {
 
     const seller = await Seller.findById(sellerId);
     if (!seller) {
-      return res.status(404).json({ success: false, message: "Seller not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
     }
 
     let newAddress;
@@ -17,35 +20,59 @@ export const addShopAddress = async (req, res) => {
     if (fromUserAddress) {
       const user = await User.findById(seller.user);
       if (!user) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+      if (!Array.isArray(user.address) || !user.address[userAddressIndex]) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid user address index" });
       }
 
-      if (!user.address || !user.address[userAddressIndex]) {
-        return res.status(400).json({ success: false, message: "Invalid user address index" });
+      // Validate the picked user address too (so you still get field-level errors)
+      const { valid, errors, sanitized } = validateAddress(
+        user.address[userAddressIndex]
+      );
+      if (!valid) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid address",
+          errors, // <-- field by field errors
+        });
       }
-
-      newAddress = user.address[userAddressIndex];
+      newAddress = sanitized;
     } else {
-      // Check if this is the first shop address
-      const isFirstAddress = seller.shopAddresses.length === 0;
-      const errorMsg = validateAddress(address, isFirstAddress);
-      if (errorMsg) {
-        return res.status(400).json({ success: false, message: errorMsg });
+      // Validate the incoming address payload
+      const { valid, errors, sanitized } = validateAddress(address);
+      if (!valid) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid address",
+          errors, // <-- field by field errors
+        });
       }
-      newAddress = address;
+      newAddress = sanitized;
+    }
+
+    // If it's the first address, you can auto-mark as default (optional)
+    if (seller.shopAddresses.length === 0) {
+      newAddress.isDefault = true;
     }
 
     seller.shopAddresses.push(newAddress);
     await seller.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Address added successfully",
-      data: seller.shopAddresses
+      data: seller.shopAddresses,
     });
   } catch (error) {
     console.error("Error adding shop address:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -117,17 +144,42 @@ export const deleteShopAddress = async (req, res) => {
   }
 };
 
-export const validateAddress = (address, isFirstAddress = false) => {
-  // For first address: addressLine1, city, state, pincode are required
-  // For subsequent addresses: only city, state, pincode are required
-  const requiredFields = isFirstAddress
-    ? ["addressLine1", "city", "state", "pincode"]
-    : ["city", "state", "pincode"];
+// helpers/validateAddress.js (recommended separate file)
+export const validateAddress = (address = {}) => {
+  const errors = {};
+  const get = (v) => (typeof v === "string" ? v.trim() : "");
 
-  for (const field of requiredFields) {
-    if (!address[field] || address[field].trim() === "") {
-      return `${field} is required`;
-    }
+  const addressLine1 = get(address.addressLine1);
+  const addressLine2 = get(address.addressLine2); // optional
+  const city = get(address.city);
+  const state = get(address.state);
+  const country = get(address.country || "India"); // you can default or enforce
+  const pincode = get(address.pincode);
+
+  if (!addressLine1) errors.addressLine1 = "Address Line 1 is required";
+  if (!city) errors.city = "City is required";
+  if (!state) errors.state = "State is required";
+  if (!country) errors.country = "Country is required";
+
+  // If you want pincode mandatory:
+  if (!pincode) {
+    errors.pincode = "Pincode is required";
+  } else if (!/^\d{6}$/.test(pincode)) {
+    errors.pincode = "Pincode must be 6 digits";
   }
-  return null;
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+    sanitized: {
+      addressLine1,
+      addressLine2, // optional -> keep empty string if not provided
+      city,
+      state,
+      country,
+      pincode,
+      isDefault: !!address.isDefault,
+      type: address.type || "store",
+    },
+  };
 };
