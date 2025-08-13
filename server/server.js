@@ -148,11 +148,8 @@ import testNotificationRouter from "./routes/testNotification.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
 import shopAddressRoutes from "./routes/shopAddressRoutes.js";
-<<<<<<< HEAD
 import hsnRoutes from "./routes/hsnRoutes.js";
-=======
 import shopTimingRoutes from "./routes/shopTimingRoutes.js";
->>>>>>> cc0f128cb6ba23d9e90e4439dba6e9c13ab4e7f0
 //import paymentRoutes from "./routes/paymentRoutes.js";
 //import payoutRoutes from "./routes/payoutRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
@@ -181,11 +178,8 @@ app.use("/api/offers", offerRoutes);
 app.use("/api/menu-items", menuRoutes);
 app.use("/api/sellers", sellerRoutes);
 app.use("/api/shopaddress", shopAddressRoutes);
-<<<<<<< HEAD
 app.use("/api/hsn", hsnRoutes);
-=======
 app.use("/api/shop-timing", shopTimingRoutes);
->>>>>>> cc0f128cb6ba23d9e90e4439dba6e9c13ab4e7f0
 app.use("/api/users", userRoutes);
 //app.use("/api/payment", paymentRoutes);
 // app.use("/api/payout", payoutRoutes);
