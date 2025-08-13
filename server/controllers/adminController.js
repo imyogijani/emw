@@ -5,6 +5,13 @@ import Subscription from "../models/subscriptionModel.js";
 import Seller from "../models/sellerModel.js";
 import Category from "../models/categoryModel.js";
 import mongoose from "mongoose";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const pincodesFilePath = path.join(__dirname, "../data/india-pincodes.json");
 
 // Get dashboard statistics
 export const getDashboardStats = async (req, res) => {
@@ -514,6 +521,189 @@ export const getShopownerDetails = async (req, res) => {
       success: false,
       message: "Failed to fetch shopowner details",
       error: err.message,
+    });
+  }
+};
+
+// Location Management Functions
+
+// Get all locations data
+export const getAllLocations = async (req, res) => {
+  try {
+    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    const locationStats = {
+      totalStates: Object.keys(pincodesData).length,
+      totalCities: 0,
+      totalPincodes: 0
+    };
+
+    Object.values(pincodesData).forEach(state => {
+      Object.values(state).forEach(city => {
+        locationStats.totalCities++;
+        locationStats.totalPincodes += city.length;
+      });
+    });
+
+    res.json({
+      success: true,
+      data: pincodesData,
+      stats: locationStats
+    });
+  } catch (error) {
+    console.error("Error fetching locations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch locations"
+    });
+  }
+};
+
+// Add new state
+export const addState = async (req, res) => {
+  try {
+    const { stateName } = req.body;
+    
+    if (!stateName || !stateName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "State name is required"
+      });
+    }
+
+    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    
+    if (pincodesData[stateName]) {
+      return res.status(400).json({
+        success: false,
+        message: "State already exists"
+      });
+    }
+
+    pincodesData[stateName] = {};
+    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+
+    res.json({
+      success: true,
+      message: "State added successfully",
+      data: { stateName }
+    });
+  } catch (error) {
+    console.error("Error adding state:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add state"
+    });
+  }
+};
+
+// Add new city to state
+export const addCity = async (req, res) => {
+  try {
+    const { stateName, cityName } = req.body;
+    
+    if (!stateName || !cityName || !stateName.trim() || !cityName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "State name and city name are required"
+      });
+    }
+
+    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    
+    if (!pincodesData[stateName]) {
+      return res.status(404).json({
+        success: false,
+        message: "State not found"
+      });
+    }
+
+    if (pincodesData[stateName][cityName]) {
+      return res.status(400).json({
+        success: false,
+        message: "City already exists in this state"
+      });
+    }
+
+    pincodesData[stateName][cityName] = [];
+    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+
+    res.json({
+      success: true,
+      message: "City added successfully",
+      data: { stateName, cityName }
+    });
+  } catch (error) {
+    console.error("Error adding city:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add city"
+    });
+  }
+};
+
+// Delete state
+export const deleteState = async (req, res) => {
+  try {
+    const { stateName } = req.params;
+    
+    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    
+    if (!pincodesData[stateName]) {
+      return res.status(404).json({
+        success: false,
+        message: "State not found"
+      });
+    }
+
+    delete pincodesData[stateName];
+    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+
+    res.json({
+      success: true,
+      message: "State deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting state:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete state"
+    });
+  }
+};
+
+// Delete city
+export const deleteCity = async (req, res) => {
+  try {
+    const { stateName, cityName } = req.params;
+    
+    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    
+    if (!pincodesData[stateName]) {
+      return res.status(404).json({
+        success: false,
+        message: "State not found"
+      });
+    }
+
+    if (!pincodesData[stateName][cityName]) {
+      return res.status(404).json({
+        success: false,
+        message: "City not found"
+      });
+    }
+
+    delete pincodesData[stateName][cityName];
+    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+
+    res.json({
+      success: true,
+      message: "City deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting city:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete city"
     });
   }
 };

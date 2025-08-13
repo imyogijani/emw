@@ -28,6 +28,10 @@ export const addProduct = async (req, res) => {
       brand,
       variants,
       technicalDetailsId,
+      hsnCode,
+      hsnCodeSource,
+      suggestedHsnCode,
+      hsnCodeConfirmed,
       // isPremium,
     } = req.body;
 
@@ -208,6 +212,10 @@ export const addProduct = async (req, res) => {
       technicalDetails: techRef,
       isPremium: allowPremium,
       gstPercentage,
+      hsnCode: hsnCode || undefined,
+      hsnCodeSource: hsnCodeSource || 'manual',
+      suggestedHsnCode: suggestedHsnCode || undefined,
+      hsnCodeConfirmed: hsnCodeConfirmed || false,
       location: locationData,
     });
 
@@ -328,6 +336,7 @@ export const updateProduct = async (req, res) => {
       variants,
       technicalDetailsId,
       isPremium,
+      hsnCode,
     } = req.body;
 
     const product = await Product.findById(productId);
@@ -406,6 +415,7 @@ export const updateProduct = async (req, res) => {
     //   product.brand = undefined;
     // }
     if (brand !== undefined) product.brand = brand === "" ? undefined : brand;
+    if (hsnCode !== undefined) product.hsnCode = hsnCode === "" ? undefined : hsnCode;
 
     // Get seller
     const seller = await Seller.findOne({ user: req.userId });

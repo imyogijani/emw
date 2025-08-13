@@ -11,10 +11,10 @@ export const createCategoryController = async (req, res) => {
   try {
     // console.log("[DEBUG] req.body:", req.body);
     // console.log("[DEBUG] req.file:", req.file);
-    let { name, parent, brands, gstPercentage } = req.body;
+    let { name, parent, brands, gstPercentage, suggestedHsnCodes, defaultHsnCode } = req.body;
     // Convert gstPercentage to number if string
     gstPercentage = Number(gstPercentage) || 0;
-
+    
     let image = "";
     if (req.file) {
       console.log("Category image upload:", req.file);
@@ -45,14 +45,32 @@ export const createCategoryController = async (req, res) => {
     if (existingCategory) {
       return res.status(409).send({ message: "Category already exists" });
     }
-    const category = await new Category({
+    
+    // Create category data object
+    const categoryData = {
       name,
       slug: slugify(name),
       parent: parent || null,
       image,
       brands: brands || [],
       gstPercentage,
-    });
+    };
+    
+    // Only add HSN codes for subcategories (when parent exists)
+    if (parent) {
+      // Parse suggestedHsnCodes if it's a string
+      if (typeof suggestedHsnCodes === "string") {
+        try {
+          suggestedHsnCodes = JSON.parse(suggestedHsnCodes);
+        } catch (err) {
+          suggestedHsnCodes = [];
+        }
+      }
+      categoryData.suggestedHsnCodes = suggestedHsnCodes || [];
+      categoryData.defaultHsnCode = defaultHsnCode || "";
+    }
+    
+    const category = await new Category(categoryData);
 
     if (parent) {
       const parentCategory = await Category.findById(parent);
@@ -222,7 +240,13 @@ export const deleteCategoryController = async (req, res) => {
 // Update category
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name, parent, brands, gstPercentage } = req.body;
+    const { name, parent, brands, gstPercentage, suggestedHsnCodes, defaultHsnCode } = req.body;
+
+    // First, get the current category to check if it's a subcategory
+    const currentCategory = await Category.findById(req.params.id);
+    if (!currentCategory) {
+      return res.status(404).send({ message: "Category not found" });
+    }
 
     const updateData = {};
     if (name) {
@@ -238,10 +262,19 @@ export const updateCategoryController = async (req, res) => {
     if (typeof gstPercentage !== "undefined") {
       updateData.gstPercentage = gstPercentage;
     }
+    
+    // Only handle HSN codes for subcategories (categories with parent)
+    if (currentCategory.parent || parent) {
+      if (suggestedHsnCodes !== undefined) {
+        updateData.suggestedHsnCodes = Array.isArray(suggestedHsnCodes) ? suggestedHsnCodes : [];
+      }
+      if (typeof defaultHsnCode !== "undefined") {
+        updateData.defaultHsnCode = defaultHsnCode;
+      }
+    }
     let oldImagePath = null;
     if (req.file) {
-      // Find the current category to get the old image path
-      const currentCategory = await Category.findById(req.params.id);
+      // Use the already fetched currentCategory to get the old image path
       if (currentCategory && currentCategory.image) {
         oldImagePath = path.join(
           path.resolve(),
@@ -278,6 +311,39 @@ export const updateCategoryController = async (req, res) => {
       success: false,
       message: "Error updating category",
       error,
+    });
+  }
+};
+
+// Get HSN suggestions for subcategory only (more precise)
+export const getHsnSuggestionsController = async (req, res) => {
+  try {
+    const { subcategoryId } = req.query;
+    
+    let suggestions = [];
+    let defaultHsn = "";
+    
+    // Only fetch HSN codes from subcategory for better precision
+    if (subcategoryId) {
+      const subcategory = await Category.findById(subcategoryId);
+      if (subcategory) {
+        suggestions = subcategory.suggestedHsnCodes || [];
+        defaultHsn = subcategory.defaultHsnCode || "";
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      suggestedHsnCodes: suggestions,
+      defaultHsnCode: defaultHsn,
+      source: 'subcategory'
+    });
+  } catch (error) {
+    console.error("Error fetching HSN suggestions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching HSN suggestions",
+      error: error.message,
     });
   }
 };

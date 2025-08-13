@@ -703,7 +703,8 @@
   .admin-header {
     background: var(--secondary-color) !important;
     -webkit-print-color-adjust: exact;
-    color-adjust: exact;
+    print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .charts-grid {

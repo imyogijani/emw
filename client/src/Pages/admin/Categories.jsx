@@ -25,20 +25,50 @@ const Categories = () => {
   const [itemTypeToDelete, setItemTypeToDelete] = useState(null);
   const [categoryImage, setCategoryImage] = useState(null);
   const [editCategoryImage, setEditCategoryImage] = useState(null);
+  // HSN code state variables removed for categories - now only used for subcategories
+  const [subSuggestedHsnCodes, setSubSuggestedHsnCodes] = useState("");
+  const [subDefaultHsnCode, setSubDefaultHsnCode] = useState("");
+  const [editSubSuggestedHsnCodes, setEditSubSuggestedHsnCodes] = useState("");
+  const [editSubDefaultHsnCode, setEditSubDefaultHsnCode] = useState("");
+  const [gstRates, setGstRates] = useState({});
+
+  const fetchGSTRate = async (hsnCode) => {
+    try {
+      const { data } = await axiosInstance.get(`/api/category/gst-rate/${hsnCode}`);
+      return data.success ? data.data.gstRate : null;
+    } catch (error) {
+      console.error('Error fetching GST rate:', error);
+      return null;
+    }
+  };
 
   const initialLoad = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get("/api/category/get-category");
-      if (response.data && Array.isArray(response.data.categories)) {
-        setCategories(response.data.categories);
-      } else {
-        setCategories([]);
-        console.warn("Invalid API response format:", response.data);
+      const { data } = await axiosInstance.get("/api/category/get-category");
+      const categories = data?.categories || [];
+      setCategories(categories);
+      
+      // Fetch GST rates for all subcategories with HSN codes
+      const gstRatePromises = {};
+      for (const category of categories) {
+        if (category.children && category.children.length > 0) {
+          for (const subcat of category.children) {
+            if (subcat.defaultHsnCode) {
+              gstRatePromises[subcat._id] = fetchGSTRate(subcat.defaultHsnCode);
+            }
+          }
+        }
       }
+      
+      const resolvedGstRates = {};
+      for (const [subcatId, promise] of Object.entries(gstRatePromises)) {
+        resolvedGstRates[subcatId] = await promise;
+      }
+      setGstRates(resolvedGstRates);
     } catch (err) {
       setError(err);
-      toast.error("Failed to load categories.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -63,6 +93,8 @@ const Categories = () => {
       formData.append("name", categoryName.trim());
       formData.append("image", categoryImage);
       selectedBrands.forEach((brand) => formData.append("brands[]", brand));
+      
+      // HSN codes are now handled only at subcategory level
       // Debug: log the file
       console.log("Uploading category image:", categoryImage);
       // Use your custom axios instance
@@ -85,12 +117,35 @@ const Categories = () => {
       return;
     }
     try {
-      await axiosInstance.post(`/api/category/subcategory`, {
+      const subcategoryData = {
         name: subCategoryName.trim(),
         parent: selectedCategory,
-      });
+      };
+      
+      // Add HSN code fields if provided
+      if (subSuggestedHsnCodes.trim()) {
+        const hsnArray = subSuggestedHsnCodes.split(',').map(code => code.trim()).filter(code => code);
+        subcategoryData.suggestedHsnCodes = hsnArray;
+      }
+      if (subDefaultHsnCode.trim()) {
+        subcategoryData.defaultHsnCode = subDefaultHsnCode.trim();
+      }
+      
+      const response = await axiosInstance.post(`/api/category/subcategory`, subcategoryData);
+      
+      // If HSN code was provided, fetch GST rate for the new subcategory
+      if (subDefaultHsnCode.trim() && response.data?.category?._id) {
+        const gstRate = await fetchGSTRate(subDefaultHsnCode.trim());
+        setGstRates(prev => ({
+          ...prev,
+          [response.data.category._id]: gstRate
+        }));
+      }
+      
       setSubCategoryName("");
       setSelectedCategory("");
+      setSubSuggestedHsnCodes("");
+      setSubDefaultHsnCode("");
       toast.success(`Subcategory added successfully.`);
       await initialLoad();
     } catch (err) {
@@ -109,6 +164,9 @@ const Categories = () => {
     setEditingCategory(category);
     setNewCategoryName(category.name);
     setSelectedBrands(category.brands || []); // Populate brands when editing
+    
+    // HSN codes are now handled only at subcategory level
+    
     setShowEditCategoryModal(true);
   };
 
@@ -121,6 +179,13 @@ const Categories = () => {
   const handleUpdateSubCategory = (subcategory) => {
     setEditingSubCategory(subcategory);
     setNewSubCategoryName(subcategory.name);
+    
+    // Populate HSN code fields for subcategory editing
+    setEditSubSuggestedHsnCodes(
+      subcategory.suggestedHsnCodes ? subcategory.suggestedHsnCodes.join(', ') : ''
+    );
+    setEditSubDefaultHsnCode(subcategory.defaultHsnCode || '');
+    
     setShowEditCategoryModal(true);
   };
 
@@ -158,6 +223,9 @@ const Categories = () => {
       formData.append("name", newCategoryName.trim());
       if (editCategoryImage) formData.append("image", editCategoryImage);
       selectedBrands.forEach((brand) => formData.append("brands[]", brand));
+      
+      // HSN codes are now handled only at subcategory level
+      
       await axiosInstance.post(
         `/api/category/update-category/${editingCategory._id}`,
         formData
@@ -175,12 +243,33 @@ const Categories = () => {
     if (!editingSubCategory?._id || !newSubCategoryName.trim()) return;
 
     try {
+      const updateData = {
+        name: newSubCategoryName.trim(),
+      };
+      
+      // Add HSN code fields if provided
+      if (editSubSuggestedHsnCodes.trim()) {
+        const hsnArray = editSubSuggestedHsnCodes.split(',').map(code => code.trim()).filter(code => code);
+        updateData.suggestedHsnCodes = hsnArray;
+      }
+      if (editSubDefaultHsnCode.trim()) {
+        updateData.defaultHsnCode = editSubDefaultHsnCode.trim();
+      }
+      
       await axiosInstance.put(
         `/api/category/update-category/${editingSubCategory._id}`,
-        {
-          name: newSubCategoryName.trim(),
-        }
+        updateData
       );
+      
+      // If HSN code was updated, fetch new GST rate
+      if (editSubDefaultHsnCode.trim()) {
+        const newGstRate = await fetchGSTRate(editSubDefaultHsnCode.trim());
+        setGstRates(prev => ({
+          ...prev,
+          [editingSubCategory._id]: newGstRate
+        }));
+      }
+      
       toast.success("Subcategory updated successfully.");
       await initialLoad();
       resetEditState();
@@ -210,6 +299,8 @@ const Categories = () => {
     setNewSubCategoryName("");
     setEditCategoryImage(null);
     setSelectedBrands([]); // Clear selected brands on reset
+    setEditSubSuggestedHsnCodes("");
+    setEditSubDefaultHsnCode("");
     setShowEditCategoryModal(false);
   };
 
@@ -265,6 +356,8 @@ const Categories = () => {
               </span>
             ))}
           </div>
+          
+          {/* HSN codes are now handled only at subcategory level */}
           <button type="submit" className="btn btn-primary">Add Category</button>
         </form>
       </div>
@@ -291,6 +384,22 @@ const Categories = () => {
             onChange={(e) => setSubCategoryName(e.target.value)}
             className="form-input"
           />
+          <div className="hsn-input-section">
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Suggested HSN Codes (comma-separated, e.g., 6403, 6404)"
+              value={subSuggestedHsnCodes}
+              onChange={(e) => setSubSuggestedHsnCodes(e.target.value)}
+            />
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Default HSN Code (e.g., 6403)"
+              value={subDefaultHsnCode}
+              onChange={(e) => setSubDefaultHsnCode(e.target.value)}
+            />
+          </div>
           <button type="submit" className="btn btn-primary">
             Add Subcategory
           </button>
@@ -311,7 +420,7 @@ const Categories = () => {
                 <img
                   src={
                     cat.image
-                      ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}{cat.image}`
+                      ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${cat.image}`
                       : "/vite.svg"
                   }
                   alt={cat.name}
@@ -342,7 +451,17 @@ const Categories = () => {
                   <div className="subcategory-list">
                     {cat.children.map((subCat) => (
                       <div key={subCat._id} className="subcategory-item">
-                        <span>{subCat.name}</span>
+                        <div className="subcategory-info">
+                          <span className="subcategory-name">{subCat.name}</span>
+                          {subCat.defaultHsnCode && (
+                            <div className="hsn-gst-info">
+                              <span className="hsn-code">HSN: {subCat.defaultHsnCode}</span>
+                              {gstRates[subCat._id] !== undefined && (
+                                <span className="gst-rate">GST: {gstRates[subCat._id]}%</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <div className="subcategory-actions">
                           <button
                             className="btn btn-edit"
@@ -405,6 +524,26 @@ const Categories = () => {
                 </span>
               ))}
             </div>
+            
+            {/* HSN codes for categories removed - now handled only at subcategory level */}
+            {editingSubCategory && (
+              <div className="hsn-input-section">
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Suggested HSN Codes (comma-separated, e.g., 6403, 6404)"
+                  value={editSubSuggestedHsnCodes}
+                  onChange={(e) => setEditSubSuggestedHsnCodes(e.target.value)}
+                />
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Default HSN Code (e.g., 6403)"
+                  value={editSubDefaultHsnCode}
+                  onChange={(e) => setEditSubDefaultHsnCode(e.target.value)}
+                />
+              </div>
+            )}
             <div className="modal-actions">
               <button
                 className="btn btn-primary"

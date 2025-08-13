@@ -38,6 +38,7 @@ import Categories from "./Pages/admin/Categories";
 import AdminMenu from "./Pages/admin/Menu";
 import AdminDeals from "./Pages/admin/AdminDeals";
 import AdminOffers from "./Pages/admin/AdminOffers";
+import ManageLocations from "./Pages/admin/ManageLocations";
 import SellerDashboard from "./Pages/Seller/SellerDashboard";
 import SellerProducts from "./Pages/Seller/SellerProducts";
 import AddProduct from "./Pages/Seller/AddProduct";
@@ -89,6 +90,7 @@ function LayoutWrapper() {
     "/admin/deals",
     "/admin/menu",
     "/admin/offers", // Hide navbar/footer for admin offers page
+    "/admin/locations", // Hide navbar/footer for admin locations page
     "/seller",
     "/seller/dashboard",
     "/seller/products/all",
@@ -159,6 +161,7 @@ function LayoutWrapper() {
           <Route path="deals" element={<AdminDeals />} />
           <Route path="menu" element={<AdminMenu />} />
           <Route path="offers" element={<AdminOffers />} />
+          <Route path="locations" element={<ManageLocations />} />
         </Route>
 
         <Route

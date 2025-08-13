@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -8,6 +9,13 @@ import "./SellerProducts.css";
 const AddProduct = () => {
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [hsnCodes, setHsnCodes] = useState([]);
+  const [hsnSearch, setHsnSearch] = useState("");
+  const [showHsnDropdown, setShowHsnDropdown] = useState(false);
+  const [suggestedHsnCodes, setSuggestedHsnCodes] = useState([]);
+  const [defaultHsnCode, setDefaultHsnCode] = useState("");
+  const [showHsnConfirmation, setShowHsnConfirmation] = useState(false);
+  const [hsnCodeSource, setHsnCodeSource] = useState('manual');
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -20,6 +28,10 @@ const AddProduct = () => {
     status: "In Stock",
     variants: [],
     technicalDetailsId: "6878d66d910126f21713e286",
+    hsnCode: "",
+    hsnCodeSource: "manual",
+    suggestedHsnCode: "",
+    hsnCodeConfirmed: false,
   });
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState([]);
@@ -40,10 +52,26 @@ const AddProduct = () => {
       } else {
         setSubcategories([]);
       }
+      // Clear HSN suggestions when category changes (wait for subcategory selection)
+      setSuggestedHsnCodes([]);
+      setDefaultHsnCode("");
     } else {
       setSubcategories([]);
+      setSuggestedHsnCodes([]);
+      setDefaultHsnCode("");
     }
   }, [formData.category, categories]);
+
+  // Fetch HSN suggestions only when subcategory changes (more precise)
+  useEffect(() => {
+    if (formData.subcategory) {
+      fetchHsnSuggestions(formData.subcategory);
+    } else {
+      // Clear HSN suggestions when no subcategory is selected
+      setSuggestedHsnCodes([]);
+      setDefaultHsnCode("");
+    }
+  }, [formData.subcategory]);
 
   const fetchCategories = async () => {
     try {
@@ -58,6 +86,87 @@ const AddProduct = () => {
       toast.error("Error fetching categories");
       console.error("Error fetching categories:", error);
     }
+  };
+
+  const fetchHSNCodes = async (searchTerm = "") => {
+    try {
+      const response = await axios.get(`/api/hsn?search=${searchTerm}&limit=20`);
+      if (response.data.success) {
+        setHsnCodes(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching HSN codes:", error);
+    }
+  };
+
+  const fetchHsnSuggestions = async (subcategoryId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`/api/category/hsn-suggestions?subcategoryId=${subcategoryId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setSuggestedHsnCodes(response.data.suggestedHsnCodes || []);
+        setDefaultHsnCode(response.data.defaultHsnCode || "");
+        
+        // Auto-suggest HSN code if available
+        if (response.data.defaultHsnCode && !formData.hsnCode) {
+          setFormData(prev => ({
+            ...prev,
+            hsnCode: response.data.defaultHsnCode,
+            suggestedHsnCode: response.data.defaultHsnCode,
+            hsnCodeSource: 'subcategory-suggested'
+          }));
+          setHsnSearch(`${response.data.defaultHsnCode}`);
+          setShowHsnConfirmation(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching HSN suggestions:", error);
+    }
+  };
+
+  const handleHsnSearch = (e) => {
+    const value = e.target.value;
+    setHsnSearch(value);
+    setShowHsnDropdown(true);
+    if (value.length >= 2) {
+      fetchHSNCodes(value);
+    } else {
+      setHsnCodes([]);
+    }
+  };
+
+  const selectHsnCode = (hsn) => {
+    setFormData(prev => ({
+      ...prev,
+      hsnCode: hsn.HSN_CD,
+      hsnCodeSource: 'manual',
+      hsnCodeConfirmed: true
+    }));
+    setHsnSearch(`${hsn.HSN_CD} - ${hsn.HSN_Description}`);
+    setShowHsnDropdown(false);
+    setShowHsnConfirmation(false);
+  };
+
+  const confirmSuggestedHsn = () => {
+    setFormData(prev => ({
+      ...prev,
+      hsnCodeConfirmed: true
+    }));
+    setShowHsnConfirmation(false);
+  };
+
+  const rejectSuggestedHsn = () => {
+    setFormData(prev => ({
+      ...prev,
+      hsnCode: "",
+      hsnCodeSource: "manual",
+      suggestedHsnCode: "",
+      hsnCodeConfirmed: false
+    }));
+    setHsnSearch("");
+    setShowHsnConfirmation(false);
   };
 
   const handleChange = (e) => {
@@ -90,7 +199,24 @@ const AddProduct = () => {
         ...prev,
         [name]: value,
         subcategory: "", // Reset subcategory when category changes
+        hsnCode: "", // Reset HSN code when category changes
+        hsnCodeSource: "manual",
+        suggestedHsnCode: "",
+        hsnCodeConfirmed: false,
       }));
+      setHsnSearch("");
+      setShowHsnConfirmation(false);
+    } else if (name === "subcategory") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        hsnCode: "", // Reset HSN code when subcategory changes
+        hsnCodeSource: "manual",
+        suggestedHsnCode: "",
+        hsnCodeConfirmed: false,
+      }));
+      setHsnSearch("");
+      setShowHsnConfirmation(false);
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -305,6 +431,105 @@ const AddProduct = () => {
               </select>
             </div>
           )}
+
+          <div className="form-group">
+            <label htmlFor="hsnCode">HSN/SAC Code</label>
+            <div className="hsn-search-container" style={{ position: 'relative' }}>
+              <input
+                type="text"
+                id="hsnCode"
+                name="hsnCode"
+                value={hsnSearch}
+                onChange={handleHsnSearch}
+                onFocus={() => setShowHsnDropdown(true)}
+                onBlur={() => setTimeout(() => setShowHsnDropdown(false), 200)}
+                placeholder="Search HSN/SAC code or description"
+                className="hsn-search-input"
+              />
+              {showHsnDropdown && hsnCodes.length > 0 && (
+                <div className="hsn-dropdown" style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'white',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  zIndex: 1000,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}>
+                  {hsnCodes.map((hsn) => (
+                    <div
+                      key={hsn._id}
+                      onClick={() => selectHsnCode(hsn)}
+                      style={{
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #eee'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                    >
+                      <strong>{hsn.HSN_CD}</strong> - {hsn.HSN_Description}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* HSN Code Confirmation Dialog */}
+            {showHsnConfirmation && (
+              <div className="hsn-confirmation" style={{
+                marginTop: '10px',
+                padding: '15px',
+                backgroundColor: '#e8f4fd',
+                border: '1px solid #bee5eb',
+                borderRadius: '5px'
+              }}>
+                <h4 style={{ margin: '0 0 10px 0', color: '#0c5460' }}>HSN Code Suggestion</h4>
+                <p style={{ margin: '0 0 10px 0' }}>
+                  Based on your selected subcategory, we suggest the HSN code: 
+                  <strong> {defaultHsnCode}</strong>
+                </p>
+                <p style={{ margin: '0 0 15px 0', fontSize: '12px', color: '#6c757d' }}>
+                  <strong>Note:</strong> You can accept this suggestion or choose a different HSN code. 
+                  Any changes will apply only to your products and won't affect other sellers.
+                </p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={confirmSuggestedHsn}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Accept Suggestion
+                  </button>
+                  <button
+                    type="button"
+                    onClick={rejectSuggestedHsn}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Choose Different
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="form-group">
             <label htmlFor="price">Price (INR) *</label>

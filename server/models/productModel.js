@@ -101,6 +101,35 @@ const productSchema = new mongoose.Schema(
       default: 0, // Default 0% GST if not specified
       required: true,
     },
+    hsnCode: {
+      type: String,
+      required: false, // Optional field for HSN/SAC code
+      trim: true,
+      validate: {
+        validator: function(v) {
+          // HSN codes are typically 4, 6, or 8 digits
+          // SAC codes are typically 6 digits
+          return !v || /^\d{4,8}$/.test(v);
+        },
+        message: 'HSN/SAC code must be 4-8 digits'
+      }
+    },
+    // Track if HSN code was auto-suggested or manually overridden
+    hsnCodeSource: {
+      type: String,
+      enum: ['auto', 'manual', 'category_default'],
+      default: 'auto'
+    },
+    // Store original suggested HSN code for reference
+    suggestedHsnCode: {
+      type: String,
+      trim: true,
+    },
+    // Flag to indicate if seller confirmed the HSN code change
+    hsnCodeConfirmed: {
+      type: Boolean,
+      default: false
+    },
   },
   {
     timestamps: true,

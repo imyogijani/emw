@@ -7,7 +7,9 @@ import {
   updateCategoryController,
   getSubcategoriesController,
   categoriesWithShopCountController,
+  getHsnSuggestionsController,
 } from "../controllers/categoryController.js";
+import { getGSTRateByHSN } from "../controllers/hsnController.js";
 import {
   authenticateToken,
   authorizeAdmin,
@@ -71,5 +73,11 @@ router.delete(
 
 // Get all categories with shop count
 router.get("/get-category-with-shop-count", categoriesWithShopCountController);
+
+// Get HSN suggestions for category/subcategory
+router.get("/hsn-suggestions", getHsnSuggestionsController);
+
+// Get GST rate by HSN code
+router.get("/gst-rate/:hsnCode", getGSTRateByHSN);
 
 export default router;
