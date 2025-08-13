@@ -40,6 +40,10 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState(false); // State to store subscription plans
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true); // State for loading subscriptions
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [pincodes, setPincodes] = useState([]);
+  const [citySearch, setCitySearch] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,8 +94,58 @@ const Register = () => {
       ...formData,
       [name]: value,
     });
+
+    if (name === "state") {
+      setCities([]);
+      setPincodes([]);
+      setFormData((prev) => ({ ...prev, city: "", pincode: "" }));
+    }
+
+    if (name === "city") {
+      setPincodes([]);
+      setFormData((prev) => ({ ...prev, pincode: "" }));
+    }
   };
 
+  useEffect(() => {
+    axios
+      .get("/api/location/states")
+      .then((res) => setStates(res.data.data || []))
+      .catch(() => toast.error("Failed to load states"));
+  }, []);
+
+  // Fetch cities when state changes or search text changes
+  useEffect(() => {
+    if (!formData.state) return;
+
+    const fetchCities = async () => {
+      try {
+        const res = await axios.get(
+          `/api/location/cities/${formData.state}`,
+          { params: { q: citySearch } } // send query param for search
+        );
+        setCities(res.data.data || []);
+      } catch {
+        toast.error("Failed to load cities");
+        setCities([]);
+      }
+    };
+
+    fetchCities();
+  }, [formData.state, citySearch]);
+
+  // Fetch pincodes when city changes
+  useEffect(() => {
+    if (!formData.state || !formData.city) return;
+
+    axios
+      .get(`/api/location/pincodes/${formData.state}/${formData.city}`)
+      .then((res) => setPincodes(Object.values(res.data.data) || []))
+      .catch(() => {
+        toast.error("Failed to load pincodes");
+        setPincodes([]);
+      });
+  }, [formData.city]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -327,45 +381,65 @@ const Register = () => {
               />
             </div>
           </div>
+
           <div className="form-group">
             <div className="input-group">
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
-            </div>
-          </div>
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="text"
+              {/* <label>State:</label> */}
+              <select
                 name="state"
-                placeholder="State"
                 value={formData.state}
                 onChange={handleChange}
                 required
-                className="form-input"
-              />
+              >
+                <option value="">Select State</option>
+                {states.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+
           <div className="form-group">
             <div className="input-group">
-              <input
-                type="text"
+              <select
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                disabled={!formData.state}
+              >
+                <option value="">Select City</option>
+                {cities.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <div className="input-group">
+              {/* Pincode Dropdown */}
+              <select
                 name="pincode"
-                placeholder="Pincode"
                 value={formData.pincode}
                 onChange={handleChange}
                 required
-                className="form-input"
-              />
+                disabled={!formData.city}
+              >
+                <option value="">Select Pincode</option>
+                {pincodes.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+
           <div className="form-group">
             <div className="input-group">
               <input

@@ -25,10 +25,7 @@ console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // MongoDB connection
 import connectDB from "./config/db.js";
-await connectDB();
-
-// await importHSNData();
-// console.log("HSN data import finished");
+connectDB();
 
 // Create Express app
 const app = express();
@@ -151,6 +148,7 @@ import testNotificationRouter from "./routes/testNotification.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
 import shopAddressRoutes from "./routes/shopAddressRoutes.js";
+import shopTimingRoutes from "./routes/shopTimingRoutes.js";
 //import paymentRoutes from "./routes/paymentRoutes.js";
 //import payoutRoutes from "./routes/payoutRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
@@ -179,6 +177,7 @@ app.use("/api/offers", offerRoutes);
 app.use("/api/menu-items", menuRoutes);
 app.use("/api/sellers", sellerRoutes);
 app.use("/api/shopaddress", shopAddressRoutes);
+app.use("/api/shop-timing", shopTimingRoutes);
 app.use("/api/users", userRoutes);
 //app.use("/api/payment", paymentRoutes);
 // app.use("/api/payout", payoutRoutes);

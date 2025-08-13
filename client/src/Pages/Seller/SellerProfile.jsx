@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
 import "./SellerProfile.css";
+import AddressModal from "./AddressModal";
+import { Edit, Trash2 } from "lucide-react";
 
 const SellerProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -9,6 +11,18 @@ const SellerProfile = () => {
   const [form, setForm] = useState({});
   const [shopImage, setShopImage] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
+  });
+  const [editAddressIndex, setEditAddressIndex] = useState(null);
 
   useEffect(() => {
     fetchProfile();
@@ -22,9 +36,7 @@ const SellerProfile = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const res = await axios.get("/api/auth/current-user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get("/api/auth/current-user");
       setProfile(res.data.user);
       // console.log("User profile data:", res.data.user);
 
@@ -35,7 +47,10 @@ const SellerProfile = () => {
         email: res.data.user.email || "",
         phone: res.data.user.phone || "",
         address: res.data.user.address || "",
+        addresses: res.data.user.sellerId.shopAddresses || [],
       });
+
+      console.log("Profile data fetched:", res.data);
     } catch (err) {
       toast.error("Failed to load profile");
       console.log(err);
@@ -94,6 +109,75 @@ const SellerProfile = () => {
       phone: profile.phone || "",
       address: profile.address || "",
     });
+  };
+
+  // Modal handlers
+  const openAddModal = () => {
+    setEditAddressIndex(null);
+    setAddressForm({
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      country: "India",
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (addr, index) => {
+    setEditAddressIndex(index);
+    setAddressForm(addr);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSaveAddress = async () => {
+    try {
+      if (editAddressIndex !== null) {
+        // Update address
+        await axios.patch(
+          `/api/shopaddress/${profile.sellerId._id}/address/${editAddressIndex}`,
+          addressForm
+        );
+        toast.success("Address updated");
+      } else {
+        // Add new address
+        await axios.post(`/api/shopaddress/${profile.sellerId._id}/address`, {
+          address: addressForm,
+        });
+        toast.success("Address added");
+      }
+      closeModal();
+      fetchProfile();
+    } catch (err) {
+      const apiMessage =
+        err.response?.data?.message || // backend main message
+        err.response?.data?.error || // fallback for some APIs
+        "Failed to save address";
+      toast.error(apiMessage);
+    }
+  };
+
+  const handleDeleteAddress = async (index) => {
+    if (!window.confirm("Are you sure you want to delete this address?"))
+      return;
+    try {
+      await axios.delete(
+        `/api/shopaddress/${profile.sellerId._id}/address/${index}`
+      );
+      toast.success("Address deleted");
+      fetchProfile();
+    } catch (err) {
+      const apiMessage =
+        err.response?.data?.message || // backend main message
+        err.response?.data?.error || // fallback for some APIs
+        "Failed to delete address";
+      toast.error(apiMessage);
+    }
   };
 
   // Show preview of new shop image if selected
@@ -228,6 +312,7 @@ const SellerProfile = () => {
                   readOnly
                 />
               </div>
+
               <div className="seller-profile-row">
                 <label className="seller-profile-label">Address</label>
                 <input
@@ -237,6 +322,59 @@ const SellerProfile = () => {
                   readOnly
                 />
               </div>
+              {/* Addresses */}
+              <div style={{ marginTop: "20px" }}>
+                <label className="seller-profile-label">Shop Addresses</label>
+
+                {form.addresses && form.addresses.length > 0 ? (
+                  form.addresses.map((addr, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        border: "1px solid #ccc",
+                        padding: "10px",
+                        marginBottom: "8px",
+                        borderRadius: "6px",
+                        background: "#fff",
+                      }}
+                    >
+                      <span style={{ flex: 1 }}>
+                        <strong
+                          style={{ display: "block", marginBottom: "4px" }}
+                        >
+                          Address {idx + 1}
+                        </strong>
+                        {addr.addressLine1}, {addr.addressLine2}, {addr.city},{" "}
+                        {addr.state} - {addr.pincode}, {addr.country}
+                      </span>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <Edit
+                          size={20}
+                          color="orange"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => openEditModal(addr, idx)}
+                        />
+                        <Trash2
+                          size={20}
+                          color="orange"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleDeleteAddress(idx)}
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p>No addresses found</p>
+                )}
+
+                <button onClick={openAddModal} style={{ marginTop: "10px" }}>
+                  Add Address
+                </button>
+              </div>
+
               <div className="seller-profile-row">
                 <label className="seller-profile-label">
                   Subscription Plan
@@ -373,6 +511,15 @@ const SellerProfile = () => {
           )}
         </div>
       </div>
+
+      <AddressModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={handleSaveAddress}
+        addressForm={addressForm}
+        setAddressForm={setAddressForm}
+        isEditing={editAddressIndex !== null}
+      />
     </div>
   );
 };
