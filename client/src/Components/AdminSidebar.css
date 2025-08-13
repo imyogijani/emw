@@ -9,6 +9,8 @@ aside {
   justify-content: space-between;
   position: relative;
   height: 100vh;
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -284,11 +286,7 @@ aside button {
   box-shadow: 0 4px 24px 0 rgba(255, 71, 87, 0.1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition:
-    background 0.2s,
-    color 0.2s,
-    box-shadow 0.2s,
-    transform 0.2s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .sidebar-footer .logout-btn:hover {
   background: rgba(255, 71, 87, 0.38) !important;
@@ -307,11 +305,7 @@ aside button {
   box-shadow: 0 4px 24px 0 rgba(66, 133, 244, 0.1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition:
-    background 0.2s,
-    color 0.2s,
-    box-shadow 0.2s,
-    transform 0.2s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .sidebar-footer .login-btn:hover {
   background: rgba(66, 133, 244, 0.38) !important;
