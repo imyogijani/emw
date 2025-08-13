@@ -106,26 +106,27 @@ export default function Footer() {
 
             {/* Links Sections */}
             <div className="footer-links">
-              <div className="links-column">
-                <h4>Quick Links</h4>
-                <ul>
-                  {quickLinks.map((item, index) => (
-                    <li key={index}>
-                      <a href={item.link}>{item.name}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="links-column">
-                <h4>Company</h4>
-                <ul>
-                  {companyInfo.map((item, index) => (
-                    <li key={index}>
-                      <a href={item.link}>{item.name}</a>
-                    </li>
-                  ))}
-                </ul>
+              <div className="links-column combined-links">
+                <div className="links-group">
+                  <h4>Quick Links</h4>
+                  <ul>
+                    {quickLinks.map((item, index) => (
+                      <li key={index}>
+                        <a href={item.link}>{item.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="links-group">
+                  <h4>Company</h4>
+                  <ul>
+                    {companyInfo.map((item, index) => (
+                      <li key={index}>
+                        <a href={item.link}>{item.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               <div className="links-column">
