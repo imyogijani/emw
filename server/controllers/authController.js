@@ -360,7 +360,7 @@ const currentUserController = async (req, res) => {
     // Always populate subscription for shopowners
     userQuery = userQuery
       .populate("subscription")
-      .populate("sellerId", "shopName ownerName");
+      .populate("sellerId", "shopName ownerName shopAddresses");
     const user = await userQuery;
     return res.status(200).send({
       success: true,
