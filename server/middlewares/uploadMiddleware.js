@@ -37,8 +37,8 @@ const storage = multer.diskStorage({
       const dest = path.join(__dirname, "../public/uploads/categories");
       cb(null, dest);
     } else if (
-      req.baseUrl.includes("shop") ||
-      req.originalUrl.includes("shopowner")
+      file.fieldname === "shopImage" ||
+      file.fieldname === "shopImages"
     ) {
       const dest = path.join(__dirname, "../public/uploads/shopowner");
       cb(null, dest);

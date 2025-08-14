@@ -500,8 +500,80 @@ export const getUserAnalytics = asyncHandler(async (req, res) => {
   });
 });
 
+// export const getAdminAnalytics = asyncHandler(async (req, res) => {
+//   // Parallel aggregate queries for performance
+//   const [
+//     totalOrders,
+//     deliveredOrders,
+//     cancelledOrders,
+//     totalUsers,
+//     totalSellers,
+//     deliveredOrderData,
+//     activeSubscriptions,
+//   ] = await Promise.all([
+//     Order.countDocuments(),
+//     Order.countDocuments({ orderStatus: "delivered" }),
+//     Order.countDocuments({ orderStatus: "cancelled" }),
+//     User.countDocuments(),
+//     Seller.countDocuments(),
+//     Order.aggregate([
+//       { $match: { orderStatus: "delivered" } },
+//       {
+//         $group: {
+//           _id: null,
+//           totalRevenue: { $sum: "$totalAmount" },
+//         },
+//       },
+//     ]),
+//     UserSubscription.aggregate([
+//       {
+//         $match: {
+//           isActive: true,
+//           paymentStatus: "paid",
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: "$billingCycle",
+//           totalRevenue: { $sum: "$amountPaid" }, // Optional field you can add
+//           count: { $sum: 1 },
+//         },
+//       },
+//     ]),
+//   ]);
+
+//   const totalRevenue = deliveredOrderData[0]?.totalRevenue || 0;
+
+//   // Optional: Normalize subscription revenue
+//   let subscriptionRevenue = 0;
+//   for (const sub of activeSubscriptions) {
+//     subscriptionRevenue += sub.totalRevenue || 0;
+//   }
+
+//   res.status(200).json({
+//     stats: {
+//       orders: {
+//         total: totalOrders,
+//         delivered: deliveredOrders,
+//         cancelled: cancelledOrders,
+//       },
+//       users: totalUsers,
+//       sellers: totalSellers,
+//       revenue: {
+//         fromOrders: totalRevenue,
+//         fromSubscriptions: subscriptionRevenue,
+//       },
+//       subscriptions: activeSubscriptions.map((sub) => ({
+//         billingCycle: sub._id,
+//         totalRevenue: sub.totalRevenue || 0,
+//         activeCount: sub.count,
+//       })),
+//     },
+//   });
+// });
+
 export const getAdminAnalytics = asyncHandler(async (req, res) => {
-  // Parallel aggregate queries for performance
+  // Parallel aggregate queries
   const [
     totalOrders,
     deliveredOrders,
@@ -526,17 +598,21 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
       },
     ]),
     UserSubscription.aggregate([
+      { $match: { isActive: true, paymentStatus: "paid" } },
       {
-        $match: {
-          isActive: true,
-          paymentStatus: "paid",
+        $lookup: {
+          from: "subscriptions", // collection name in MongoDB
+          localField: "subscription",
+          foreignField: "_id",
+          as: "subscriptionDetails",
         },
       },
+      { $unwind: "$subscriptionDetails" },
       {
         $group: {
           _id: "$billingCycle",
-          totalRevenue: { $sum: "$amountPaid" }, // Optional field you can add
-          count: { $sum: 1 },
+          totalRevenue: { $sum: "$subscriptionDetails.price" }, // Sum price from subscription
+          activeCount: { $sum: 1 },
         },
       },
     ]),
@@ -544,7 +620,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
 
   const totalRevenue = deliveredOrderData[0]?.totalRevenue || 0;
 
-  // Optional: Normalize subscription revenue
+  // Normalize subscription revenue
   let subscriptionRevenue = 0;
   for (const sub of activeSubscriptions) {
     subscriptionRevenue += sub.totalRevenue || 0;
@@ -566,8 +642,146 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
       subscriptions: activeSubscriptions.map((sub) => ({
         billingCycle: sub._id,
         totalRevenue: sub.totalRevenue || 0,
-        activeCount: sub.count,
+        activeCount: sub.activeCount,
       })),
     },
+  });
+});
+
+// Admin dashboard trends
+export const getAdminTrends = asyncHandler(async (req, res) => {
+  const { period = "daily", days = 7 } = req.query;
+  const daysNumber = Number(days);
+
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - daysNumber + 1);
+
+  // Date format for grouping
+  let dateFormat;
+  let dateIncrement = 1; // 1 day increment
+  switch (period) {
+    case "daily":
+      dateFormat = {
+        $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+      };
+      dateIncrement = 1;
+      break;
+    case "weekly":
+      dateFormat = { $dateToString: { format: "%Y-%U", date: "$createdAt" } };
+      dateIncrement = 7;
+      break;
+    case "monthly":
+      dateFormat = { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+      dateIncrement = 30;
+      break;
+    default:
+      dateFormat = {
+        $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+      };
+  }
+
+  const matchDate = { createdAt: { $gte: startDate } };
+
+  // Users trend
+  const usersTrendRaw = await User.aggregate([
+    { $match: matchDate },
+    { $group: { _id: dateFormat, count: { $sum: 1 } } },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Sellers trend
+  const sellersTrendRaw = await Seller.aggregate([
+    { $match: matchDate },
+    { $group: { _id: dateFormat, count: { $sum: 1 } } },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Orders revenue trend
+  const ordersRevenueRaw = await Order.aggregate([
+    { $match: { orderStatus: "delivered", createdAt: { $gte: startDate } } },
+    { $group: { _id: dateFormat, revenue: { $sum: "$totalAmount" } } },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Subscriptions revenue trend
+  const subscriptionsRevenueRaw = await UserSubscription.aggregate([
+    { $match: { paymentStatus: "paid", createdAt: { $gte: startDate } } },
+    { $group: { _id: dateFormat, revenue: { $sum: "$amountPaid" } } },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Combine revenue
+  const revenueMap = {};
+  ordersRevenueRaw.forEach((r) => {
+    revenueMap[r._id] = (revenueMap[r._id] || 0) + r.revenue;
+  });
+  subscriptionsRevenueRaw.forEach((r) => {
+    revenueMap[r._id] = (revenueMap[r._id] || 0) + r.revenue;
+  });
+
+  // Function to fill missing dates
+  const fillMissingDates = (rawData, startDate, endDate, periodType) => {
+    const filled = [];
+    const dataMap = {};
+    rawData.forEach((d) => {
+      dataMap[d._id] = d.count || d.revenue;
+    });
+
+    let current = new Date(startDate);
+    while (current <= endDate) {
+      let key;
+      if (periodType === "daily") {
+        key = current.toISOString().slice(0, 10); // YYYY-MM-DD
+        current.setDate(current.getDate() + 1);
+      } else if (periodType === "weekly") {
+        const onejan = new Date(current.getFullYear(), 0, 1);
+        const week = Math.ceil(
+          ((current - onejan) / 86400000 + onejan.getDay() + 1) / 7
+        );
+        key = `${current.getFullYear()}-${week.toString().padStart(2, "0")}`;
+        current.setDate(current.getDate() + 7);
+      } else if (periodType === "monthly") {
+        key = `${current.getFullYear()}-${(current.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}`;
+        current.setMonth(current.getMonth() + 1);
+      }
+      filled.push({
+        date: key,
+        value: dataMap[key] || 0,
+      });
+    }
+    return filled;
+  };
+
+  const endDate = today;
+
+  const usersTrend = fillMissingDates(
+    usersTrendRaw,
+    startDate,
+    endDate,
+    period
+  );
+  const sellersTrend = fillMissingDates(
+    sellersTrendRaw,
+    startDate,
+    endDate,
+    period
+  );
+  const revenueTrend = fillMissingDates(
+    Object.entries(revenueMap).map(([k, v]) => ({ _id: k, revenue: v })),
+    startDate,
+    endDate,
+    period
+  ).map((r) => ({ date: r.date, revenue: r.value }));
+
+  res.status(200).json({
+    success: true,
+    period,
+    lastDays: daysNumber,
+    usersTrend,
+    sellersTrend,
+    revenueTrend,
   });
 });

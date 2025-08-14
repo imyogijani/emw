@@ -37,6 +37,14 @@ const Dashboard = () => {
     shopStats: [],
   });
 
+  const [trends, setTrends] = useState({
+    success: false,
+    period: "daily",
+    lastDays: 7,
+    usersTrend: [],
+    sellersTrend: [],
+    revenueTrend: [],
+  });
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -52,6 +60,23 @@ const Dashboard = () => {
     };
 
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchTrends = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("/api/analytics/admin/trends", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTrends(response.data);
+        console.log("Trends →", response.data); //  add this
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+
+    fetchTrends();
   }, []);
 
   const pieData = [

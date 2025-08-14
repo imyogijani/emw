@@ -64,7 +64,6 @@ const offerSchema = new mongoose.Schema(
         count: { type: Number, default: 0 },
       },
     ],
-
     isActive: {
       type: Boolean,
       default: true,

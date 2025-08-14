@@ -29,7 +29,7 @@ const Register = () => {
     shopownerName: "",
     shopName: "",
     phone: "",
-    addressLine1: "",
+    addressLine: "",
     addressLine2: "",
     city: "",
     state: "",
@@ -183,6 +183,7 @@ const Register = () => {
         setPincodes([]);
       });
   }, [formData.city]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -214,7 +215,7 @@ const Register = () => {
       const submitData = {
         ...formData,
         names: `${formData.firstName} ${formData.lastName}`.trim(),
-        addressLine: formData.addressLine1, // Map addressLine1 to addressLine for backend compatibility
+        addressLine: formData.addressLine, // Map addressLine1 to addressLine for backend compatibility
         addressLine2: formData.addressLine2,
         country: "India", // Set India as default country
       };
@@ -412,9 +413,9 @@ const Register = () => {
             <div className="input-group">
               <input
                 type="text"
-                name="addressLine1"
+                name="addressLine"
                 placeholder="Address Line 1 (House/Building/Street)"
-                value={formData.addressLine1}
+                value={formData.addressLine}
                 onChange={handleChange}
                 required
                 className="form-input"
@@ -442,19 +443,16 @@ const Register = () => {
                 value={formData.state}
                 onChange={handleChange}
                 required
-                className="form-input"
-                disabled={loadingStates}
               >
                 <option value="">Select State</option>
-                {states.map((state, index) => (
-                  <option key={index} value={state}>
-                    {state}
+                {states.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-
           <div className="form-group">
             <div className="input-group">
               <select
@@ -462,13 +460,12 @@ const Register = () => {
                 value={formData.city}
                 onChange={handleChange}
                 required
-                className="form-input"
-                disabled={loadingCities || !formData.state}
+                disabled={!formData.state}
               >
                 <option value="">Select City</option>
-                {cities.map((city, index) => (
-                  <option key={index} value={city}>
-                    {city}
+                {cities.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
                   </option>
                 ))}
               </select>
@@ -477,25 +474,22 @@ const Register = () => {
 
           <div className="form-group">
             <div className="input-group">
-              {/* Pincode Dropdown */}
               <select
                 name="pincode"
                 value={formData.pincode}
                 onChange={handleChange}
                 required
-                className="form-input"
                 disabled={!formData.city}
               >
                 <option value="">Select Pincode</option>
-                {pincodes.map((p) => (
-                  <option key={p} value={p}>
+                {[...new Set(pincodes)].map((p) => (
+                  <option value={p} key={p}>
                     {p}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-
           <div className="form-group">
             <div className="input-group">
               <input

@@ -11,6 +11,7 @@ const SellerProfile = () => {
   const [form, setForm] = useState({});
   const [shopImage, setShopImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +23,7 @@ const SellerProfile = () => {
     pincode: "",
     country: "India",
   });
+
   const [editAddressIndex, setEditAddressIndex] = useState(null);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const SellerProfile = () => {
       const token = localStorage.getItem("token");
       const res = await axios.get("/api/auth/current-user");
       setProfile(res.data.user);
-      // console.log("User profile data:", res.data.user);
+      console.log("User profile data:", res.data.user);
 
       setForm({
         names: res.data.user.names || "",
@@ -46,11 +48,11 @@ const SellerProfile = () => {
         shopName: res.data.user.sellerId.shopName || "",
         email: res.data.user.email || "",
         phone: res.data.user.phone || "",
-        address: res.data.user.address || "",
+        address: res.data.user.address || {},
         addresses: res.data.user.sellerId.shopAddresses || [],
       });
 
-      console.log("Profile data fetched:", res.data);
+      // console.log("Profile data fetched:", );
     } catch (err) {
       toast.error("Failed to load profile");
       console.log(err);
@@ -60,7 +62,24 @@ const SellerProfile = () => {
   };
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, dataset } = e.target;
+
+    if (dataset.parent) {
+      // Update nested address object
+      setForm((prev) => ({
+        ...prev,
+        [dataset.parent]: {
+          ...prev[dataset.parent],
+          [name]: value,
+        },
+      }));
+    } else {
+      // Update top-level fields
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -75,16 +94,30 @@ const SellerProfile = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       let formData = new FormData();
-      Object.entries(form).forEach(([key, value]) =>
-        formData.append(key, value)
-      );
-      if (shopImage) formData.append("shopImage", shopImage);
+
+      // Append normal string fields
+      formData.append("names", form.names);
+      formData.append("shopownerName", form.shopownerName);
+      formData.append("shopName", form.shopName);
+      formData.append("email", form.email);
+      formData.append("phone", form.phone);
+
+      // Append the address object as JSON string
+      formData.append("address", JSON.stringify(form.address));
+
+      // Append shop image if selected
+      if (shopImage) {
+        formData.append("shopImage", shopImage); // shopImage is a File object
+        console.log("Appending image:", shopImage.name, shopImage.type);
+      }
+
       await axios.patch("/api/auth/update-profile", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
+
       toast.success("Profile updated");
       setEditMode(false);
       setShopImage(null);
@@ -122,13 +155,21 @@ const SellerProfile = () => {
       pincode: "",
       country: "India",
     });
+    setIsEditing(false);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (addr, index) => {
+  const openEditModal = async (addr, index) => {
     setEditAddressIndex(index);
     setAddressForm(addr);
     setIsModalOpen(true);
+    setIsEditing(true);
+
+    // Fetch states list
+    // if (statesList.length === 0) {
+    //   const resStates = await axios.get("/api/location/states");
+    //   setStatesList(resStates.data.data || []);
+    // }
   };
 
   const closeModal = () => {
@@ -152,6 +193,14 @@ const SellerProfile = () => {
         toast.success("Address added");
       }
       closeModal();
+      setForm((prev) => ({
+        ...prev,
+
+        addresses: [
+          ...prev.addresses.filter((_, idx) => idx !== editAddressIndex),
+          addressForm,
+        ],
+      }));
       fetchProfile();
     } catch (err) {
       const apiMessage =
@@ -194,6 +243,14 @@ const SellerProfile = () => {
       : profile.avatar
     : "/vite.svg";
 
+  const processImageUrl = (image) => {
+    const baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL || "";
+    if (image && image.startsWith("/uploads")) {
+      return `${baseURL}${image}`;
+    }
+    return image || "/images/offer1.png";
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!profile) return <div>No profile data</div>;
 
@@ -221,7 +278,7 @@ const SellerProfile = () => {
           >
             <div className="seller-profile-avatar">
               <img
-                src={shopImagePreview}
+                src={processImageUrl(profile.sellerId.shopImage)}
                 alt="shop avatar"
                 style={{
                   width: 90,
@@ -317,7 +374,11 @@ const SellerProfile = () => {
                 <label className="seller-profile-label">Address</label>
                 <input
                   className="seller-profile-input"
-                  value={form.address}
+                  value={`${form.address?.addressLine || ""}${
+                    form.address?.addressLine2 || ""
+                  } ${form.address?.state || ""} ${
+                    form.address?.pincode || ""
+                  } ${form.address?.country || ""}`}
                   disabled
                   readOnly
                 />
@@ -440,15 +501,28 @@ const SellerProfile = () => {
                   readOnly: true,
                 },
                 { label: "Phone", name: "phone" },
-                { label: "Address", name: "address" },
+                {
+                  label: "Address Line ",
+                  name: "addressLine",
+                  parent: "address",
+                },
+                { label: "City", name: "city", parent: "address" },
+                { label: "State", name: "state", parent: "address" },
+                { label: "Pincode", name: "pincode", parent: "address" },
+                { label: "Country", name: "country", parent: "address" },
               ].map((field, idx) => (
                 <div key={field.name} className="seller-profile-row">
                   <label className="seller-profile-label">{field.label}</label>
                   <input
                     className="seller-profile-input"
                     name={field.name}
-                    value={form[field.name]}
-                    onChange={field.disabled ? undefined : handleChange}
+                    value={
+                      field.parent
+                        ? form[field.parent][field.name]
+                        : form[field.name]
+                    }
+                    data-parent={field.parent || ""}
+                    onChange={handleChange}
                     disabled={field.disabled}
                     readOnly={field.readOnly}
                   />
@@ -518,7 +592,7 @@ const SellerProfile = () => {
         onSave={handleSaveAddress}
         addressForm={addressForm}
         setAddressForm={setAddressForm}
-        isEditing={editAddressIndex !== null}
+        isEditing={isEditing}
       />
     </div>
   );
