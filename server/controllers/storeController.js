@@ -4,6 +4,7 @@ import Product from "../models/productModel.js";
 import userModel from "../models/userModel.js";
 import mongoose from "mongoose";
 
+// GET http://localhost:5000/api/stores?search=nike&status=active&category=689b0d5b618f8de921c1a1f7&sort=mostRated&order=desc&page=2&limit=5
 
 export const getAllStores = async (req, res) => {
   try {
@@ -14,6 +15,7 @@ export const getAllStores = async (req, res) => {
       order = "desc",
       search = "",
       status,
+      category,
     } = req.query;
 
     const matchStage = {};
@@ -29,8 +31,31 @@ export const getAllStores = async (req, res) => {
       matchStage.status = status;
     }
 
+    if (category) {
+      matchStage.categories = mongoose.Types.ObjectId(category);
+    }
+
     const skip = (page - 1) * limit;
-    const sortOrder = order === "asc" ? 1 : -1;
+    // const sortOrder = order === "asc" ? 1 : -1;
+    let sortStage = {};
+
+    // Sorting options
+    switch (sort) {
+      case "mostRated":
+        sortStage = { averageRating: order === "asc" ? 1 : -1 };
+        break;
+      case "topReviews":
+        sortStage = { totalReviews: order === "asc" ? 1 : -1 };
+        break;
+      case "highestProducts":
+        sortStage = { totalProducts: order === "asc" ? 1 : -1 };
+        break;
+      case "shopName":
+        sortStage = { shopName: order === "asc" ? 1 : -1 };
+        break;
+      default:
+        sortStage = { createdAt: order === "asc" ? 1 : -1 };
+    }
 
     const stores = await Seller.aggregate([
       { $match: matchStage },
@@ -85,7 +110,9 @@ export const getAllStores = async (req, res) => {
         },
       },
 
-      { $sort: { [sort]: sortOrder } },
+      // { $sort: { [sort]: sortOrder } },
+
+      { $sort: sortStage },
       { $skip: skip },
       { $limit: Number(limit) },
     ]);
@@ -264,3 +291,4 @@ export const getMyProductsController = async (req, res) => {
     });
   }
 };
+

@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaTrash, FaEdit, FaMapMarkerAlt, FaCity, FaGlobe } from "react-icons/fa";
+import {
+  FaPlus,
+  FaTrash,
+  FaEdit,
+  FaMapMarkerAlt,
+  FaCity,
+  FaGlobe,
+} from "react-icons/fa";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
 import "./ManageLocations.css";
 
 const ManageLocations = () => {
   const [locations, setLocations] = useState({});
-  const [stats, setStats] = useState({ totalStates: 0, totalCities: 0, totalPincodes: 0 });
+  const [stats, setStats] = useState({
+    totalStates: 0,
+    totalCities: 0,
+    totalPincodes: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [showAddStateModal, setShowAddStateModal] = useState(false);
   const [showAddCityModal, setShowAddCityModal] = useState(false);
@@ -28,6 +39,8 @@ const ManageLocations = () => {
         setLocations(response.data.data);
         setStats(response.data.stats);
       }
+      console.log("Fetched locations:", response.data.data);
+      console.log("Fetched locations:", response.data.stats);
     } catch (error) {
       console.error("Error fetching locations:", error);
       toast.error("Failed to fetch locations");
@@ -45,9 +58,9 @@ const ManageLocations = () => {
 
     try {
       const response = await axios.post("/api/admin/locations/state", {
-        stateName: newStateName.trim()
+        stateName: newStateName.trim(),
       });
-      
+
       if (response.data.success) {
         toast.success("State added successfully");
         setNewStateName("");
@@ -69,9 +82,9 @@ const ManageLocations = () => {
     try {
       const response = await axios.post("/api/admin/locations/city", {
         stateName: selectedState,
-        cityName: newCityName.trim()
+        cityName: newCityName.trim(),
       });
-      
+
       if (response.data.success) {
         toast.success("City added successfully");
         setNewCityName("");
@@ -85,13 +98,19 @@ const ManageLocations = () => {
   };
 
   const handleDeleteState = async (stateName) => {
-    if (!window.confirm(`Are you sure you want to delete the state "${stateName}" and all its cities?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the state "${stateName}" and all its cities?`
+      )
+    ) {
       return;
     }
 
     try {
-      const response = await axios.delete(`/api/admin/locations/state/${encodeURIComponent(stateName)}`);
-      
+      const response = await axios.delete(
+        `/api/admin/locations/state/${encodeURIComponent(stateName)}`
+      );
+
       if (response.data.success) {
         toast.success("State deleted successfully");
         fetchLocations();
@@ -102,13 +121,19 @@ const ManageLocations = () => {
   };
 
   const handleDeleteCity = async (stateName, cityName) => {
-    if (!window.confirm(`Are you sure you want to delete the city "${cityName}"?`)) {
+    if (
+      !window.confirm(`Are you sure you want to delete the city "${cityName}"?`)
+    ) {
       return;
     }
 
     try {
-      const response = await axios.delete(`/api/admin/locations/city/${encodeURIComponent(stateName)}/${encodeURIComponent(cityName)}`);
-      
+      const response = await axios.delete(
+        `/api/admin/locations/city/${encodeURIComponent(
+          stateName
+        )}/${encodeURIComponent(cityName)}`
+      );
+
       if (response.data.success) {
         toast.success("City deleted successfully");
         fetchLocations();
@@ -128,7 +153,7 @@ const ManageLocations = () => {
     setExpandedStates(newExpanded);
   };
 
-  const filteredStates = Object.keys(locations).filter(state =>
+  const filteredStates = Object.keys(locations).filter((state) =>
     state.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -145,16 +170,18 @@ const ManageLocations = () => {
       <div className="admin-header">
         <div>
           <h1>Manage Locations</h1>
-          <p className="admin-subtitle">Manage states and cities for Indian addresses</p>
+          <p className="admin-subtitle">
+            Manage states and cities for Indian addresses
+          </p>
         </div>
         <div className="header-actions">
-          <button 
+          <button
             className="add-btn add-state-btn"
             onClick={() => setShowAddStateModal(true)}
           >
             <FaPlus /> Add State
           </button>
-          <button 
+          <button
             className="add-btn add-city-btn"
             onClick={() => setShowAddCityModal(true)}
           >
@@ -208,16 +235,21 @@ const ManageLocations = () => {
       {/* Locations List */}
       <div className="locations-container">
         <div className="locations-list">
-          {filteredStates.map(stateName => (
+          {filteredStates.map((stateName) => (
             <div key={stateName} className="state-item">
               <div className="state-header">
-                <div className="state-info" onClick={() => toggleStateExpansion(stateName)}>
+                <div
+                  className="state-info"
+                  onClick={() => toggleStateExpansion(stateName)}
+                >
                   <FaGlobe className="state-icon-small" />
                   <span className="state-name">{stateName}</span>
-                  <span className="city-count">({Object.keys(locations[stateName]).length} cities)</span>
+                  <span className="city-count">
+                    ({Object.keys(locations[stateName]).length} cities)
+                  </span>
                 </div>
                 <div className="state-actions">
-                  <button 
+                  <button
                     className="delete-btn"
                     onClick={() => handleDeleteState(stateName)}
                     title="Delete State"
@@ -226,18 +258,20 @@ const ManageLocations = () => {
                   </button>
                 </div>
               </div>
-              
+
               {expandedStates.has(stateName) && (
                 <div className="cities-list">
-                  {Object.keys(locations[stateName]).map(cityName => (
+                  {Object.keys(locations[stateName]).map((cityName) => (
                     <div key={cityName} className="city-item">
                       <div className="city-info">
                         <FaCity className="city-icon-small" />
                         <span className="city-name">{cityName}</span>
-                        <span className="pincode-count">({locations[stateName][cityName].length} pincodes)</span>
+                        <span className="pincode-count">
+                          ({locations[stateName][cityName].length} pincodes)
+                        </span>
                       </div>
                       <div className="city-actions">
-                        <button 
+                        <button
                           className="delete-btn"
                           onClick={() => handleDeleteCity(stateName, cityName)}
                           title="Delete City"
@@ -271,9 +305,11 @@ const ManageLocations = () => {
                 />
               </div>
               <div className="modal-actions">
-                <button type="submit" className="submit-btn">Add State</button>
-                <button 
-                  type="button" 
+                <button type="submit" className="submit-btn">
+                  Add State
+                </button>
+                <button
+                  type="button"
                   className="cancel-btn"
                   onClick={() => {
                     setShowAddStateModal(false);
@@ -302,8 +338,10 @@ const ManageLocations = () => {
                   required
                 >
                   <option value="">Choose a state</option>
-                  {Object.keys(locations).map(stateName => (
-                    <option key={stateName} value={stateName}>{stateName}</option>
+                  {Object.keys(locations).map((stateName) => (
+                    <option key={stateName} value={stateName}>
+                      {stateName}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -318,9 +356,11 @@ const ManageLocations = () => {
                 />
               </div>
               <div className="modal-actions">
-                <button type="submit" className="submit-btn">Add City</button>
-                <button 
-                  type="button" 
+                <button type="submit" className="submit-btn">
+                  Add City
+                </button>
+                <button
+                  type="button"
                   className="cancel-btn"
                   onClick={() => {
                     setShowAddCityModal(false);
