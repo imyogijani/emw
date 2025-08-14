@@ -34,7 +34,6 @@ const Register = () => {
     city: "",
     state: "",
     pincode: "",
-    country: "India",
     subscriptionId: "",
   });
   const [error, setError] = useState("");
@@ -110,7 +109,9 @@ const Register = () => {
   const fetchCities = async (stateName) => {
     setLoadingCities(true);
     try {
-      const response = await axios.get(`/api/location/cities/${encodeURIComponent(stateName)}`);
+      const response = await axios.get(
+        `/api/location/cities/${encodeURIComponent(stateName)}`
+      );
       if (response.data.success) {
         setCities(response.data.data);
       } else {
@@ -128,7 +129,7 @@ const Register = () => {
   const handleChange = (e) => {
     setError("");
     const { name, value } = e.target;
-    
+
     setFormData({
       ...formData,
       [name]: value,
@@ -420,7 +421,7 @@ const Register = () => {
               />
             </div>
           </div>
-          
+
           <div className="form-group">
             <div className="input-group">
               <input

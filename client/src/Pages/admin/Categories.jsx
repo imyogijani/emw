@@ -30,45 +30,20 @@ const Categories = () => {
   const [subDefaultHsnCode, setSubDefaultHsnCode] = useState("");
   const [editSubSuggestedHsnCodes, setEditSubSuggestedHsnCodes] = useState("");
   const [editSubDefaultHsnCode, setEditSubDefaultHsnCode] = useState("");
-  const [gstRates, setGstRates] = useState({});
-
-  const fetchGSTRate = async (hsnCode) => {
-    try {
-      const { data } = await axiosInstance.get(`/api/category/gst-rate/${hsnCode}`);
-      return data.success ? data.data.gstRate : null;
-    } catch (error) {
-      console.error('Error fetching GST rate:', error);
-      return null;
-    }
-  };
 
   const initialLoad = async () => {
     setLoading(true);
     try {
-      const { data } = await axiosInstance.get("/api/category/get-category");
-      const categories = data?.categories || [];
-      setCategories(categories);
-      
-      // Fetch GST rates for all subcategories with HSN codes
-      const gstRatePromises = {};
-      for (const category of categories) {
-        if (category.children && category.children.length > 0) {
-          for (const subcat of category.children) {
-            if (subcat.defaultHsnCode) {
-              gstRatePromises[subcat._id] = fetchGSTRate(subcat.defaultHsnCode);
-            }
-          }
-        }
+      const response = await axiosInstance.get("/api/category/get-category");
+      if (response.data && Array.isArray(response.data.categories)) {
+        setCategories(response.data.categories);
+      } else {
+        setCategories([]);
+        console.warn("Invalid API response format:", response.data);
       }
-      
-      const resolvedGstRates = {};
-      for (const [subcatId, promise] of Object.entries(gstRatePromises)) {
-        resolvedGstRates[subcatId] = await promise;
-      }
-      setGstRates(resolvedGstRates);
     } catch (err) {
       setError(err);
-      console.error(err);
+      toast.error("Failed to load categories.");
     } finally {
       setLoading(false);
     }
@@ -131,17 +106,7 @@ const Categories = () => {
         subcategoryData.defaultHsnCode = subDefaultHsnCode.trim();
       }
       
-      const response = await axiosInstance.post(`/api/category/subcategory`, subcategoryData);
-      
-      // If HSN code was provided, fetch GST rate for the new subcategory
-      if (subDefaultHsnCode.trim() && response.data?.category?._id) {
-        const gstRate = await fetchGSTRate(subDefaultHsnCode.trim());
-        setGstRates(prev => ({
-          ...prev,
-          [response.data.category._id]: gstRate
-        }));
-      }
-      
+      await axiosInstance.post(`/api/category/subcategory`, subcategoryData);
       setSubCategoryName("");
       setSelectedCategory("");
       setSubSuggestedHsnCodes("");
@@ -260,16 +225,6 @@ const Categories = () => {
         `/api/category/update-category/${editingSubCategory._id}`,
         updateData
       );
-      
-      // If HSN code was updated, fetch new GST rate
-      if (editSubDefaultHsnCode.trim()) {
-        const newGstRate = await fetchGSTRate(editSubDefaultHsnCode.trim());
-        setGstRates(prev => ({
-          ...prev,
-          [editingSubCategory._id]: newGstRate
-        }));
-      }
-      
       toast.success("Subcategory updated successfully.");
       await initialLoad();
       resetEditState();
@@ -451,17 +406,7 @@ const Categories = () => {
                   <div className="subcategory-list">
                     {cat.children.map((subCat) => (
                       <div key={subCat._id} className="subcategory-item">
-                        <div className="subcategory-info">
-                          <span className="subcategory-name">{subCat.name}</span>
-                          {subCat.defaultHsnCode && (
-                            <div className="hsn-gst-info">
-                              <span className="hsn-code">HSN: {subCat.defaultHsnCode}</span>
-                              {gstRates[subCat._id] !== undefined && (
-                                <span className="gst-rate">GST: {gstRates[subCat._id]}%</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        <span>{subCat.name}</span>
                         <div className="subcategory-actions">
                           <button
                             className="btn btn-edit"
