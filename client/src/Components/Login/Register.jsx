@@ -35,6 +35,7 @@ const Register = () => {
     state: "",
     pincode: "",
     subscriptionId: "",
+    country: "India",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -211,7 +212,7 @@ const Register = () => {
         const submitData = {
           ...formData,
           names: formData.shopownerName,
-          addressLine: formData.addressLine1,
+          addressLine: formData.addressLine,
           addressLine2: formData.addressLine2,
         };
         
@@ -278,14 +279,9 @@ const Register = () => {
       const submitData = {
         ...formData,
         names: `${formData.firstName} ${formData.lastName}`.trim(),
-<<<<<<< HEAD
-        addressLine: formData.addressLine1, // Map addressLine1 to addressLine for backend compatibility
-        addressLine2: formData.addressLine2, // Set India as default country
-=======
-        addressLine: formData.addressLine, // Map addressLine1 to addressLine for backend compatibility
+        addressLine: formData.addressLine,
         addressLine2: formData.addressLine2,
-        country: "India", // Set India as default country
->>>>>>> 132722e37b91d56aae65bbe65ab21e578bc6524a
+        country: "India"
       };
       const response = await axios.post("/api/auth/register", submitData);
       if (response.data.success) {
@@ -546,9 +542,9 @@ const Register = () => {
               <div className="input-group">
                 <input
                   type="text"
-                  name="addressLine1"
+                  name="addressLine"
                   placeholder="Address Line 1 (House/Building/Street)"
-                  value={formData.addressLine1}
+                  value={formData.addressLine}
                   onChange={handleChange}
                   required
                   className="form-input"
@@ -557,7 +553,6 @@ const Register = () => {
             </div>
           </div>
 
-<<<<<<< HEAD
           <div className="form-row single-column">
             <div className="form-group">
               <div className="input-group">
@@ -570,19 +565,6 @@ const Register = () => {
                   className="form-input"
                 />
               </div>
-=======
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="text"
-                name="addressLine"
-                placeholder="Address Line 1 (House/Building/Street)"
-                value={formData.addressLine}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
->>>>>>> 132722e37b91d56aae65bbe65ab21e578bc6524a
             </div>
           </div>
 
@@ -628,67 +610,7 @@ const Register = () => {
             </div>
           </div>
 
-<<<<<<< HEAD
-          <div className="form-row single-column">
-            <div className="form-group">
-              <div className="input-group">
-                {/* Pincode Dropdown */}
-                <select
-                  name="pincode"
-                  value={formData.pincode}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                  disabled={!formData.city}
-                >
-                  <option value="">Select Pincode</option>
-                  {pincodes.map((p, index) => (
-                    <option key={index} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
 
-          {/* <div className="form-group">
-=======
-          <div className="form-group">
-            <div className="input-group">
-              <select
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select State</option>
-                {states.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="form-group">
-            <div className="input-group">
-              <select
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                disabled={!formData.state}
-              >
-                <option value="">Select City</option>
-                {cities.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
 
           <div className="form-group">
             <div className="input-group">
@@ -698,30 +620,39 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 disabled={!formData.city}
+                className="form-input"
               >
                 <option value="">Select Pincode</option>
-                {[...new Set(pincodes)].map((p) => (
-                  <option value={p} key={p}>
+                {[...new Set(pincodes)].map((p, index) => (
+                  <option key={index} value={p}>
                     {p}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="form-group">
->>>>>>> 132722e37b91d56aae65bbe65ab21e578bc6524a
-            <div className="input-group">
-              <input
-                type="text"
-                name="country"
-                placeholder="Country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
+
+          {formData.role === "shopowner" && (
+            <div className="form-group">
+              <div className="input-group">
+                <select
+                  name="subscriptionId"
+                  value={formData.subscriptionId}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  disabled={loadingSubscriptions}
+                >
+                  <option value="">Select Subscription Plan</option>
+                  {subscriptions && subscriptions.map((sub) => (
+                    <option key={sub._id} value={sub._id}>
+                      {sub.name} - ₹{sub.price}/{sub.duration}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div> */}
+          )}
 
           <button
             type="submit"
