@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -193,65 +194,123 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <FaUserCircle className="login-icon" />
-          <h2>Welcome Back</h2>
-          <p>Please enter your details to sign in</p>
+      {/* Left Visual Section - Branding */}
+      <div className="login-visual-section">
+        <div className="welcome-content">
+          <div className="logo-container">
+            <img
+              src="/src/images/Mall1.png"
+              alt="EMW Logo"
+              className="main-logo"
+            />
+          </div>
+          <div className="welcome-text">
+            <h1>Welcome Back!</h1>
+            <p>Sign in to continue your journey with us</p>
+          </div>
+
+          <div className="feature-highlights">
+            <div className="feature-item">
+              <div className="feature-icon">
+                <FaUserCircle />
+              </div>
+              <div className="feature-text">
+                <h3>Secure Access</h3>
+                <p>Your account is protected with advanced security</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">
+                <CloudCog />
+              </div>
+              <div className="feature-text">
+                <h3>Cloud Integration</h3>
+                <p>Access your data from anywhere, anytime</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">
+                <FaUserCircle />
+              </div>
+              <div className="feature-text">
+                <h3>Personalized Experience</h3>
+                <p>Tailored features just for you</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="decorative-elements">
+            <div className="floating-shape shape-1"></div>
+            <div className="floating-shape shape-2"></div>
+            <div className="floating-shape shape-3"></div>
+          </div>
         </div>
+      </div>
 
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
+      {/* Right Side - Login Form */}
+      <div className="login-form-section">
+        <div className="login-card">
+          <div className="login-header">
+            <div className="header-icon">
+              <FaUserCircle className="login-icon" />
             </div>
+            <h2>Welcome Back</h2>
+            <p>Please enter your details to sign in</p>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
             </div>
-          </div>
+          )}
 
-          <button
-            type="submit"
-            className={`login-button ${isLoading ? "loading" : ""}`}
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Sign In"}
-          </button>
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="form-group">
+              <div className="input-group">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+            </div>
 
-          <div className="login-footer">
-            <p>
-              Don't have an account?{" "}
-              <Link to="/register" className="register-link">
-                Register here
-              </Link>
-            </p>
-          </div>
-        </form>
+            <div className="form-group">
+              <div className="input-group">
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className={`login-button ${isLoading ? "loading" : ""}`}
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </button>
+
+            <div className="login-footer">
+              <p>
+                Don't have an account?{" "}
+                <Link to="/register" className="register-link">
+                  Register here
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

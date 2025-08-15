@@ -15,6 +15,7 @@ import Shops from "./Pages/Home/Shops";
 import Footer from "./Components/Footer/index";
 import Login from "./Components/Login/Login";
 import Register from "./Components/Login/Register";
+import AuthTransition from "./Components/Login/AuthTransition";
 import Pricing from "./Components/Login/Pricing";
 import Terms from "./Pages/terms";
 import Privacy from "./Pages/privacy";
@@ -57,6 +58,7 @@ import Checkout from "./Pages/Checkout/Checkout";
 import Payment from "./Pages/Payment/Payment";
 import Invoice from "./Pages/Invoice/Invoice";
 
+
 function LayoutWrapper() {
   const [showProfile, setShowProfile] = useState(false);
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
@@ -80,6 +82,7 @@ function LayoutWrapper() {
     "/register",
     "/checkout",
     "/payment",
+
     "/admin",
     "/admin/dashboard",
     "/admin/products",
@@ -124,9 +127,10 @@ function LayoutWrapper() {
         <Route path="subscription/review" element={<SubscriptionReview />} />
         <Route path="shops" element={<Shops />} />
         <Route path="product/:id" element={<ProductDetail />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
+        <Route path="login" element={<AuthTransition><Login /></AuthTransition>} />
+        <Route path="register" element={<AuthTransition><Register /></AuthTransition>} />
         <Route path="/pricing" element={<Pricing />} />
+
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment" element={<Payment />} />
