@@ -18,6 +18,7 @@ import {
   sendEmailVerification,
 } from "../../firebase/firebase";
 import { trackEvent } from "../../analytics/trackEvent";
+import Mall1Logo from "../../images/Mall1.png";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -342,7 +343,7 @@ const Register = () => {
       <div className="register-visual-section">
         <div className="logo-container">
           <img 
-            src="/src/images/Mall1.png" 
+            src={Mall1Logo} 
             alt="EMW Logo" 
             className="main-logo"
           />
