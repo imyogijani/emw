@@ -175,3 +175,14 @@ export const getInvoicesBySeller = asyncHandler(async (req, res) => {
     invoices,
   });
 });
+
+
+//  For your generateInvoicesForOrder function
+
+// You’ll need to:
+
+// Store hsnCode, gstRate, cgst/sgst/igst rates and amounts in each item.
+
+// Calculate them based on seller’s state vs buyer’s state.
+
+// Add these amounts into totalGST and totalAmount.

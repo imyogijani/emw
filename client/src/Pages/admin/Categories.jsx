@@ -31,6 +31,18 @@ const Categories = () => {
   const [editSubSuggestedHsnCodes, setEditSubSuggestedHsnCodes] = useState("");
   const [editSubDefaultHsnCode, setEditSubDefaultHsnCode] = useState("");
 
+  const [brands, setBrands] = useState([]);
+  // const [brandName, setBrandName] = useState("");
+  const [brandDescription, setBrandDescription] = useState("");
+  const [brandLogo, setBrandLogo] = useState(null);
+
+  const [editingBrand, setEditingBrand] = useState(null);
+  const [editBrandName, setEditBrandName] = useState("");
+  const [editBrandDescription, setEditBrandDescription] = useState("");
+  const [editBrandLogo, setEditBrandLogo] = useState(null);
+
+  // const [loading, setLoading] = useState(false);
+
   const initialLoad = async () => {
     setLoading(true);
     try {
@@ -68,7 +80,7 @@ const Categories = () => {
       formData.append("name", categoryName.trim());
       formData.append("image", categoryImage);
       selectedBrands.forEach((brand) => formData.append("brands[]", brand));
-      
+
       // HSN codes are now handled only at subcategory level
       // Debug: log the file
       console.log("Uploading category image:", categoryImage);
@@ -96,16 +108,19 @@ const Categories = () => {
         name: subCategoryName.trim(),
         parent: selectedCategory,
       };
-      
+
       // Add HSN code fields if provided
       if (subSuggestedHsnCodes.trim()) {
-        const hsnArray = subSuggestedHsnCodes.split(',').map(code => code.trim()).filter(code => code);
+        const hsnArray = subSuggestedHsnCodes
+          .split(",")
+          .map((code) => code.trim())
+          .filter((code) => code);
         subcategoryData.suggestedHsnCodes = hsnArray;
       }
       if (subDefaultHsnCode.trim()) {
         subcategoryData.defaultHsnCode = subDefaultHsnCode.trim();
       }
-      
+
       await axiosInstance.post(`/api/category/subcategory`, subcategoryData);
       setSubCategoryName("");
       setSelectedCategory("");
@@ -129,9 +144,9 @@ const Categories = () => {
     setEditingCategory(category);
     setNewCategoryName(category.name);
     setSelectedBrands(category.brands || []); // Populate brands when editing
-    
+
     // HSN codes are now handled only at subcategory level
-    
+
     setShowEditCategoryModal(true);
   };
 
@@ -144,13 +159,15 @@ const Categories = () => {
   const handleUpdateSubCategory = (subcategory) => {
     setEditingSubCategory(subcategory);
     setNewSubCategoryName(subcategory.name);
-    
+
     // Populate HSN code fields for subcategory editing
     setEditSubSuggestedHsnCodes(
-      subcategory.suggestedHsnCodes ? subcategory.suggestedHsnCodes.join(', ') : ''
+      subcategory.suggestedHsnCodes
+        ? subcategory.suggestedHsnCodes.join(", ")
+        : ""
     );
-    setEditSubDefaultHsnCode(subcategory.defaultHsnCode || '');
-    
+    setEditSubDefaultHsnCode(subcategory.defaultHsnCode || "");
+
     setShowEditCategoryModal(true);
   };
 
@@ -188,9 +205,9 @@ const Categories = () => {
       formData.append("name", newCategoryName.trim());
       if (editCategoryImage) formData.append("image", editCategoryImage);
       selectedBrands.forEach((brand) => formData.append("brands[]", brand));
-      
+
       // HSN codes are now handled only at subcategory level
-      
+
       await axiosInstance.post(
         `/api/category/update-category/${editingCategory._id}`,
         formData
@@ -211,16 +228,19 @@ const Categories = () => {
       const updateData = {
         name: newSubCategoryName.trim(),
       };
-      
+
       // Add HSN code fields if provided
       if (editSubSuggestedHsnCodes.trim()) {
-        const hsnArray = editSubSuggestedHsnCodes.split(',').map(code => code.trim()).filter(code => code);
+        const hsnArray = editSubSuggestedHsnCodes
+          .split(",")
+          .map((code) => code.trim())
+          .filter((code) => code);
         updateData.suggestedHsnCodes = hsnArray;
       }
       if (editSubDefaultHsnCode.trim()) {
         updateData.defaultHsnCode = editSubDefaultHsnCode.trim();
       }
-      
+
       await axiosInstance.put(
         `/api/category/update-category/${editingSubCategory._id}`,
         updateData
@@ -234,12 +254,12 @@ const Categories = () => {
     }
   };
 
-  const handleAddBrand = () => {
-    if (brandName.trim() && !selectedBrands.includes(brandName.trim())) {
-      setSelectedBrands([...selectedBrands, brandName.trim()]);
-      setBrandName("");
-    }
-  };
+  // const handleAddBrand = () => {
+  //   if (brandName.trim() && !selectedBrands.includes(brandName.trim())) {
+  //     setSelectedBrands([...selectedBrands, brandName.trim()]);
+  //     setBrandName("");
+  //   }
+  // };
 
   const handleRemoveBrand = (brandToRemove) => {
     setSelectedBrands(
@@ -257,7 +277,104 @@ const Categories = () => {
     setEditSubSuggestedHsnCodes("");
     setEditSubDefaultHsnCode("");
     setShowEditCategoryModal(false);
+    setEditingBrand(null);
+    setEditBrandName("");
+    setEditBrandDescription("");
+    setEditBrandLogo(null);
   };
+
+  const fetchBrands = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axiosInstance.get("/api/brands");
+      setBrands(data.brands || []);
+    } catch (error) {
+      toast.error("Failed to load brands");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  // Add brand
+  const handleAddBrand = async (e) => {
+    e.preventDefault();
+    if (!brandName.trim()) {
+      toast.error("Brand name is required");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("name", brandName.trim());
+      formData.append("description", brandDescription.trim());
+      if (brandLogo) formData.append("logo", brandLogo);
+
+      await axiosInstance.post("/api/brands/create", formData);
+      toast.success("Brand added successfully");
+      setBrandName("");
+      setBrandDescription("");
+      setBrandLogo(null);
+      fetchBrands();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add brand");
+      console.error(error);
+    }
+  };
+
+  // Update brand
+  const handleUpdateBrand = async (e) => {
+    e.preventDefault();
+    if (!editBrandName.trim()) {
+      toast.error("Brand name is required");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("name", editBrandName.trim());
+      formData.append("description", editBrandDescription.trim());
+      if (editBrandLogo) formData.append("logo", editBrandLogo);
+
+      await axiosInstance.put(`/api/brands/${editingBrand._id}`, formData);
+      toast.success("Brand updated successfully");
+      resetEditState();
+      fetchBrands();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update brand");
+      console.error(error);
+    }
+  };
+
+  // Delete brand
+  const handleDeleteBrand = async (brandId) => {
+    if (!window.confirm("Are you sure you want to delete this brand?")) return;
+    try {
+      await axiosInstance.delete(`/api/brand/${brandId}`);
+      toast.success("Brand deleted successfully");
+      fetchBrands();
+    } catch (error) {
+      toast.error("Failed to delete brand");
+      console.error(error);
+    }
+  };
+
+  // Set edit mode
+  const startEdit = (brand) => {
+    setEditingBrand(brand);
+    setEditBrandName(brand.name);
+    setEditBrandDescription(brand.description || "");
+    setEditBrandLogo(null);
+  };
+
+  // const resetEditState = () => {
+  //   setEditingBrand(null);
+  //   setEditBrandName("");
+  //   setEditBrandDescription("");
+  //   setEditBrandLogo(null);
+  // };
 
   return (
     <div className="categories-container">
@@ -297,7 +414,11 @@ const Categories = () => {
               value={brandName}
               onChange={(e) => setBrandName(e.target.value)}
             />
-            <button type="button" onClick={handleAddBrand} className="btn btn-secondary">
+            <button
+              type="button"
+              onClick={handleAddBrand}
+              className="btn btn-secondary"
+            >
               Add Brand
             </button>
           </div>
@@ -311,9 +432,11 @@ const Categories = () => {
               </span>
             ))}
           </div>
-          
+
           {/* HSN codes are now handled only at subcategory level */}
-          <button type="submit" className="btn btn-primary">Add Category</button>
+          <button type="submit" className="btn btn-primary">
+            Add Category
+          </button>
         </form>
       </div>
 
@@ -369,7 +492,6 @@ const Categories = () => {
         {!loading && categories.length === 0 && <p>No categories found.</p>}
         <div className="category-list enhanced-category-list">
           {categories.map((cat) => (
-            
             <div key={cat._id} className="category-item enhanced-category-card">
               <div className="category-image-wrapper">
                 <img
@@ -469,7 +591,7 @@ const Categories = () => {
                 </span>
               ))}
             </div>
-            
+
             {/* HSN codes for categories removed - now handled only at subcategory level */}
             {editingSubCategory && (
               <div className="hsn-input-section">
