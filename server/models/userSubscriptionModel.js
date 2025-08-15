@@ -35,7 +35,7 @@ const userSubscriptionSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ["paid", "failed", "pending"],
+    enum: ["paid", "failed", "pending","free"],
     default: "pending",
   },
   isAutopay: { type: Boolean, default: false },

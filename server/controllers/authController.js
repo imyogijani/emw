@@ -97,6 +97,7 @@ const registerController = async (req, res) => {
       gstNumber,
     } = req.body;
 
+    console.log("Files:", req.body);
     const files = req.files;
     const shopImage = files?.shopImage?.[0]?.filename || null;
     const shopImages =
@@ -165,20 +166,29 @@ const registerController = async (req, res) => {
     // 4. If shopowner, handle subscription & shop fields
     let parsedCategories = [];
     if (role === "shopowner") {
-      if (!subscriptionId || !shopName || !shopownerName) {
+      if (!shopName || !shopownerName) {
         return res.status(400).json({
           success: false,
-          message:
-            "Missing shopowner fields (subscriptionId, shopName, shopownerName)",
+          message: "Missing shopowner fields (shopName, shopownerName)",
         });
       }
 
-      const subscription = await Subscription.findById(subscriptionId);
-      if (!subscription) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid subscription",
-        });
+      if (subscriptionId) {
+        const subscription = await Subscription.findById(subscriptionId);
+        if (!subscription) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid subscription",
+          });
+        }
+        userData.subscription = subscriptionId;
+        userData.subscriptionStartDate = new Date();
+        userData.subscriptionFeatures = subscription.includedFeatures;
+      } else {
+        // Optional: default free plan ka features de do ya blank chhod do
+        userData.subscription = null;
+        userData.subscriptionStartDate = null;
+        userData.subscriptionFeatures = [];
       }
 
       if (typeof req.body.categories === "string") {
@@ -205,9 +215,9 @@ const registerController = async (req, res) => {
         });
       }
 
-      userData.subscription = subscriptionId;
-      userData.subscriptionStartDate = new Date();
-      userData.subscriptionFeatures = subscription.includedFeatures;
+      // userData.subscription = subscriptionId;
+      // userData.subscriptionStartDate = new Date();
+      // userData.subscriptionFeatures = subscription.includedFeatures;
       userData.shopName = shopName;
       userData.shopownerName = shopownerName;
       userData.shopImage = shopImage || null;
@@ -360,7 +370,10 @@ const currentUserController = async (req, res) => {
     // Always populate subscription for shopowners
     userQuery = userQuery
       .populate("subscription")
-      .populate("sellerId", "shopName ownerName shopAddresses");
+      .populate(
+        "sellerId",
+        "shopName ownerName shopAddresses shopImage shopImages"
+      );
     const user = await userQuery;
     return res.status(200).send({
       success: true,
@@ -394,10 +407,24 @@ export const updateProfileController = async (req, res) => {
     const updateSellerData = {};
 
     // === USER FIELDS (Common) ===
-    const { names, phone, address } = req.body;
+    const { names, phone } = req.body;
     if (names !== undefined) updateUserData.names = names;
     if (phone !== undefined) updateUserData.phone = phone;
     // Validate and update address
+
+    console.log("Update profile", req.body);
+
+    let address = req.body.address;
+    if (typeof address === "string") {
+      try {
+        address = JSON.parse(address);
+      } catch (error) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid address format" });
+      }
+    }
+
     if (address !== undefined) {
       if (
         !address.addressLine ||
@@ -430,10 +457,26 @@ export const updateProfileController = async (req, res) => {
       }
 
       // Handle multiple images (append only or full replacement — here append)
+      // if (files.shopImages && files.shopImages.length > 0) {
+      //   const newImages = files.shopImages.map((file) => file.filename);
+      //   const seller = await Seller.findOne({ user: user._id });
+      //   const existingImages = seller?.shopImages || [];
+      //   updateSellerData.shopImages = [...existingImages, ...newImages];
+      // }
+
+      if (files.shopImage && files.shopImage[0]) {
+        // Store path instead of just filename
+        updateSellerData.shopImage = `/uploads/shopowner/${files.shopImage[0].filename}`;
+      }
+
       if (files.shopImages && files.shopImages.length > 0) {
-        const newImages = files.shopImages.map((file) => file.filename);
         const seller = await Seller.findOne({ user: user._id });
         const existingImages = seller?.shopImages || [];
+
+        const newImages = files.shopImages.map(
+          (file) => `/uploads/shopowner/${file.filename}` //  add folder path
+        );
+
         updateSellerData.shopImages = [...existingImages, ...newImages];
       }
 

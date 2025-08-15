@@ -43,7 +43,10 @@ const AddressModal = ({
     const fetchCities = async () => {
       try {
         setCities([]); // reset cities before loading
-        setAddressForm((prev) => ({ ...prev, city: "", pincode: "" }));
+        if (!isEditing) {
+          //  Only reset when adding a new address
+          setAddressForm((prev) => ({ ...prev, city: "", pincode: "" }));
+        }
         setPincodes([]); // reset pincode
 
         const res = await axios.get(
@@ -66,7 +69,10 @@ const AddressModal = ({
 
     const fetchPincodes = async () => {
       try {
-        setAddressForm((prev) => ({ ...prev, pincode: "" }));
+        if (!isEditing) {
+          //  Keep existing pincode in edit mode
+          setAddressForm((prev) => ({ ...prev, pincode: "" }));
+        }
 
         const res = await axios.get(
           `/api/location/pincodes/${addressForm.state}/${addressForm.city}`

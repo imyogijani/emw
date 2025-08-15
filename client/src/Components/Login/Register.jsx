@@ -29,7 +29,7 @@ const Register = () => {
     shopownerName: "",
     shopName: "",
     phone: "",
-    addressLine1: "",
+    addressLine: "",
     addressLine2: "",
     city: "",
     state: "",
@@ -183,6 +183,7 @@ const Register = () => {
         setPincodes([]);
       });
   }, [formData.city]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -277,8 +278,14 @@ const Register = () => {
       const submitData = {
         ...formData,
         names: `${formData.firstName} ${formData.lastName}`.trim(),
+<<<<<<< HEAD
         addressLine: formData.addressLine1, // Map addressLine1 to addressLine for backend compatibility
         addressLine2: formData.addressLine2, // Set India as default country
+=======
+        addressLine: formData.addressLine, // Map addressLine1 to addressLine for backend compatibility
+        addressLine2: formData.addressLine2,
+        country: "India", // Set India as default country
+>>>>>>> 132722e37b91d56aae65bbe65ab21e578bc6524a
       };
       const response = await axios.post("/api/auth/register", submitData);
       if (response.data.success) {
@@ -550,6 +557,7 @@ const Register = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="form-row single-column">
             <div className="form-group">
               <div className="input-group">
@@ -562,6 +570,19 @@ const Register = () => {
                   className="form-input"
                 />
               </div>
+=======
+          <div className="form-group">
+            <div className="input-group">
+              <input
+                type="text"
+                name="addressLine"
+                placeholder="Address Line 1 (House/Building/Street)"
+                value={formData.addressLine}
+                onChange={handleChange}
+                required
+                className="form-input"
+              />
+>>>>>>> 132722e37b91d56aae65bbe65ab21e578bc6524a
             </div>
           </div>
 
@@ -607,6 +628,7 @@ const Register = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="form-row single-column">
             <div className="form-group">
               <div className="input-group">
@@ -631,6 +653,63 @@ const Register = () => {
           </div>
 
           {/* <div className="form-group">
+=======
+          <div className="form-group">
+            <div className="input-group">
+              <select
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select State</option>
+                {states.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="input-group">
+              <select
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                disabled={!formData.state}
+              >
+                <option value="">Select City</option>
+                {cities.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <div className="input-group">
+              <select
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleChange}
+                required
+                disabled={!formData.city}
+              >
+                <option value="">Select Pincode</option>
+                {[...new Set(pincodes)].map((p) => (
+                  <option value={p} key={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+>>>>>>> 132722e37b91d56aae65bbe65ab21e578bc6524a
             <div className="input-group">
               <input
                 type="text"
