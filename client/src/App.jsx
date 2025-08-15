@@ -57,6 +57,7 @@ import SubscriptionReview from "./Pages/SubscriptionReview";
 import Checkout from "./Pages/Checkout/Checkout";
 import Payment from "./Pages/Payment/Payment";
 import Invoice from "./Pages/Invoice/Invoice";
+import SellerOnboarding from "./Pages/Seller/SellerOnboarding";
 
 
 function LayoutWrapper() {
@@ -102,6 +103,7 @@ function LayoutWrapper() {
     "/seller/customers",
     "/seller/deals",
     "/seller/profile",
+    "/seller/onboarding", // Hide layout for onboarding
   ];
 
   const hideLayout = hideLayoutPaths.includes(location.pathname.toLowerCase());
@@ -147,6 +149,11 @@ function LayoutWrapper() {
         <Route path="/create-business" element={<CreateBusinessAccount />} />
         <Route path="/email-policy" element={<EmailPolicy />} />
         <Route path="/do-not-sell" element={<DoNotSell />} />
+        <Route path="/seller/onboarding" element={
+          <ProtectedRoute allowedRoles={["shopowner"]}>
+            <SellerOnboarding />
+          </ProtectedRoute>
+        } />
         <Route
           path="admin"
           element={

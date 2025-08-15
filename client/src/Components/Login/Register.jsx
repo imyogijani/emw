@@ -462,7 +462,7 @@ const Register = () => {
                   <input
                     type="text"
                     name="shopownerName"
-                    placeholder="Shop Owner Name"
+                    placeholder="Seller name"
                     value={formData.shopownerName}
                     onChange={handleChange}
                     required
@@ -632,7 +632,7 @@ const Register = () => {
             </div>
           </div>
 
-          {formData.role === "shopowner" && (
+          {/* {formData.role === "shopowner" && (
             <div className="form-group">
               <div className="input-group">
                 <select
@@ -652,7 +652,7 @@ const Register = () => {
                 </select>
               </div>
             </div>
-          )}
+          )} */}
 
           <button
             type="submit"
