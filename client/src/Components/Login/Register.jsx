@@ -193,10 +193,73 @@ const Register = () => {
       location: window.location.pathname,
     });
 
+    // Handle shop owner registration with new onboarding flow
     if (formData.role === "shopowner") {
-      // Redirect to pricing page with form data
-      navigate("/pricing", { state: { formData } });
-      setIsLoading(false);
+      try {
+        const userCred = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+
+        // Send verification email
+        await sendEmailVerification(userCred.user);
+        toast.success("Email verification sent. Please check your inbox.");
+        
+        // Prepare data for backend
+        const submitData = {
+          ...formData,
+          names: formData.shopownerName,
+          addressLine: formData.addressLine1,
+          addressLine2: formData.addressLine2,
+        };
+        
+        const response = await axios.post("/api/auth/register", submitData);
+        if (response.data.success) {
+          toast.success("Registration successful! Let's set up your business profile.");
+          trackEvent("register_success", {
+            email: formData.email,
+            role: formData.role,
+            location: window.location.pathname,
+          });
+
+          // Redirect to seller dashboard
+          navigate("/seller/dashboard");
+        } else {
+          setError(response.data.message);
+          toast.error(response.data.message);
+        }
+      } catch (err) {
+        trackEvent("register_failed", {
+          email: formData.email,
+          role: formData.role,
+          reason: err.message || err.code,
+          location: window.location.pathname,
+        });
+
+        console.error("Firebase registration error:", err);
+        const errorCode = err.code;
+
+        if (errorCode === "auth/email-already-in-use") {
+          toast.error("This email is already registered. Try logging in.");
+        } else if (errorCode === "auth/invalid-email") {
+          toast.error("Invalid email address. Please check your email.");
+        } else if (errorCode === "auth/weak-password") {
+          toast.error("Password is too weak. Must be at least 6 characters.");
+        } else if (errorCode === "auth/network-request-failed") {
+          toast.error("Network error. Please check your connection.");
+        } else if (errorCode === "auth/operation-not-allowed") {
+          toast.error(
+            "Email/password sign-up is not allowed. Enable it in Firebase Authentication settings."
+          );
+        } else {
+          toast.error(
+            `Registration failed: ${err.message || "Try again later."}`
+          );
+        }
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -215,8 +278,7 @@ const Register = () => {
         ...formData,
         names: `${formData.firstName} ${formData.lastName}`.trim(),
         addressLine: formData.addressLine1, // Map addressLine1 to addressLine for backend compatibility
-        addressLine2: formData.addressLine2,
-        country: "India", // Set India as default country
+        addressLine2: formData.addressLine2, // Set India as default country
       };
       const response = await axios.post("/api/auth/register", submitData);
       if (response.data.success) {
@@ -273,20 +335,80 @@ const Register = () => {
 
   return (
     <div className="register-container">
-      <div className="register-card">
-        <div className="register-header">
-          <FaStore className="register-icon" />
-          <h2>Create Account</h2>
-          <p>Please fill in your information to register</p>
+      {/* Left Side - Logo and Graphics */}
+      <div className="register-visual-section">
+        <div className="logo-container">
+          <img 
+            src="/src/images/Mall1.png" 
+            alt="EMW Logo" 
+            className="main-logo"
+          />
         </div>
-
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
+        
+        <div className="visual-content">
+          <div className="welcome-text">
+            <h1>Welcome to EMW</h1>
+            <p>Your Gateway to Digital Commerce</p>
           </div>
-        )}
+          
+          <div className="feature-highlights">
+            <div className="feature-item">
+              <div className="feature-icon">
+                <FaStore />
+              </div>
+              <div className="feature-text">
+                <h3>Build Your Store</h3>
+                <p>Create and manage your online presence</p>
+              </div>
+            </div>
+            
+            <div className="feature-item">
+              <div className="feature-icon">
+                <FaUser />
+              </div>
+              <div className="feature-text">
+                <h3>Connect with Customers</h3>
+                <p>Reach millions of potential buyers</p>
+              </div>
+            </div>
+            
+            <div className="feature-item">
+              <div className="feature-icon">
+                <FaMapMarkerAlt />
+              </div>
+              <div className="feature-text">
+                <h3>Local & Global Reach</h3>
+                <p>Expand your business boundaries</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="decorative-elements">
+            <div className="floating-shape shape-1"></div>
+            <div className="floating-shape shape-2"></div>
+            <div className="floating-shape shape-3"></div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right Side - Registration Form */}
+      <div className="register-form-section">
+        <div className="register-card">
+          <div className="register-header">
+            <div className="header-icon">
+              <FaUser className="register-icon" />
+            </div>
+            <h2>Create Your Account</h2>
+            <p>Join thousands of successful businesses</p>
+          </div>
 
-        <form onSubmit={handleSubmit} className="register-form">
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="register-form">
           <div className="form-group">
             <div className="input-group">
               <select
@@ -302,7 +424,7 @@ const Register = () => {
           </div>
 
           {formData.role === "client" || formData.role === "admin" ? (
-            <>
+            <div className="form-row">
               <div className="form-group">
                 <div className="input-group">
                   <input
@@ -329,9 +451,9 @@ const Register = () => {
                   />
                 </div>
               </div>
-            </>
+            </div>
           ) : (
-            <>
+            <div className="form-row">
               <div className="form-group">
                 <div className="input-group">
                   <input
@@ -358,145 +480,157 @@ const Register = () => {
                   />
                 </div>
               </div>
-            </>
+            </div>
           )}
 
-          <div className="form-group">
-            <div className="input-group">
-              {/* <FaEnvelope className="input-icon" /> */}
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
+          <div className="form-row">
+            <div className="form-group">
+              <div className="input-group">
+                {/* <FaEnvelope className="input-icon" /> */}
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div className="input-group">
+                {/* <FaLock className="input-icon" /> */}
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  minLength="6"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              {/* <FaLock className="input-icon" /> */}
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="form-input"
-                minLength="6"
-              />
+          <div className="form-row single-column">
+            <div className="form-group">
+              <div className="input-group">
+                {/* <FaPhone className="input-icon" /> */}
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  pattern="[0-9]{10}"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              {/* <FaPhone className="input-icon" /> */}
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-                className="form-input"
-                pattern="[0-9]{10}"
-              />
+          <div className="form-row single-column">
+            <div className="form-group">
+              <div className="input-group">
+                <input
+                  type="text"
+                  name="addressLine1"
+                  placeholder="Address Line 1 (House/Building/Street)"
+                  value={formData.addressLine1}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="text"
-                name="addressLine1"
-                placeholder="Address Line 1 (House/Building/Street)"
-                value={formData.addressLine1}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
+          <div className="form-row single-column">
+            <div className="form-group">
+              <div className="input-group">
+                <input
+                  type="text"
+                  name="addressLine2"
+                  placeholder="Address Line 2 (Area/Locality) - Optional"
+                  value={formData.addressLine2}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              <input
-                type="text"
-                name="addressLine2"
-                placeholder="Address Line 2 (Area/Locality) - Optional"
-                value={formData.addressLine2}
-                onChange={handleChange}
-                className="form-input"
-              />
+          <div className="form-row">
+            <div className="form-group">
+              <div className="input-group">
+                <select
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  disabled={loadingStates}
+                >
+                  <option value="">Select State</option>
+                  {states.map((state, index) => (
+                    <option key={index} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div className="input-group">
+                <select
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  disabled={loadingCities || !formData.state}
+                >
+                  <option value="">Select City</option>
+                  {cities.map((city, index) => (
+                    <option key={index} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              <select
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                required
-                className="form-input"
-                disabled={loadingStates}
-              >
-                <option value="">Select State</option>
-                {states.map((state, index) => (
-                  <option key={index} value={state}>
-                    {state}
-                  </option>
-                ))}
-              </select>
+          <div className="form-row single-column">
+            <div className="form-group">
+              <div className="input-group">
+                {/* Pincode Dropdown */}
+                <select
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  disabled={!formData.city}
+                >
+                  <option value="">Select Pincode</option>
+                  {pincodes.map((p, index) => (
+                    <option key={index} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="input-group">
-              <select
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                className="form-input"
-                disabled={loadingCities || !formData.state}
-              >
-                <option value="">Select City</option>
-                {cities.map((city, index) => (
-                  <option key={index} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <div className="input-group">
-              {/* Pincode Dropdown */}
-              <select
-                name="pincode"
-                value={formData.pincode}
-                onChange={handleChange}
-                required
-                className="form-input"
-                disabled={!formData.city}
-              >
-                <option value="">Select Pincode</option>
-                {pincodes.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
+          {/* <div className="form-group">
             <div className="input-group">
               <input
                 type="text"
@@ -508,7 +642,7 @@ const Register = () => {
                 className="form-input"
               />
             </div>
-          </div>
+          </div> */}
 
           <button
             type="submit"
@@ -518,15 +652,16 @@ const Register = () => {
             {isLoading ? "Creating Account..." : "Create Account"}
           </button>
 
-          <div className="register-footer">
-            <p>
-              Already have an account?{" "}
-              <Link to="/login" className="login-link">
-                Sign in here
-              </Link>
-            </p>
-          </div>
-        </form>
+            <div className="register-footer">
+              <p>
+                Already have an account?{" "}
+                <Link to="/login" className="login-link">
+                  Sign in here
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

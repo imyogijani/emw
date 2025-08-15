@@ -1,0 +1,236 @@
+/* Auth Transition Container */
+.auth-transition-container {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Base transition styles */
+.auth-transition-container > * {
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Slide Out Left Animation (Login to Register) */
+.auth-transition-container.slide-out-left > * {
+  transform: translateX(-100%);
+  opacity: 1;
+}
+
+/* Slide Out Right Animation (Register to Login) */
+.auth-transition-container.slide-out-right > * {
+  transform: translateX(100%);
+  opacity: 1;
+}
+
+/* Slide In Right Animation (Login to Register) */
+.auth-transition-container.slide-in-right > * {
+  animation: slideInFromRight 0.3s ease-in-out forwards;
+}
+
+/* Slide In Left Animation (Register to Login) */
+.auth-transition-container.slide-in-left > * {
+  animation: slideInFromLeft 0.3s ease-in-out forwards;
+}
+
+/* Keyframe animations */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Enhanced form animations */
+.auth-transition-container.transitioning .login-card,
+.auth-transition-container.transitioning .register-card {
+  transform: scale(1);
+}
+
+.auth-transition-container:not(.transitioning) .login-card,
+.auth-transition-container:not(.transitioning) .register-card {
+  transform: scale(1);
+  transition: all 0.3s ease;
+}
+
+/* Stagger animation for form elements */
+.auth-transition-container .form-group {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.auth-transition-container .form-group:nth-child(1) { animation-delay: 0.1s; }
+.auth-transition-container .form-group:nth-child(2) { animation-delay: 0.2s; }
+.auth-transition-container .form-group:nth-child(3) { animation-delay: 0.3s; }
+.auth-transition-container .form-group:nth-child(4) { animation-delay: 0.4s; }
+.auth-transition-container .form-group:nth-child(5) { animation-delay: 0.5s; }
+.auth-transition-container .form-group:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header animations */
+.auth-transition-container .login-header,
+.auth-transition-container .register-header {
+  animation: fadeInDown 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+@keyframes fadeInDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button hover enhancements */
+.auth-transition-container .login-button,
+.auth-transition-container .register-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-transition-container .login-button:hover,
+.auth-transition-container .register-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(228, 138, 0, 0.3);
+}
+
+.auth-transition-container .login-button:active,
+.auth-transition-container .register-button:active {
+  transform: translateY(0);
+}
+
+/* Link transition effects */
+.auth-transition-container .register-link,
+.auth-transition-container .login-link {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.auth-transition-container .register-link:hover,
+.auth-transition-container .login-link:hover {
+  transform: translateX(5px);
+}
+
+.auth-transition-container .register-link::after,
+.auth-transition-container .login-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary-color, #e48a00);
+  transition: width 0.3s ease;
+}
+
+.auth-transition-container .register-link:hover::after,
+.auth-transition-container .login-link:hover::after {
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .auth-transition-container > * {
+    transition-duration: 0.25s;
+  }
+  
+  .auth-transition-container .form-group {
+    animation-duration: 0.4s;
+  }
+  
+  .auth-transition-container .form-group:nth-child(n) {
+    animation-delay: 0.05s;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .auth-transition-container,
+  .auth-transition-container > *,
+  .auth-transition-container .form-group,
+  .auth-transition-container .login-header,
+  .auth-transition-container .register-header,
+  .auth-transition-container .login-button,
+  .auth-transition-container .register-button,
+  .auth-transition-container .register-link,
+  .auth-transition-container .login-link {
+    animation: none !important;
+    transition: opacity 0.2s ease !important;
+    transform: none !important;
+  }
+}
+
+/* Focus states for accessibility */
+.auth-transition-container .login-button:focus,
+.auth-transition-container .register-button:focus {
+  outline: 2px solid #e48a00;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(228, 138, 0, 0.1);
+}
+
+.auth-transition-container .register-link:focus,
+.auth-transition-container .login-link:focus {
+  outline: 2px solid #e48a00;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Performance optimizations */
+.auth-transition-container * {
+  backface-visibility: hidden;
+}
+
+/* Loading state enhancements */
+.auth-transition-container .login-button.loading,
+.auth-transition-container .register-button.loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent;
+}
+
+.auth-transition-container .login-button.loading::after,
+.auth-transition-container .register-button.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: buttonSpin 1s linear infinite;
+}
+
+@keyframes buttonSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
