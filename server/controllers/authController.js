@@ -776,6 +776,7 @@ export const acceptPlanUpdateController = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("Forgot", req.body);
     const user = await userModel.findOne({ email });
 
     if (!user) {
@@ -814,6 +815,7 @@ export const forgotPassword = async (req, res) => {
 
 // POST /api/v1/auth/reset-password/:token
 export const resetPassword = async (req, res) => {
+  console.log("Request body:", req.body);
   try {
     const hashedToken = crypto
       .createHash("sha256")

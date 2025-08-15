@@ -12,6 +12,7 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 import { trackEvent } from "../../analytics/trackEvent";
+import Mall1Logo from "../../images/Mall1.png";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -204,7 +205,7 @@ const Login = () => {
         <div className="welcome-content">
           <div className="logo-container">
             <img
-              src="/src/images/Mall1.png"
+              src={Mall1Logo}
               alt="EMW Logo"
               className="main-logo"
             />
