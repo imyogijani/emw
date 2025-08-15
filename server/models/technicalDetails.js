@@ -7,11 +7,8 @@ const technicalDetailsSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    brand: { type: String },
     modelNumber: { type: String },
     material: { type: String },
-    color: { type: [String] },
-    size: { type: [String] },
     weight: { type: String },
     dimensions: { type: String },
     warranty: { type: String },
@@ -30,6 +27,7 @@ const technicalDetailsSchema = new mongoose.Schema(
     ram: { type: String },
     storage: { type: String },
     graphicsCard: { type: String },
+    brand: { type: String },
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
