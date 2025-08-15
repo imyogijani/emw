@@ -45,7 +45,7 @@ const Login = () => {
                 );
               }
             } else {
-              redirectBasedOnRole(userObj.role);
+              redirectBasedOnRole(userObj.role, userObj);
             }
           }
         } catch (error) {
@@ -62,11 +62,16 @@ const Login = () => {
     });
   }, [customerOnly, returnUrl, navigate]);
 
-  const redirectBasedOnRole = (role) => {
+  const redirectBasedOnRole = (role, userObj) => {
     if (role === "admin") {
       navigate("/admin/dashboard");
     } else if (role === "shopowner") {
-      navigate("/seller/dashboard");
+      // Check if seller profile is completed (e.g., sellerId exists and has required fields)
+      if (!userObj?.sellerId || !userObj.sellerId.shopName || !userObj.sellerId.categories || userObj.sellerId.categories.length === 0) {
+        navigate("/seller/onboarding");
+      } else {
+        navigate("/seller/dashboard");
+      }
     } else {
       navigate("/");
     }
@@ -147,7 +152,7 @@ const Login = () => {
             localStorage.removeItem("user");
           }
         } else {
-          redirectBasedOnRole(response.data.user.role);
+          redirectBasedOnRole(response.data.user.role, response.data.user);
         }
 
         await trackEvent("login", {
