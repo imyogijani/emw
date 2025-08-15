@@ -67,6 +67,7 @@ const Users = () => {
   };
 
   const handleUpdateUser = async (userId, newRole, newStatus) => {
+    console.log("Updating user:", userId, newRole, newStatus); // Debug log
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
@@ -276,8 +277,10 @@ const Users = () => {
                   <select
                     id="role"
                     name="role"
-                    value={roleToSet}
-                    onChange={(e) => setRoleToSet(e.target.value)}
+                    value={formData.role}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
                     required
                   >
                     <option value="admin">Admin</option>
@@ -304,7 +307,13 @@ const Users = () => {
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   <button
                     className="modal-btn confirm"
-                    onClick={() => handleUpdateUser(modal.user._id, roleToSet, modal.user.status)}
+                    onClick={() =>
+                      handleUpdateUser(
+                        modal.user._id,
+                        formData.role,
+                        formData.status
+                      )
+                    }
                   >
                     Save
                   </button>

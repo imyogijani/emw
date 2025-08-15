@@ -306,30 +306,64 @@ export const getAllShops = async (req, res) => {
 // Get all users
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
+    // 1. Get query params for filters & pagination
+    const {
+      search, // email or name search
+      role, // admin, client, shopowner
+      page = 1, // default page 1
+      limit = 10, // default 10 users per page
+    } = req.query;
+
+    // 2. Build filter object
+    const filter = {};
+
+    if (search) {
+      const regex = new RegExp(search, "i"); // case-insensitive search
+      filter.$or = [{ email: regex }, { names: regex }, { shopName: regex }];
+    }
+
+    if (role) {
+      filter.role = role.toLowerCase(); // filter by role
+    }
+
+    // 3. Count total documents for pagination
+    const totalUsers = await User.countDocuments(filter);
+
+    // 4. Fetch users with filters, populate subscription, and pagination
+    const users = await User.find(filter)
       .populate("subscription")
       .select("-password")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
 
+    // 5. Format response (same as your existing)
+    const formattedUsers = users.map((user) => ({
+      _id: user._id,
+      name: user.names || user.shopName,
+      email: user.email,
+      role: user.role.toLowerCase(),
+      status: user.status || "active",
+      createdAt: user.createdAt,
+      subscription:
+        user.role === "shopowner" && user.subscription
+          ? {
+              planName: user.subscription.planName,
+              _id: user.subscription._id,
+            }
+          : undefined,
+    }));
+
+    // 6. Return paginated response
     res.json({
       success: true,
-      users: users.map((user) => ({
-        _id: user._id,
-        name: user.names || user.shopName,
-        email: user.email,
-        role: user.role.toLowerCase(),
-        status: user.status || "active",
-        createdAt: user.createdAt,
-        subscription:
-          user.role === "shopowner" && user.subscription
-            ? {
-                planName: user.subscription.planName,
-                _id: user.subscription._id,
-              }
-            : undefined,
-      })),
+      totalUsers,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalUsers / limit),
+      users: formattedUsers,
     });
   } catch (error) {
+    console.error("Error fetching users:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching users",
@@ -341,45 +375,78 @@ export const getAllUsers = async (req, res) => {
 // Delete user
 export const getSellerDetails = async (req, res) => {
   try {
-    const seller = await User.findById(req.params.id)
+    // 1. Find the user
+    const sellerUser = await User.findById(req.params.id)
       .populate("subscription")
       .select("-password");
 
-    if (!seller || seller.role !== "shopowner") {
+    if (!sellerUser || sellerUser.role !== "shopowner") {
       return res.status(404).json({
         success: false,
-        message: "Seller not found",
+        message: "Seller not found or not a shopowner",
       });
     }
 
-    // Placeholder for fetching deals, products, orders, etc. related to this seller
-    // For now, we'll just return the seller's basic info and subscription
+    // 2. Find seller table data
+    let sellerTable = null;
+    if (sellerUser.sellerId) {
+      sellerTable = await Seller.findById(sellerUser.sellerId)
+        .populate("categories") // optional if you want category details
+        .lean();
+    }
 
-    res.json({
-      success: true,
-      data: {
-        _id: seller._id,
-        names: seller.names,
-        shopName: seller.shopName,
-        email: seller.email,
-        lastLogin: seller.lastLogin,
-        status: seller.status,
-        createdAt: seller.createdAt,
-        subscription: seller.subscription
+    // 3. Combine data
+    const combinedData = {
+      userInfo: {
+        _id: sellerUser._id,
+        names: sellerUser.names,
+        email: sellerUser.email,
+        phone: sellerUser.phone,
+        status: sellerUser.status,
+        lastLogin: sellerUser.lastLogin,
+        createdAt: sellerUser.createdAt,
+        subscription: sellerUser.subscription
           ? {
-              _id: seller.subscription._id,
-              planName: seller.subscription.planName,
-              price: seller.subscription.price,
-              duration: seller.subscription.duration,
-              features: seller.subscription.features,
+              _id: sellerUser.subscription._id,
+              planName: sellerUser.subscription.planName,
+              price: sellerUser.subscription.price,
+              duration: sellerUser.subscription.duration,
+              features: sellerUser.subscription.features,
             }
           : null,
-        subscriptionStartDate: seller.subscriptionStartDate,
-        subscriptionFeatures: seller.subscriptionFeatures,
-        // Add more seller-specific data here later (e.g., total products, total sales, top products)
+        subscriptionStartDate: sellerUser.subscriptionStartDate,
+        subscriptionEndDate: sellerUser.subscriptionEndDate,
+        subscriptionFeatures: sellerUser.subscriptionFeatures,
       },
+      shopDetails: sellerTable
+        ? {
+            _id: sellerTable._id,
+            shopName: sellerTable.shopName,
+            shopImage: sellerTable.shopImage,
+            shopImages: sellerTable.shopImages,
+            ownerName: sellerTable.ownerName,
+            description: sellerTable.description,
+            categories: sellerTable.categories,
+            location: sellerTable.location,
+            shopAddresses: sellerTable.shopAddresses,
+            specialist: sellerTable.specialist,
+            status: sellerTable.status,
+            averageRating: sellerTable.averageRating,
+            totalReviews: sellerTable.totalReviews,
+            gstNumber: sellerTable.gstNumber,
+            kycVerified: sellerTable.kycVerified,
+            bankDetails: sellerTable.bankDetails,
+          }
+        : null,
+    };
+
+    // 4. Response
+    res.json({
+      success: true,
+      data: combinedData,
     });
   } catch (error) {
+    console.error("Error fetching seller details:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching seller details",
@@ -412,6 +479,7 @@ export const deleteUser = async (req, res) => {
 };
 
 // Update user role and status
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -424,17 +492,67 @@ export const updateUser = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
+    const oldRole = user.role;
+
+    // 1. Update role if provided
     if (role) {
-      user.role = role;
-    }
-    if (status) {
-      user.status = status;
+      user.role = role.toLowerCase();
     }
 
+    // 2. Update status if provided
+    if (status) {
+      user.status = status.toLowerCase();
+    }
+
+    // 3. Handle role transition
+    if (oldRole !== user.role) {
+      if (user.role === "shopowner") {
+        // Client → Shopowner
+        let seller;
+        if (user.sellerId) {
+          // Already has seller record, reactivate it
+          seller = await Seller.findByIdAndUpdate(
+            user.sellerId,
+            { status: "active" },
+            { new: true }
+          );
+        } else {
+          // Create new seller record
+          seller = await Seller.create({
+            user: user._id,
+            shopName: `${user.names}'s Shop`,
+            ownerName: user.names,
+            status: "active",
+            shopAddresses: [], // optional: empty array
+          });
+          user.sellerId = seller._id;
+        }
+      } else if (oldRole === "shopowner" && user.role === "client") {
+        // Shopowner → Client
+        if (user.sellerId) {
+          await Seller.findByIdAndUpdate(user.sellerId, { status: "inactive" });
+        }
+      }
+    }
+
+    // 4. If user is still shopowner and status updated
+    if (user.role === "shopowner" && user.sellerId && status) {
+      await Seller.findByIdAndUpdate(user.sellerId, {
+        status: status.toLowerCase(),
+      });
+    }
+
+    // 5. Save the user
     await user.save();
 
-    res.json({ success: true, message: "User updated successfully", user });
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      user,
+      shopDetails: user.sellerId ? await Seller.findById(user.sellerId) : null,
+    });
   } catch (error) {
+    console.error("Error updating user:", error);
     res.status(500).json({
       success: false,
       message: "Error updating user",
@@ -534,11 +652,11 @@ export const getAllLocations = async (req, res) => {
     const locationStats = {
       totalStates: Object.keys(pincodesData).length,
       totalCities: 0,
-      totalPincodes: 0
+      totalPincodes: 0,
     };
 
-    Object.values(pincodesData).forEach(state => {
-      Object.values(state).forEach(city => {
+    Object.values(pincodesData).forEach((state) => {
+      Object.values(state).forEach((city) => {
         locationStats.totalCities++;
         locationStats.totalPincodes += city.length;
       });
@@ -547,13 +665,13 @@ export const getAllLocations = async (req, res) => {
     res.json({
       success: true,
       data: pincodesData,
-      stats: locationStats
+      stats: locationStats,
     });
   } catch (error) {
     console.error("Error fetching locations:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch locations"
+      message: "Failed to fetch locations",
     });
   }
 };
@@ -562,20 +680,20 @@ export const getAllLocations = async (req, res) => {
 export const addState = async (req, res) => {
   try {
     const { stateName } = req.body;
-    
+
     if (!stateName || !stateName.trim()) {
       return res.status(400).json({
         success: false,
-        message: "State name is required"
+        message: "State name is required",
       });
     }
 
     const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
-    
+
     if (pincodesData[stateName]) {
       return res.status(400).json({
         success: false,
-        message: "State already exists"
+        message: "State already exists",
       });
     }
 
@@ -585,13 +703,13 @@ export const addState = async (req, res) => {
     res.json({
       success: true,
       message: "State added successfully",
-      data: { stateName }
+      data: { stateName },
     });
   } catch (error) {
     console.error("Error adding state:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to add state"
+      message: "Failed to add state",
     });
   }
 };
@@ -600,27 +718,27 @@ export const addState = async (req, res) => {
 export const addCity = async (req, res) => {
   try {
     const { stateName, cityName } = req.body;
-    
+
     if (!stateName || !cityName || !stateName.trim() || !cityName.trim()) {
       return res.status(400).json({
         success: false,
-        message: "State name and city name are required"
+        message: "State name and city name are required",
       });
     }
 
     const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
-    
+
     if (!pincodesData[stateName]) {
       return res.status(404).json({
         success: false,
-        message: "State not found"
+        message: "State not found",
       });
     }
 
     if (pincodesData[stateName][cityName]) {
       return res.status(400).json({
         success: false,
-        message: "City already exists in this state"
+        message: "City already exists in this state",
       });
     }
 
@@ -630,13 +748,13 @@ export const addCity = async (req, res) => {
     res.json({
       success: true,
       message: "City added successfully",
-      data: { stateName, cityName }
+      data: { stateName, cityName },
     });
   } catch (error) {
     console.error("Error adding city:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to add city"
+      message: "Failed to add city",
     });
   }
 };
@@ -645,13 +763,13 @@ export const addCity = async (req, res) => {
 export const deleteState = async (req, res) => {
   try {
     const { stateName } = req.params;
-    
+
     const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
-    
+
     if (!pincodesData[stateName]) {
       return res.status(404).json({
         success: false,
-        message: "State not found"
+        message: "State not found",
       });
     }
 
@@ -660,13 +778,13 @@ export const deleteState = async (req, res) => {
 
     res.json({
       success: true,
-      message: "State deleted successfully"
+      message: "State deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting state:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to delete state"
+      message: "Failed to delete state",
     });
   }
 };
@@ -675,20 +793,20 @@ export const deleteState = async (req, res) => {
 export const deleteCity = async (req, res) => {
   try {
     const { stateName, cityName } = req.params;
-    
+
     const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
-    
+
     if (!pincodesData[stateName]) {
       return res.status(404).json({
         success: false,
-        message: "State not found"
+        message: "State not found",
       });
     }
 
     if (!pincodesData[stateName][cityName]) {
       return res.status(404).json({
         success: false,
-        message: "City not found"
+        message: "City not found",
       });
     }
 
@@ -697,13 +815,13 @@ export const deleteCity = async (req, res) => {
 
     res.json({
       success: true,
-      message: "City deleted successfully"
+      message: "City deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting city:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to delete city"
+      message: "Failed to delete city",
     });
   }
 };
