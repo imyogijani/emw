@@ -3,7 +3,7 @@ import Subscription from "../models/subscriptionModel.js";
 // Create a new subscription plan
 export const createSubscription = async (req, res) => {
   try {
-    const { planName, pricing, includedFeatures } = req.body;
+    const { planName, pricing, includedFeatures, isVisible } = req.body;
 
     const existingPlan = await Subscription.findOne({ planName });
     if (existingPlan) {
@@ -23,6 +23,7 @@ export const createSubscription = async (req, res) => {
       planName,
       pricing,
       includedFeatures,
+      isVisible: isVisible !== undefined ? isVisible : true,
     });
 
     await newSubscription.save();
@@ -42,7 +43,9 @@ export const createSubscription = async (req, res) => {
 // Get all subscription plans
 export const getAllSubscriptions = async (req, res) => {
   try {
-    const subscriptions = await Subscription.find();
+    // const subscriptions = await Subscription.find();
+    const subscriptions = await Subscription.find({ isVisible: true });
+
     res.status(200).json({ success: true, subscriptions }); // Modified to include success flag and subscriptions key
   } catch (error) {
     res.status(500).json({
@@ -86,7 +89,7 @@ export const getSubscriptionByName = async (req, res) => {
 // Update a subscription plan
 export const updateSubscription = async (req, res) => {
   try {
-    const { planName, pricing, includedFeatures } = req.body;
+    const { planName, pricing, includedFeatures, isVisible } = req.body;
 
     // Basic Validation
     if (
@@ -99,17 +102,23 @@ export const updateSubscription = async (req, res) => {
     }
 
     if (!pricing || (!pricing.monthly && !pricing.yearly)) {
-      return res
-        .status(400)
-        .json({
-          message: "At least one pricing type (monthly or yearly) is required",
-        });
+      return res.status(400).json({
+        message: "At least one pricing type (monthly or yearly) is required",
+      });
     }
+
+    // Prepare update fields
+    const updateFields = {
+      planName,
+      pricing,
+      includedFeatures,
+      isVisible: isVisible !== undefined ? isVisible : true, // 👈 default true
+    };
 
     // Update subscription
     const updatedSubscription = await Subscription.findByIdAndUpdate(
       req.params.id,
-      { planName, pricing, includedFeatures },
+      updateFields,
       { new: true, runValidators: true }
     );
 

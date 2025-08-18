@@ -1,11 +1,17 @@
 import ShopTiming from "../models/shopTimingModel.js";
 import { validateShopTimings } from "../utils/validateShopTiming.js";
+import Seller from "../models/sellerModel.js";
 
 // Create or update shop timing
 export const upsertShopTiming = async (req, res) => {
   try {
     const sellerId = req.params.sellerId;
-    const { shopTimingMode, shopTimings, appointmentDetails } = req.body;
+    const {
+      shopTimingMode,
+      shopTimings,
+      appointmentDetails,
+      incrementOnboarding,
+    } = req.body;
 
     // Validate mode
     if (!["24/7", "scheduled", "appointment"].includes(shopTimingMode)) {
@@ -44,6 +50,14 @@ export const upsertShopTiming = async (req, res) => {
       await shopTiming.save();
     }
 
+    if (incrementOnboarding) {
+      const seller = await Seller.findById(sellerId);
+      if (seller) {
+        seller.onboardingStep = (seller.onboardingStep || 0) + 1; // dynamic increment
+        await seller.save();
+      }
+    }
+
     res.status(200).json({ success: true, data: shopTiming });
   } catch (error) {
     console.error("Error in upsertShopTiming:", error);
@@ -80,7 +94,6 @@ export const deleteShopTiming = async (req, res) => {
   }
 };
 
-
 export const updateShopTiming = async (req, res) => {
   try {
     const sellerId = req.params.sellerId;
@@ -88,13 +101,17 @@ export const updateShopTiming = async (req, res) => {
 
     const shopTiming = await ShopTiming.findOne({ seller: sellerId });
     if (!shopTiming) {
-      return res.status(404).json({ success: false, message: "Shop timing not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Shop timing not found" });
     }
 
     // 1️⃣ Update shopTimingMode if provided
     if (shopTimingMode) {
       if (!["24/7", "scheduled", "appointment"].includes(shopTimingMode)) {
-        return res.status(400).json({ success: false, message: "Invalid shopTimingMode" });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid shopTimingMode" });
       }
       shopTiming.shopTimingMode = shopTimingMode;
     }
@@ -102,7 +119,10 @@ export const updateShopTiming = async (req, res) => {
     // 2️⃣ Update shopTimings partially if provided
     if (shopTimings && typeof shopTimings === "object") {
       // Validate only if mode is scheduled
-      if (shopTimingMode === "scheduled" || shopTiming.shopTimingMode === "scheduled") {
+      if (
+        shopTimingMode === "scheduled" ||
+        shopTiming.shopTimingMode === "scheduled"
+      ) {
         const error = validateShopTimings(shopTimings);
         if (error) {
           return res.status(400).json({ success: false, message: error });
@@ -110,7 +130,7 @@ export const updateShopTiming = async (req, res) => {
       }
 
       // Merge day-wise instead of replacing all
-      Object.keys(shopTimings).forEach(day => {
+      Object.keys(shopTimings).forEach((day) => {
         shopTiming.shopTimings[day] = shopTimings[day];
       });
     }
@@ -119,13 +139,12 @@ export const updateShopTiming = async (req, res) => {
     if (appointmentDetails && typeof appointmentDetails === "object") {
       shopTiming.appointmentDetails = {
         ...shopTiming.appointmentDetails,
-        ...appointmentDetails
+        ...appointmentDetails,
       };
     }
 
     await shopTiming.save();
     res.status(200).json({ success: true, data: shopTiming });
-
   } catch (error) {
     console.error("Error in patchShopTiming:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });

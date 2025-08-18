@@ -68,7 +68,6 @@ export const assignSubscriptionToUser = async (
     user.subscriptionEndDate = endDate;
     user.subscriptionFeatures = subscription.includedFeatures;
     user.status = "active"; // update user status to active
-   
 
     await user.save();
 

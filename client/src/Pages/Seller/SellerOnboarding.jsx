@@ -10,6 +10,7 @@ const SellerOnboarding = () => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [formData, setFormData] = useState({
     // Step 1 - Basic Details
     shopName: "",
@@ -88,11 +89,34 @@ const SellerOnboarding = () => {
     fetchBrands();
   }, []);
 
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await axios.get("/api/subscriptions");
+        if (res.data.success) {
+          setPlans(res.data.subscriptions);
+          // console.log(
+          //   "OnBoarding - Get subscriptions Plan",
+          //   res.data.subscriptions
+          // );
+        } else {
+          toast(res.data.message || "Failed to load plans");
+        }
+      } catch (err) {
+        toast.error("Failed to fetch subscription plans.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
+
   const fetchCategories = async () => {
     try {
       // Fetch from new server endpoint for shop categories
-      const response = await axios.get("/api/shop/categories");
+      const response = await axios.get("/api/category/get-category");
       setCategories(response.data.categories || []);
+      // console.log("Fetched categories:", response.data.categories);
     } catch (error) {
       toast.error("Failed to fetch categories");
     }
@@ -101,6 +125,7 @@ const SellerOnboarding = () => {
   const fetchBrands = async () => {
     try {
       const response = await axios.get("/api/brands");
+      // console.log("Fetched brands:", response.data.brands);
       setBrands(response.data.brands || []);
     } catch (error) {
       toast.error("Failed to fetch brands");
@@ -212,8 +237,20 @@ const SellerOnboarding = () => {
     return true;
   };
 
-  const handleNext = () => {
-    if (validateStep()) {
+  // const handleNext = () => {
+  //   if (validateStep()) {
+  //     setStep(step + 1);
+  //   }
+  // };
+
+  const handleNext = async () => {
+    if (!validateStep()) return;
+
+    if (step === 1) {
+      await submitStep1();
+    } else if (step === 2) {
+      await submitStep2();
+    } else {
       setStep(step + 1);
     }
   };
@@ -227,6 +264,7 @@ const SellerOnboarding = () => {
 
     try {
       setLoading(true);
+
       const formDataToSend = new FormData();
       formDataToSend.append("shopName", formData.shopName);
       formDataToSend.append("categories", JSON.stringify(formData.categories));
@@ -257,6 +295,71 @@ const SellerOnboarding = () => {
     }
   };
 
+  // -------------------- STEP 1 API --------------------
+  const submitStep1 = async () => {
+    try {
+      setLoading(true);
+      const sellerId = JSON.parse(localStorage.getItem("user")).sellerId;
+      // console.log("Submitting  Seller Id :", sellerId);
+
+      const fd = new FormData();
+      fd.append("sellerId", sellerId._id);
+      fd.append("shopName", formData.shopName);
+      fd.append("categories", JSON.stringify(formData.categories));
+      fd.append("brands", JSON.stringify(formData.brands));
+      if (formData.shopLogo) {
+        fd.append("shopImage", formData.shopLogo);
+      }
+
+      const response = await axios.post("/api/seller/onboarding/step1", fd);
+      // console.log("Step 1 response:", response.data);
+      toast.success("Step 1 saved successfully");
+      setStep(2); // go next
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to save Step 1");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------- STEP 2 API --------------------
+  const submitStep2 = async () => {
+    try {
+      setLoading(true);
+      const sellerId = JSON.parse(localStorage.getItem("user")).sellerId;
+
+      // Convert frontend workingHours → backend format
+      const convertedTimings = {};
+      Object.entries(formData.workingHours).forEach(([day, timing]) => {
+        if (timing.isOpen) {
+          convertedTimings[day] = [
+            { openTime: timing.open, closeTime: timing.close },
+          ];
+        } else {
+          convertedTimings[day] = []; // closed means empty array
+        }
+      });
+
+      const data = {
+        shopTimingMode: "scheduled",
+        shopTimings: convertedTimings,
+        incrementOnboarding: true,
+      };
+
+      const response = await axios.post(
+        `/api/shop-timing/${sellerId._id}`,
+        data
+      );
+      // console.log("Shop timings saved successfully", response.data);
+      toast.success("Shop timings saved successfully");
+      setStep(3); // go next
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to save timings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fix: Add to selected on dropdown click, clear input, and prevent duplicate selection
   const handleCategoryDropdownClick = (catId) => {
     if (!formData.categories.includes(catId)) {
@@ -268,6 +371,15 @@ const SellerOnboarding = () => {
       });
     }
   };
+
+  //   const handleCategoryDropdownClick = (catId) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     categories: [...prev.categories, catId], //  push _id, not index/number
+  //     categoryInput: "",
+  //     categoryInputFocused: false,
+  //   }));
+  // };
 
   const handleBrandDropdownClick = (brandId) => {
     if (!formData.brands.includes(brandId)) {
@@ -284,16 +396,14 @@ const SellerOnboarding = () => {
   let sellerName = "Seller";
   try {
     const user = JSON.parse(localStorage.getItem("user"));
-    sellerName = user?.names || user?.shopownerName || user?.shopName || "Seller";
+    sellerName =
+      user?.names || user?.shopownerName || user?.shopName || "Seller";
   } catch {}
 
   const renderBasicDetailsForm = () => (
     <div className="form-step">
       {/* Logout button top right */}
-      <button
-        className="logout-btn-onboarding"
-        onClick={handleLogout}
-      >
+      <button className="logout-btn-onboarding" onClick={handleLogout}>
         <FaSignOutAlt /> Logout
       </button>
       <h2 className="step-title">Basic Details</h2>
@@ -353,8 +463,7 @@ const SellerOnboarding = () => {
             }
             onBlur={() =>
               setTimeout(
-                () =>
-                  setFormData({ ...formData, categoryInputFocused: false }),
+                () => setFormData({ ...formData, categoryInputFocused: false }),
                 200
               )
             }
@@ -363,8 +472,14 @@ const SellerOnboarding = () => {
             {formData.categories.map((catId) => {
               const cat = categories.find((c) => c._id === catId);
               return cat ? (
-                <span className="tag" id={`categories-tag-${catId}`} key={catId}>
+                <span
+                  className="tag"
+                  id={`categories-tag-${catId}`}
+                  key={catId}
+                >
                   {cat.name}
+
+                  {/* {console.log("Category tag:", cat.name, "ID:", cat._id)} */}
                   <button
                     type="button"
                     className="remove-tag"
@@ -429,8 +544,7 @@ const SellerOnboarding = () => {
             }
             onBlur={() =>
               setTimeout(
-                () =>
-                  setFormData({ ...formData, brandInputFocused: false }),
+                () => setFormData({ ...formData, brandInputFocused: false }),
                 200
               )
             }
@@ -439,7 +553,11 @@ const SellerOnboarding = () => {
             {formData.brands.map((brandId) => {
               const brand = brands.find((b) => b._id === brandId);
               return brand ? (
-                <span className="tag" id={`brands-tag-${brandId}`} key={brandId}>
+                <span
+                  className="tag"
+                  id={`brands-tag-${brandId}`}
+                  key={brandId}
+                >
                   {brand.name}
                   <button
                     type="button"
@@ -492,7 +610,14 @@ const SellerOnboarding = () => {
   const renderTimingForm = () => (
     <div className="form-step timing-form">
       <h2 className="step-title">Shop Timing</h2>
-      <p className="step-description">Set your shop's working hours. Toggle each day ON/OFF and specify opening and closing times. <span style={{color:'#b71c1c',fontWeight:500}}>Use 24-hour format (e.g., 09:00, 18:00)</span>.</p>
+      <p className="step-description">
+        Set your shop's working hours. Toggle each day ON/OFF and specify
+        opening and closing times.{" "}
+        <span style={{ color: "#b71c1c", fontWeight: 500 }}>
+          Use 24-hour format (e.g., 09:00, 18:00)
+        </span>
+        .
+      </p>
       <div className="timing-form-days">
         {Object.entries(formData.workingHours).map(([day, timing], idx) => (
           <div key={day} className="timing-day-card">
@@ -503,35 +628,72 @@ const SellerOnboarding = () => {
                 onChange={() => handleDayToggle(day)}
                 id={`day-${day}`}
               />
-              <label htmlFor={`day-${day}`}>{day.charAt(0).toUpperCase() + day.slice(1)}</label>
+              <label htmlFor={`day-${day}`}>
+                {day.charAt(0).toUpperCase() + day.slice(1)}
+              </label>
             </div>
             {timing.isOpen ? (
               <div className="timing-slots-row">
                 <span className="timing-label">Open</span>
-                <div style={{display:'flex',alignItems:'center',gap:'0.3rem'}}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                  }}
+                >
                   <input
                     type="time"
                     value={timing.open}
-                    onChange={e => handleTimeChange(day, "open", e.target.value)}
+                    onChange={(e) =>
+                      handleTimeChange(day, "open", e.target.value)
+                    }
                     aria-label={`Opening time for ${day}`}
-                    ref={el => (window[`openRef_${day}`] = el)}
+                    ref={(el) => (window[`openRef_${day}`] = el)}
                   />
                 </div>
                 <span className="timing-label">Close</span>
-                <div style={{display:'flex',alignItems:'center',gap:'0.3rem'}}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                  }}
+                >
                   <input
                     type="time"
                     value={timing.close}
-                    onChange={e => handleTimeChange(day, "close", e.target.value)}
+                    onChange={(e) =>
+                      handleTimeChange(day, "close", e.target.value)
+                    }
                     aria-label={`Closing time for ${day}`}
-                    ref={el => (window[`closeRef_${day}`] = el)}
+                    ref={(el) => (window[`closeRef_${day}`] = el)}
                   />
                 </div>
               </div>
             ) : (
-              <div className="timing-label" style={{color:'#b71c1c',fontWeight:500,marginTop:'0.5rem'}}>Closed</div>
+              <div
+                className="timing-label"
+                style={{
+                  color: "#b71c1c",
+                  fontWeight: 500,
+                  marginTop: "0.5rem",
+                }}
+              >
+                Closed
+              </div>
             )}
-            {idx < 6 && <div style={{height:1,background:'#e3e8ee',width:'100%',marginTop:'0.7rem',opacity:0.5}}></div>}
+            {idx < 6 && (
+              <div
+                style={{
+                  height: 1,
+                  background: "#e3e8ee",
+                  width: "100%",
+                  marginTop: "0.7rem",
+                  opacity: 0.5,
+                }}
+              ></div>
+            )}
           </div>
         ))}
       </div>
@@ -546,18 +708,18 @@ const SellerOnboarding = () => {
       </p>
 
       <div className="subscription-plans">
-        {subscriptionPlans.map((plan) => (
+        {plans.map((plan) => (
           <div
-            key={plan.id}
+            key={plan._id}
             className={`plan-card ${
-              formData.selectedPlan === plan.id ? "selected" : ""
+              formData.selectedPlan === plan._id ? "selected" : ""
             }`}
-            onClick={() => handlePlanSelect(plan.id)}
+            onClick={() => handlePlanSelect(plan._id)}
           >
-            <h3 className="plan-title">{plan.name}</h3>
-            <div className="plan-price">{plan.price}</div>
+            <h3 className="plan-title">{plan.planName}</h3>
+            <div className="plan-price">{plan.pricing.monthly}</div>
             <ul className="plan-features">
-              {plan.features.map((feature, index) => (
+              {plan.includedFeatures.map((feature, index) => (
                 <li key={index}>✓ {feature}</li>
               ))}
             </ul>
@@ -572,8 +734,13 @@ const SellerOnboarding = () => {
       <div className="onboarding-form">
         <h1 className="onboarding-main-heading">Welcome {sellerName}!</h1>
         <div className="onboarding-note">
-          <span role="img" aria-label="info" style={{marginRight:8}}>ℹ️</span>
-          <span>To get started, please set up your profile first. Complete the steps below to unlock your seller dashboard and start selling!</span>
+          <span role="img" aria-label="info" style={{ marginRight: 8 }}>
+            ℹ️
+          </span>
+          <span>
+            To get started, please set up your profile first. Complete the steps
+            below to unlock your seller dashboard and start selling!
+          </span>
         </div>
         <div className="progress-bar">
           <div

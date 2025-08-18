@@ -2,8 +2,14 @@ import express from "express";
 import {
   authenticateToken,
   authorizeSeller,
+  fetchUser,
 } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
+
+import {
+  onboardingStep1,
+  completeOnboarding,
+} from "../controllers/onBoardingController.js";
 
 const router = express.Router();
 
@@ -69,6 +75,23 @@ router.post(
       });
     }
   }
+);
+
+router.post(
+  "/onboarding/step1",
+  upload.fields([
+    { name: "shopImage", maxCount: 1 },
+    { name: "shopImages", maxCount: 5 },
+  ]),
+  onboardingStep1
+);
+
+router.post(
+  "/onboarding/complete",
+  authenticateToken,
+  authorizeSeller,
+  fetchUser,
+  completeOnboarding
 );
 
 export default router;
