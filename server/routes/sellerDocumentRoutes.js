@@ -1,9 +1,12 @@
 import express from "express";
+import path from "path";
 import multer from "multer";
 import {
   uploadDocuments,
   viewDocument,
   downloadDocument,
+  updateDocuments,
+  getSellerDocuments,
 } from "../controllers/sellerDocumentController.js";
 import {
   authenticateToken,
@@ -17,8 +20,17 @@ const router = express.Router();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "storage/temp_uploads/"),
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
+    const originalName = path.parse(file.originalname).name; // file ka original name without extension
+    const ext = path.extname(file.originalname); // .pdf, .jpg, etc.
+    const timestamp = Date.now();
+
+    // fieldname = jo input field hai → "aadhaar", "pan", etc.
+    const docType = file.fieldname;
+
+    // final filename: originalname_timestamp_doctype.ext
+    const finalName = `${originalName}_${timestamp}_${docType}${ext}`;
+
+    cb(null, finalName);
   },
 });
 
@@ -116,6 +128,14 @@ router.patch(
     // aur jo bhi chahiye
   ]),
   updateDocuments
+);
+
+router.get(
+  "/",
+  authenticateToken,
+  fetchUser,
+  authorizeSeller,
+  getSellerDocuments
 );
 
 export default router;

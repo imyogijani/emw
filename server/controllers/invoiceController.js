@@ -38,6 +38,8 @@ export const generateInvoicesForOrder = async (orderId) => {
   for (const [sellerId, items] of Object.entries(sellerGroups)) {
     let subTotal = 0;
     let totalGST = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
     let deliveryCharge = 0;
 
     const invoiceItems = items.map((item) => {
@@ -48,10 +50,15 @@ export const generateInvoicesForOrder = async (orderId) => {
       const gstPercentage = item.gstPercentage || 0;
       const gstAmount = item.gstAmount || 0;
 
+      const cgst = parseFloat((gstAmount / 2).toFixed(2));
+      const sgst = parseFloat((gstAmount / 2).toFixed(2));
+
       const itemTotal = finalPrice * quantity;
 
       subTotal += itemTotal;
       totalGST += gstAmount;
+      totalCGST += cgst;
+      totalSGST += sgst;
       deliveryCharge += item.deliveryCharge || 0;
 
       return {
@@ -63,6 +70,8 @@ export const generateInvoicesForOrder = async (orderId) => {
         finalPrice,
         gstPercentage,
         gstAmount,
+        cgst,
+        sgst,
       };
     });
 
@@ -78,6 +87,8 @@ export const generateInvoicesForOrder = async (orderId) => {
       items: invoiceItems,
       subTotal,
       totalGST,
+      totalCGST,
+      totalSGST,
       deliveryCharge,
       totalAmount,
       paymentMethod,
@@ -175,7 +186,6 @@ export const getInvoicesBySeller = asyncHandler(async (req, res) => {
     invoices,
   });
 });
-
 
 //  For your generateInvoicesForOrder function
 

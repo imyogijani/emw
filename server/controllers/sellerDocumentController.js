@@ -3,20 +3,81 @@ import path from "path";
 import SellerDocument from "../models/sellerDocument.js";
 import { encryptFile, decryptFile } from "../utils/encryption.js";
 import { processFile } from "../utils/fileProcessing.js";
+import {
+  addressProofDocs,
+  identityProofDocs,
+  businessProofDocs,
+  documentCategoriesMap,
+} from "../utils/documentCategories.js";
 
 // Upload documents
 export const uploadDocuments = async (req, res) => {
   try {
-    const sellerId = req.user.sellerId; // from auth middleware
+    const sellerId = req.user.sellerId;
     const files = req.files;
-    if (!files || files.length === 0)
+    if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
+    }
 
     const uploadedDocs = [];
+    let validationFailed = null; // track error msg
 
+    // STEP 1: Validation phase
     for (const fieldName in files) {
-      const fileArray = files[fieldName]; // yeh array hota hai
+      const fileArray = files[fieldName];
+
       for (const file of fileArray) {
+        const selectedCategories = req.body[fieldName + "_categories"];
+
+        if (!selectedCategories) {
+          validationFailed = `Please select categories for ${fieldName}`;
+          break;
+        }
+
+        const categoryArr = selectedCategories.split(",");
+        const allowedCategories = documentCategoriesMap[fieldName];
+
+        if (!allowedCategories) {
+          validationFailed = `Invalid document type: ${fieldName}`;
+          break;
+        }
+
+        const isValid = categoryArr.some((c) =>
+          allowedCategories.includes(c.trim())
+        );
+
+        if (!isValid) {
+          validationFailed = `Invalid category selected for ${fieldName}. Allowed: ${allowedCategories.join(
+            ", "
+          )}`;
+          break;
+        }
+      }
+
+      if (validationFailed) break; // stop outer loop too
+    }
+
+    // Agar validation fail hua → sab temp files delete karke return kar do
+    if (validationFailed) {
+      for (const fieldName in files) {
+        for (const file of files[fieldName]) {
+          deleteFile(file.path); // cleanup all temp files
+        }
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: validationFailed,
+      });
+    }
+
+    // STEP 2: Abhi tak sab validation pass hua → abhi files process + save karo
+    for (const fieldName in files) {
+      const fileArray = files[fieldName];
+      for (const file of fileArray) {
+        const selectedCategories = req.body[fieldName + "_categories"];
+        const categoryArr = selectedCategories.split(",");
+
         const { encrypted, iv, salt, authTag } = await processFile(file.path);
 
         const encryptedFilePath = path.join(
@@ -29,6 +90,7 @@ export const uploadDocuments = async (req, res) => {
           seller: sellerId,
           docType: fieldName,
           docNumber: req.body[fieldName + "_number"] || null,
+          categories: categoryArr,
           filePath: encryptedFilePath,
           iv,
           salt,
@@ -36,17 +98,18 @@ export const uploadDocuments = async (req, res) => {
         });
 
         uploadedDocs.push(doc);
-        // fs.unlinkSync(file.path);
-        deleteFile(file.path);
+        deleteFile(file.path); // temp delete after save
       }
     }
 
     res.status(201).json({ success: true, uploadedDocs });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ success: false, message: "Upload failed", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Upload failed",
+      error: error.message,
+    });
   }
 };
 
@@ -142,41 +205,47 @@ export const downloadDocument = async (req, res) => {
 };
 
 // Update documents (single ya multiple)
+
 export const updateDocuments = async (req, res) => {
   try {
     const sellerId = req.user.sellerId;
     const files = req.files;
-    if (!files || Object.keys(files).length === 0)
+
+    if (!files || Object.keys(files).length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
+    }
 
     const updatedDocs = [];
 
+    //  Iterate over uploaded fields
     for (const fieldName in files) {
       const fileArray = files[fieldName];
-      for (const file of fileArray) {
-        // 🔎 Pehle purana doc check karo
-        const oldDoc = await SellerDocument.findOne({
-          seller: sellerId,
-          docType: fieldName,
-        });
 
-        // Agar purana hai to uska file delete karo
-        if (oldDoc) {
-          if (fs.existsSync(oldDoc.filePath)) {
-            fs.unlinkSync(oldDoc.filePath);
-          }
-          await SellerDocument.deleteOne({ _id: oldDoc._id });
+      //  Purana doc check karo (same docType ke liye ek hi rakhenge)
+      const oldDoc = await SellerDocument.findOne({
+        seller: sellerId,
+        docType: fieldName,
+      });
+
+      if (oldDoc) {
+        // Ole encrypted file delete
+        if (fs.existsSync(oldDoc.filePath)) {
+          fs.unlinkSync(oldDoc.filePath);
         }
+        await SellerDocument.deleteOne({ _id: oldDoc._id });
+      }
 
-        // 🔐 Encrypt new file
+      //  Now new files process
+      for (const file of fileArray) {
         const { encrypted, iv, salt, authTag } = await processFile(file.path);
+
         const encryptedFilePath = path.join(
           "storage/private_docs",
           file.filename + ".enc"
         );
         fs.writeFileSync(encryptedFilePath, encrypted);
 
-        // 🔄 Save new doc
+        // DB me sirf latest wala save
         const newDoc = await SellerDocument.create({
           seller: sellerId,
           docType: fieldName,
@@ -189,7 +258,7 @@ export const updateDocuments = async (req, res) => {
 
         updatedDocs.push(newDoc);
 
-        // Temp file delete
+        // Temporary upload file delete
         deleteFile(file.path);
       }
     }
@@ -209,6 +278,66 @@ export const updateDocuments = async (req, res) => {
   }
 };
 
+// 📌 GET /api/seller-documents
+// Query params: ?page=1&limit=10&status=pending&docType=pan
+export const getSellerDocuments = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      docType,
+      startDate,
+      endDate,
+    } = req.query;
+    const sellerId =
+      req.user.role === "admin" ? req.query.sellerId : req.user.sellerId;
+
+    if (!sellerId) {
+      return res.status(400).json({ message: "Seller ID required" });
+    }
+
+    const filter = { seller: sellerId };
+
+    //  Optional filters
+    if (status) filter.status = status;
+    if (docType) filter.docType = docType;
+    if (startDate && endDate) {
+      filter.uploadedAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    //  Paginated query
+    const [docs, total] = await Promise.all([
+      SellerDocument.find(filter)
+        .sort({ uploadedAt: -1 }) // latest first
+        .skip(skip)
+        .limit(Number(limit)),
+      SellerDocument.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / limit),
+      data: docs,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch documents",
+      error: error.message,
+    });
+  }
+};
+
 const deleteFile = (filePath) => {
   try {
     if (fs.existsSync(filePath)) {
@@ -217,5 +346,110 @@ const deleteFile = (filePath) => {
     }
   } catch (err) {
     console.error(`Failed to delete temp file: ${filePath}`, err);
+  }
+};
+
+// Admin :
+
+// Example: /api/admin/documents?page=1&limit=10&status=pending&docType=pan&sellerId=64a9c01...
+export const adminGetDocuments = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      docType,
+      startDate,
+      endDate,
+      sellerId,
+      order = "desc",
+      sortBy = "uploadedAt",
+    } = req.query;
+
+    const filter = {};
+
+    if (sellerId) filter.seller = sellerId;
+    if (status) filter.status = status;
+    if (docType) filter.docType = docType;
+    if (startDate && endDate) {
+      filter.uploadedAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const [docs, total] = await Promise.all([
+      SellerDocument.find(filter)
+        .populate("seller", "ownerName shopName") //  show seller info
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(Number(limit)),
+      SellerDocument.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / limit),
+      data: docs,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch documents",
+      error: error.message,
+    });
+  }
+};
+
+//  PATCH /api/admin/documents/:docId/status
+// Body: { "status": "verified" }  OR  { "status": "rejected" }
+export const adminUpdateDocumentStatus = async (req, res) => {
+  try {
+    const { docId } = req.params;
+    const { status, comment } = req.body;
+
+    if (!["verified", "rejected"].includes(status)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid status. Use verified/rejected." });
+    }
+
+    if (status === "rejected" && (!comment || comment.trim() === "")) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin comment is required when rejecting a document.",
+      });
+    }
+
+    const doc = await SellerDocument.findById(docId).populate(
+      "seller",
+      "ownerName shopName"
+    );
+    if (!doc) return res.status(404).json({ message: "Document not found" });
+
+    doc.status = status;
+    doc.adminComment = status === "rejected" ? comment : null;
+    await doc.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Document ${status} successfully`,
+      document: doc,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update document status",
+      error: error.message,
+    });
   }
 };

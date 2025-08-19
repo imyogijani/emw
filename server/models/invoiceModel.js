@@ -26,6 +26,10 @@ const invoiceSchema = new mongoose.Schema({
       price: Number,
       discount: Number,
       finalPrice: Number,
+      gstPercentage: Number,
+      gstAmount: Number,
+      cgst: Number,
+      sgst: Number,
     },
   ],
 
@@ -44,6 +48,9 @@ const invoiceSchema = new mongoose.Schema({
     type: String,
     enum: ["processing", "shipped", "delivered", "cancelled"],
   },
+  totalGST: { type: Number },
+  totalCGST: { type: Number },
+  totalSGST: { type: Number },
 
   filePath: String, // PDF URL/path
   createdAt: { type: Date, default: Date.now },

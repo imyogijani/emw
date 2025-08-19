@@ -183,7 +183,7 @@ export const completeOnboarding = async (req, res) => {
       freeTrialPlan = await Subscription.create({
         planName: "Free Trial",
         pricing: {},
-        includedFeatures: ["50 products", "analytics", "priorities"],
+        includedFeatures: ["productLimit:50", "analytics", "prioritySupport"],
       });
     }
 

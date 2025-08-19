@@ -5,7 +5,7 @@ import Payment from "../models/paymentModel.js";
 import Order from "../models/orderModel.js";
 import { settleOrderPayout } from "../controllers/payoutController.js";
 import Seller from "../models/sellerModel.js";
-import PayoutLog from "../models/payoutLogModel.js"
+import PayoutLog from "../models/payoutLogModel.js";
 
 // export const razorpayWebhook = express.Router();
 

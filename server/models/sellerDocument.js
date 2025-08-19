@@ -39,10 +39,21 @@ const sellerDocumentSchema = new mongoose.Schema({
     required: true,
   },
   docNumber: { type: String },
+  categories: [
+    {
+      type: String,
+      enum: ["identity", "address", "business", "bank"],
+      // required: true,
+    },
+  ],
   filePath: { type: String, required: true }, // path in storage/private_docs
   iv: { type: String, required: true },
   salt: { type: String, required: true },
   authTag: { type: String, required: true },
+  adminComment: {
+    type: String, // only filled when Rejected
+    default: null,
+  },
   status: {
     type: String,
     enum: ["pending", "verified", "rejected"],

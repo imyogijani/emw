@@ -34,6 +34,11 @@ import {
   getMenuStats,
 } from "../controllers/menuController.js";
 
+import {
+  adminGetDocuments,
+  adminUpdateDocumentStatus,
+} from "../controllers/sellerDocumentController.js";
+
 const router = express.Router();
 
 // Protect all routes
@@ -80,5 +85,10 @@ router.post("/locations/state", addState);
 router.post("/locations/city", addCity);
 router.delete("/locations/state/:stateName", deleteState);
 router.delete("/locations/city/:stateName/:cityName", deleteCity);
+
+// Documents controller
+
+router.get("/documents", adminGetDocuments);
+router.patch("/documents/:docId/status", adminUpdateDocumentStatus);
 
 export default router;
