@@ -203,8 +203,8 @@ const Subscriptions = () => {
                     {subscription.planName}
                   </div>
                 </td>
-                <td>₹{subscription.pricing.monthly}</td>
-                <td>{subscription.includedFeatures.join(", ")}</td>
+                <td>₹{subscription.pricing?.monthly || 'N/A'}</td>
+                <td>{Array.isArray(subscription.includedFeatures) ? subscription.includedFeatures.join(", ") : 'N/A'}</td>
                 <td>
                   <button
                     className="edit-btn"
