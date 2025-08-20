@@ -1,0 +1,12 @@
+[
+  { "_id": "1", "name": "Electronics" },
+  { "_id": "2", "name": "Fashion" },
+  { "_id": "3", "name": "Groceries" },
+  { "_id": "4", "name": "Home & Living" },
+  { "_id": "5", "name": "Sports & Fitness" },
+  { "_id": "6", "name": "Books & Stationery" },
+  { "_id": "7", "name": "Beauty & Health" },
+  { "_id": "8", "name": "Toys & Games" },
+  { "_id": "9", "name": "Automotive" },
+  { "_id": "10", "name": "Jewelry & Accessories" }
+]

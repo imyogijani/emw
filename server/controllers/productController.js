@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import Product from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
@@ -47,13 +48,16 @@ export const addProduct = async (req, res) => {
 
     // Validate category
     const categoryDoc = await Category.findById(category);
-    if (!categoryDoc)
+    if (!categoryDoc) {
+      deleteUploadedFiles(req.files);
       return res
         .status(400)
         .json({ success: false, message: "Invalid category" });
+    }
 
     //  Validate brand
     if (!brand) {
+      deleteUploadedFiles(req.files);
       return res
         .status(400)
         .json({ success: false, message: "Brand is required" });
@@ -61,6 +65,7 @@ export const addProduct = async (req, res) => {
 
     const brandDoc = await Brand.findById(brand);
     if (!brandDoc) {
+      deleteUploadedFiles(req.files);
       return res
         .status(400)
         .json({ success: false, message: "Invalid brand selected" });
@@ -70,10 +75,12 @@ export const addProduct = async (req, res) => {
     // Validate subcategory
     if (subcategory) {
       const subDoc = await Category.findById(subcategory);
-      if (!subDoc)
+      if (!subDoc) {
+        deleteUploadedFiles(req.files);
         return res
           .status(400)
           .json({ success: false, message: "Invalid subcategory" });
+      }
 
       if (seller.kycVerified && seller.gstNumber) {
         gstPercentage = subDoc.gstPercentage || 0;
@@ -102,18 +109,21 @@ export const addProduct = async (req, res) => {
       }
     }
 
-    //  Step 1: Get ALL active, paid subscriptions for this user
+    console.log("1111", req.userId);
+
+    //  Step : Get ALL active, paid subscriptions for this user
     const userSubs = await UserSubscription.find({
       user: req.userId,
       isActive: true,
-      paymentStatus: "paid",
+      paymentStatus: { $in: ["paid", "free"] },
       endDate: { $gt: new Date() },
     }).populate("subscription");
 
-    // console.log("Seller userSubs  ", userSubs);
+    console.log("Seller userSubs  ", userSubs);
 
     //  If no active subscriptions found
     if (!userSubs || userSubs.length === 0) {
+      deleteUploadedFiles(req.files);
       return res.status(403).json({
         success: false,
         message: "No active subscription found. Please purchase a plan.",
@@ -151,6 +161,7 @@ export const addProduct = async (req, res) => {
 
     //  Step 3: Validate total product usage
     if (totalProductsUsed >= totalProductLimit) {
+      deleteUploadedFiles(req.files);
       return res.status(403).json({
         success: false,
         message: `Product limit (${totalProductLimit}) reached. Upgrade your plan.`,
@@ -161,8 +172,10 @@ export const addProduct = async (req, res) => {
     let techRef = null;
     if (technicalDetailsId) {
       const tech = await TechnicalDetails.findById(technicalDetailsId);
-      if (!tech)
+      if (!tech) {
+        deleteUploadedFiles(req.files);
         return res.status(400).json({ message: "Invalid technicalDetailsId" });
+      }
       techRef = tech._id;
     }
 
@@ -213,7 +226,7 @@ export const addProduct = async (req, res) => {
       isPremium: allowPremium,
       gstPercentage,
       hsnCode: hsnCode || undefined,
-      hsnCodeSource: hsnCodeSource || 'manual',
+      hsnCodeSource: hsnCodeSource || "manual",
       suggestedHsnCode: suggestedHsnCode || undefined,
       hsnCodeConfirmed: hsnCodeConfirmed || false,
       location: locationData,
@@ -246,6 +259,7 @@ export const addProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Error adding product:", error);
+    deleteUploadedFiles(req.files);
     return res
       .status(500)
       .json({ success: false, message: "Server error", error: error.message });
@@ -415,7 +429,8 @@ export const updateProduct = async (req, res) => {
     //   product.brand = undefined;
     // }
     if (brand !== undefined) product.brand = brand === "" ? undefined : brand;
-    if (hsnCode !== undefined) product.hsnCode = hsnCode === "" ? undefined : hsnCode;
+    if (hsnCode !== undefined)
+      product.hsnCode = hsnCode === "" ? undefined : hsnCode;
 
     // Get seller
     const seller = await Seller.findOne({ user: req.userId });
@@ -713,4 +728,17 @@ export const deleteProduct = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+const deleteUploadedFiles = (files) => {
+  if (!files || files.length === 0) return;
+  files.forEach((file) => {
+    try {
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path); // delete file
+      }
+    } catch (err) {
+      console.error("Error deleting file:", err);
+    }
+  });
 };

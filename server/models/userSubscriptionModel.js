@@ -21,7 +21,7 @@ const userSubscriptionSchema = new mongoose.Schema({
   },
   billingCycle: {
     type: String,
-    enum: ["monthly", "yearly"],
+    enum: ["monthly", "yearly", "free"],
     required: true,
   },
   featuresUsed: {
@@ -35,7 +35,7 @@ const userSubscriptionSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ["paid", "failed", "pending","free"],
+    enum: ["paid", "failed", "pending", "free"],
     default: "pending",
   },
   isAutopay: { type: Boolean, default: false },

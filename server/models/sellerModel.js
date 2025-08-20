@@ -14,7 +14,7 @@ const sellerSchema = new mongoose.Schema(
     },
     shopImage: {
       type: String, // Main shop image
-      default: null,
+      default: null,      
     },
     shopImages: {
       type: [String], // Optional: Array of additional shop images
@@ -62,6 +62,20 @@ const sellerSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive", "banned"],
       default: "active",
+    },
+    brands: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Brand",
+      },
+    ],
+    onboardingStep: {
+      type: Number,
+      default: 1,
+    },
+    isOnboardingComplete: {
+      type: Boolean,
+      default: false, // jab tak sab steps complete nahi hote
     },
     averageRating: {
       type: Number,
