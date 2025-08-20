@@ -173,6 +173,12 @@ const Users = () => {
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
           className="role-filter"
+          style={{
+            width: "9vw",
+            height: "7vh",
+            marginTop: "10px",
+            padding: "10px",
+          }}
         >
           <option value="all">All Users</option>
           <option value="admin">Admins</option>
@@ -368,7 +374,8 @@ const Users = () => {
                     <img
                       src={
                         shopownerDetails.shopImage.startsWith("/uploads")
-                          ? (import.meta.env.VITE_API_BASE_URL_PROD || "") + shopownerDetails.shopImage
+                          ? (import.meta.env.VITE_API_BASE_URL_PROD || "") +
+                            shopownerDetails.shopImage
                           : shopownerDetails.shopImage
                       }
                       alt="Shop Logo"

@@ -286,8 +286,8 @@
 }
 
 .table-header {
-  display: grid;
-  grid-template-columns: 2fr auto auto auto;
+  /* display: grid; */
+  /* grid-template-columns: 2fr auto auto auto; */
   gap: 15px;
   background: #f8f9fa;
   padding: 15px 20px;
@@ -295,6 +295,8 @@
   color: #333;
   font-size: 14px;
   border-bottom: 1px solid #eee;
+  border-radius: 10px;
+  border: 1px solid #ff990030;
 }
 
 .table-row {

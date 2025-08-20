@@ -144,6 +144,7 @@ const SellerProducts = () => {
           className={`category-btn ${
             selectedCategory === "All" ? "active" : ""
           }`}
+          style={{ marginRight: "10px" }}
           onClick={() => setSelectedCategory("All")}
         >
           All
@@ -154,6 +155,7 @@ const SellerProducts = () => {
             className={`category-btn ${
               selectedCategory === category.name ? "active" : ""
             }`}
+            style={{ marginRight: "10px" }}
             onClick={() => setSelectedCategory(category.name)}
           >
             {category.name}

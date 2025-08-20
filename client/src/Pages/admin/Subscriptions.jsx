@@ -179,8 +179,12 @@ const Subscriptions = () => {
 
       <div className="subscriptions-table-container">
         <div className="table-header">
-          <h2>Subscription Plans</h2>
-          <button className="add-new-btn" onClick={handleAddClick}>
+          <h2 style={{ margin: "0" }}>Subscription Plans</h2>
+          <button
+            className="add-new-btn"
+            onClick={handleAddClick}
+            style={{ borderRadius: "16px" }}
+          >
             <FaPlus /> Add New Plan
           </button>
         </div>
@@ -203,20 +207,26 @@ const Subscriptions = () => {
                     {subscription.planName}
                   </div>
                 </td>
-                <td>₹{subscription.pricing?.monthly || 'N/A'}</td>
-                <td>{Array.isArray(subscription.includedFeatures) ? subscription.includedFeatures.join(", ") : 'N/A'}</td>
+                <td>₹{subscription.pricing?.monthly || "N/A"}</td>
+                <td>
+                  {Array.isArray(subscription.includedFeatures)
+                    ? subscription.includedFeatures.join(", ")
+                    : "N/A"}
+                </td>
                 <td>
                   <button
                     className="edit-btn"
                     onClick={() => handleEdit(subscription)}
+                    style={{ marginBottom: "6px", padding: "9px" }}
                   >
-                    <FaEdit />
+                    <FaEdit style={{ fontSize: "18px" }} />
                   </button>
                   <button
                     className="delete-btn"
                     onClick={() => handleDelete(subscription._id)}
+                    style={{ marginBottom: "6px", padding: "9px" }}
                   >
-                    <FaTrash />
+                    <FaTrash style={{ fontSize: "18px" }} />
                   </button>
                 </td>
               </tr>

@@ -53,9 +53,12 @@ const Orders = () => {
 
   const filteredOrders = orders.filter((order) => {
     // Use orderId if present, else fallback to ORD + last 6 of _id
-    const orderId = order.orderId || (order._id ? `ORD${order._id.toString().slice(-6).toUpperCase()}` : "");
+    const orderId =
+      order.orderId ||
+      (order._id ? `ORD${order._id.toString().slice(-6).toUpperCase()}` : "");
     // For customer name, prefer user.name, then user.names, then user.email (but not just email alone)
-    let customerName = order.customerName || order.user?.name || order.user?.names || "";
+    let customerName =
+      order.customerName || order.user?.name || order.user?.names || "";
     if (!customerName && order.user && order.user.email) {
       // Only use email if no name fields exist, and mask it for privacy
       const email = order.user.email;
@@ -67,7 +70,8 @@ const Orders = () => {
       customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       filterStatus === "all" ||
-      (order.status && order.status.toLowerCase() === filterStatus.toLowerCase());
+      (order.status &&
+        order.status.toLowerCase() === filterStatus.toLowerCase());
     return matchesSearch && matchesStatus;
   });
 
@@ -152,6 +156,7 @@ const Orders = () => {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           className="status-filter"
+          style={{ width: "8vw", height: "7vh", marginTop: "10px" }}
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -181,8 +186,16 @@ const Orders = () => {
               </tr>
             ) : (
               filteredOrders.map((order) => {
-                const orderId = order.orderId || (order._id ? `ORD${order._id.toString().slice(-6).toUpperCase()}` : "");
-                let customerName = order.customerName || order.user?.name || order.user?.names || "";
+                const orderId =
+                  order.orderId ||
+                  (order._id
+                    ? `ORD${order._id.toString().slice(-6).toUpperCase()}`
+                    : "");
+                let customerName =
+                  order.customerName ||
+                  order.user?.name ||
+                  order.user?.names ||
+                  "";
                 if (!customerName && order.user && order.user.email) {
                   const email = order.user.email;
                   customerName = email.replace(/(.{2}).+(@.+)/, "$1***$2");
@@ -192,11 +205,17 @@ const Orders = () => {
                   <tr key={order._id}>
                     <td>#{orderId}</td>
                     <td>{customerName}</td>
-                    <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}</td>
+                    <td>
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString()
+                        : "-"}
+                    </td>
                     <td>₹{order.amount || order.total}</td>
                     <td>
                       <span
-                        className={`status-badge ${order.status ? order.status.toLowerCase() : ''}`}
+                        className={`status-badge ${
+                          order.status ? order.status.toLowerCase() : ""
+                        }`}
                       >
                         {order.status}
                       </span>
@@ -205,21 +224,27 @@ const Orders = () => {
                       <div className="action-buttons">
                         <button
                           className="action-btn view"
-                          onClick={() => handleStatusUpdate(order._id, "processing")}
+                          onClick={() =>
+                            handleStatusUpdate(order._id, "processing")
+                          }
                           title="Process Order"
                         >
                           <FaTruck />
                         </button>
                         <button
                           className="action-btn complete"
-                          onClick={() => handleStatusUpdate(order._id, "delivered")}
+                          onClick={() =>
+                            handleStatusUpdate(order._id, "delivered")
+                          }
                           title="Mark as Delivered"
                         >
                           <FaCheckCircle />
                         </button>
                         <button
                           className="action-btn cancel"
-                          onClick={() => handleStatusUpdate(order._id, "cancelled")}
+                          onClick={() =>
+                            handleStatusUpdate(order._id, "cancelled")
+                          }
                           title="Cancel Order"
                         >
                           <FaTimesCircle />

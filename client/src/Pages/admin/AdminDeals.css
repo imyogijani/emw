@@ -346,7 +346,7 @@
 .status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
-  color: white !important;
+  /* color: white !important; */
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
