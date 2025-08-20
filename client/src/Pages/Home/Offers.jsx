@@ -222,7 +222,7 @@ export default function Offers() {
   const processImageUrl = (image) => {
     const getFullUrl = (img) =>
       img.startsWith("/uploads")
-        ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${img}`
+        ? `${import.meta.env.VITE_API_BASE_URL_PROD}${img}`
         : img;
 
     if (Array.isArray(image) && image.length > 0) {

@@ -165,7 +165,7 @@ const UserProfile = ({ onClose }) => {
   };
 
   const processImageUrl = (image) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL || "";
+    const baseURL = import.meta.env.VITE_API_BASE_URL_PROD || "";
     if (image && image.startsWith("/uploads")) {
       return `${baseURL}${image}`;
     }

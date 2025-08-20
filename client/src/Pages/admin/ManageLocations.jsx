@@ -160,7 +160,7 @@ const ManageLocations = () => {
   if (loading) {
     return (
       <div className="manage-locations loading">
-        <div className="loading-spinner">Loading locations...</div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }

@@ -369,7 +369,7 @@ const Products = () => {
         <div className="product-cards-container">
           {products.map((product) => {
             let imageUrl = "";
-            const baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL || "";
+            const baseURL = import.meta.env.VITE_API_BASE_URL_PROD || "";
             if (typeof product.image === "string" && product.image) {
               if (product.image.startsWith("/uploads/")) {
                 imageUrl = `${baseURL}${product.image}`;

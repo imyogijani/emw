@@ -230,7 +230,7 @@ const SellerProfile = () => {
   };
 
   // Show preview of new shop image if selected
-  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL_LOCAL; // Change if needed for production
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL_PROD; // Change if needed for production
   const shopImagePreview = shopImage
     ? URL.createObjectURL(shopImage)
     : profile && profile.shopImage
@@ -244,7 +244,7 @@ const SellerProfile = () => {
     : "/vite.svg";
 
   const processImageUrl = (image) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL_LOCAL || "";
+    const baseURL = import.meta.env.VITE_API_BASE_URL_PROD || "";
     if (image && image.startsWith("/uploads")) {
       return `${baseURL}${image}`;
     }

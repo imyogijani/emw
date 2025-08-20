@@ -497,7 +497,7 @@ const Categories = () => {
                 <img
                   src={
                     cat.image
-                      ? `${import.meta.env.VITE_API_BASE_URL_LOCAL}${cat.image}`
+                      ? `${import.meta.env.VITE_API_BASE_URL_PROD}${cat.image}`
                       : "/vite.svg"
                   }
                   alt={cat.name}
