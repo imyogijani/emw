@@ -147,6 +147,7 @@ import userRoutes from "./routes/userRoutes.js";
 import testNotificationRouter from "./routes/testNotification.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
+import newLocationRoutes from "./routes/newLocationRoutes.js";
 import shopAddressRoutes from "./routes/shopAddressRoutes.js";
 import hsnRoutes from "./routes/hsnRoutes.js";
 import shopTimingRoutes from "./routes/shopTimingRoutes.js";
@@ -157,6 +158,7 @@ import sellerDocumentRoutes from "./routes/sellerDocumentRoutes.js";
 //import payoutRoutes from "./routes/payoutRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
+import imageRoutes from "./routes/imageRoutes.js";
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
@@ -166,6 +168,7 @@ import "./cronJobs/checkExpiredSubscriptions.js";
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/location", locationRoutes);
+app.use("/api/locations", newLocationRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/variants", productVariantRoutes);
 app.use("/api/orders", orderRoutes);
@@ -196,6 +199,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/ga-proxy", gaProxyRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/images", imageRoutes);
 
 // CRON: check for expired deals every hour
 cron.schedule("0 * * * *", async () => {

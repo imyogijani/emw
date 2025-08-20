@@ -8,10 +8,10 @@ import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { State, City } from "../models/locationModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const pincodesFilePath = path.join(__dirname, "../data/india-pincodes.json");
 
 // Get dashboard statistics
 export const getDashboardStats = async (req, res) => {
@@ -648,19 +648,44 @@ export const getShopownerDetails = async (req, res) => {
 // Get all locations data
 export const getAllLocations = async (req, res) => {
   try {
-    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
-    const locationStats = {
-      totalStates: Object.keys(pincodesData).length,
-      totalCities: 0,
-      totalPincodes: 0,
-    };
+    // Get all states with their cities and areas
+    const states = await State.find({ active: true })
+      .populate({
+        path: 'cities',
+        match: { active: true },
+        select: 'name areas'
+      })
+      .select('name');
 
-    Object.values(pincodesData).forEach((state) => {
-      Object.values(state).forEach((city) => {
-        locationStats.totalCities++;
-        locationStats.totalPincodes += city.length;
-      });
-    });
+    // Transform to legacy format for backward compatibility
+    const pincodesData = {};
+    let totalCities = 0;
+    let totalPincodes = 0;
+
+    for (const state of states) {
+      pincodesData[state.name] = {};
+      
+      const cities = await City.find({ 
+        state: state._id, 
+        active: true 
+      }).select('name areas');
+      
+      for (const city of cities) {
+        totalCities++;
+        pincodesData[state.name][city.name] = {};
+        
+        city.areas.forEach(area => {
+          pincodesData[state.name][city.name][area.name] = area.pincode;
+          totalPincodes++;
+        });
+      }
+    }
+
+    const locationStats = {
+      totalStates: states.length,
+      totalCities,
+      totalPincodes,
+    };
 
     res.json({
       success: true,
@@ -688,22 +713,30 @@ export const addState = async (req, res) => {
       });
     }
 
-    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    // Check if state already exists
+    const existingState = await State.findOne({
+      name: { $regex: `^${stateName.trim()}$`, $options: 'i' }
+    });
 
-    if (pincodesData[stateName]) {
+    if (existingState) {
       return res.status(400).json({
         success: false,
         message: "State already exists",
       });
     }
 
-    pincodesData[stateName] = {};
-    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+    const newState = new State({
+      name: stateName.trim(),
+      createdBy: req.user?.id || 'admin',
+      updatedBy: req.user?.id || 'admin'
+    });
+
+    await newState.save();
 
     res.json({
       success: true,
       message: "State added successfully",
-      data: { stateName },
+      data: { stateName: newState.name, id: newState._id },
     });
   } catch (error) {
     console.error("Error adding state:", error);
@@ -726,29 +759,45 @@ export const addCity = async (req, res) => {
       });
     }
 
-    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    // Find the state
+    const state = await State.findOne({
+      name: { $regex: `^${stateName.trim()}$`, $options: 'i' },
+      active: true
+    });
 
-    if (!pincodesData[stateName]) {
+    if (!state) {
       return res.status(404).json({
         success: false,
         message: "State not found",
       });
     }
 
-    if (pincodesData[stateName][cityName]) {
+    // Check if city already exists in this state
+    const existingCity = await City.findOne({
+      name: { $regex: `^${cityName.trim()}$`, $options: 'i' },
+      state: state._id
+    });
+
+    if (existingCity) {
       return res.status(400).json({
         success: false,
         message: "City already exists in this state",
       });
     }
 
-    pincodesData[stateName][cityName] = [];
-    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+    const newCity = new City({
+      name: cityName.trim(),
+      state: state._id,
+      createdBy: req.user?.id || 'admin',
+      updatedBy: req.user?.id || 'admin'
+    });
+
+    await newCity.save();
 
     res.json({
       success: true,
       message: "City added successfully",
-      data: { stateName, cityName },
+      data: { stateName: state.name, cityName: newCity.name, id: newCity._id },
     });
   } catch (error) {
     console.error("Error adding city:", error);
@@ -764,17 +813,31 @@ export const deleteState = async (req, res) => {
   try {
     const { stateName } = req.params;
 
-    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    const state = await State.findOne({
+      name: { $regex: `^${stateName}$`, $options: 'i' }
+    });
 
-    if (!pincodesData[stateName]) {
+    if (!state) {
       return res.status(404).json({
         success: false,
         message: "State not found",
       });
     }
 
-    delete pincodesData[stateName];
-    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+    // Soft delete - mark as inactive
+    state.active = false;
+    state.updatedBy = req.user?.id || 'admin';
+    await state.save();
+
+    // Also soft delete all cities in this state
+    await City.updateMany(
+      { state: state._id },
+      { 
+        active: false, 
+        updatedBy: req.user?.id || 'admin',
+        updatedAt: new Date()
+      }
+    );
 
     res.json({
       success: true,
@@ -794,24 +857,36 @@ export const deleteCity = async (req, res) => {
   try {
     const { stateName, cityName } = req.params;
 
-    const pincodesData = JSON.parse(fs.readFileSync(pincodesFilePath, "utf8"));
+    // Find the state first
+    const state = await State.findOne({
+      name: { $regex: `^${stateName}$`, $options: 'i' },
+      active: true
+    });
 
-    if (!pincodesData[stateName]) {
+    if (!state) {
       return res.status(404).json({
         success: false,
         message: "State not found",
       });
     }
 
-    if (!pincodesData[stateName][cityName]) {
+    // Find the city
+    const city = await City.findOne({
+      name: { $regex: `^${cityName}$`, $options: 'i' },
+      state: state._id
+    });
+
+    if (!city) {
       return res.status(404).json({
         success: false,
         message: "City not found",
       });
     }
 
-    delete pincodesData[stateName][cityName];
-    fs.writeFileSync(pincodesFilePath, JSON.stringify(pincodesData, null, 2));
+    // Soft delete - mark as inactive
+    city.active = false;
+    city.updatedBy = req.user?.id || 'admin';
+    await city.save();
 
     res.json({
       success: true,

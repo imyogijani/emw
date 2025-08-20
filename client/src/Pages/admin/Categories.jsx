@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 import "./Categories.css"; // Assuming you'll create this CSS file
 import axiosInstance from "../../utils/axios";
+import { processCategoryImageUrl } from "../../utils/apiConfig";
 
 const Categories = () => {
   const [categoryName, setCategoryName] = useState("");
@@ -495,11 +496,7 @@ const Categories = () => {
             <div key={cat._id} className="category-item enhanced-category-card">
               <div className="category-image-wrapper">
                 <img
-                  src={
-                    cat.image
-                      ? `${import.meta.env.VITE_API_BASE_URL_PROD}${cat.image}`
-                      : "/vite.svg"
-                  }
+                  src={processCategoryImageUrl(cat.image)}
                   alt={cat.name}
                   onError={(e) => {
                     e.target.onerror = null;

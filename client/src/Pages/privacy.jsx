@@ -1,8 +1,9 @@
 import React from 'react';
+import './Privacy.css';
 
 const Privacy = () => {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="privacy-container">
       <h1>Privacy Policy</h1>
       <p>This Privacy Policy describes how your personal information is collected, used, and shared when you visit or make a purchase from E-Mall World.</p>
       <h2>1. Personal Information We Collect</h2>

@@ -1,131 +1,175 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+/* ===== APP.CSS - MAIN APPLICATION STYLES ===== */
+/* This file contains component-specific styles and layout overrides */
+/* Global styles and variables are defined in index.css */
 
-/* ==== RESET & BASE ==== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-:root {
-  --dark-blue: #03081f;
-  --yellow: #fc8a06;
-}
-html,
-body,
-#root {
-  height: 100%;
-  font-family: "Poppins", sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  overflow-x: hidden;
-}
-
-/* ==== GLOBAL LAYOUT WRAPPER ==== */
+/* ===== LAYOUT COMPONENTS ===== */
+/* Main application wrapper */
 .LayoutWrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: var(--background-color);
 }
 
 .LayoutContent {
   flex: 1;
+  padding-top: var(--spacing-sm);
 }
 
-/* ==== NAVBAR ==== */
+/* ===== NAVIGATION ===== */
+.navbar {
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: var(--spacing-sm) 0;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-navbar);
+  backdrop-filter: blur(10px);
+}
+
 .navbar .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin: 0;
-  background-color: var(--background-color);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
 }
 
 .navbar .logo a {
-  font-weight: bold;
-  font-size: 32px;
-  color: var(--logo-color);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  color: var(--brand-primary);
   text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.navbar .logo a:hover {
+  color: var(--primary-color);
+}
+
+.navlinks {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 .navlinks .nav-item {
-  font-weight: 500;
-  font-size: 15px;
-  color: var(--logo-color);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--text-color);
   text-decoration: none;
-  padding: 6px 18px;
-  transition: 0.2s ease;
-  border-radius: 4px;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  position: relative;
 }
 
 .navlinks .nav-item:hover {
-  background-color: var(--yellow-hover);
-  color: var(--logo-color);
-  border-radius: 20px;
+  background-color: var(--primary-color-light);
+  color: var(--primary-color);
+  transform: translateY(-1px);
 }
 
 .navlinks .nav-item.active {
-  background-color: var(--card-background);
-  color: var(--logo-color);
-  border-radius: 20px;
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .reg_btn {
-  background-color: var(--dark-blue);
-  color: var(--text-color);
-  padding: 6px 18px;
-  border-radius: 20px;
+  background-color: var(--brand-primary);
+  color: var(--button-text-color);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  border: 2px solid var(--brand-primary);
 }
 
-/* ==== HOME SECTION ==== */
+.reg_btn:hover {
+  background-color: transparent;
+  color: var(--brand-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===== HOME SECTION ===== */
 .Home {
-  background-color: var(--card-background);
-  width: 80vw;
-  margin: 20px auto;
-  border-radius: 12px;
+  background: var(--card-background);
+  width: min(90vw, 1200px);
+  margin: var(--spacing-lg) auto;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
 }
 
 .Home .Home_text {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 40px;
+  padding: var(--spacing-2xl);
+  gap: var(--spacing-xl);
   flex-wrap: wrap;
 }
 
+.Home .Home_text .text {
+  flex: 1;
+  min-width: 300px;
+}
+
 .Home .Home_text .text h2 {
-  color: var(--logo-color);
-  margin-bottom: 10px;
+  color: var(--text-color);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+}
+
+.Home .Home_text .text h2 span {
+  color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.Home .Home_text .text p {
+  color: var(--text-color-muted);
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+}
+
+.Home .Home_text .image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 300px;
 }
 
 .Home .Home_text .person {
-  max-width: 700px;
+  max-width: 100%;
   height: auto;
-  filter: drop-shadow(0px 8px 15px rgba(0, 0, 0, 0.25));
+  border-radius: var(--radius-lg);
+  filter: drop-shadow(0px 8px 24px rgba(0, 0, 0, 0.15));
+  transition: transform var(--transition-normal);
 }
 
-.deal-cards-wrapper {
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 10px;
+.Home .Home_text .person:hover {
+  transform: scale(1.02);
 }
 
-.deal-cards-wrapper::-webkit-scrollbar {
-  display: none;
-}
-.deal-cards-wrapper {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-/* === Top Deals Section === */
+/* ===== TOP DEALS SECTION ===== */
 .top-deals-container {
-  margin: 40px auto;
+  margin: var(--spacing-2xl) auto;
   max-width: 1200px;
-  padding: 0 20px;
+  padding: 0 var(--spacing-md);
 }
 
 .top-deals-header {
@@ -133,49 +177,81 @@ body,
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .top-deals-header h3 {
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--logo-color);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin: 0;
 }
 
 .top-deals-header h3 span {
-  color: var(--yellow);
+  color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .category-tabs {
   display: flex;
-  gap: 15px;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .category-tabs button {
-  padding: 8px 16px;
-  border: 1px solid var(--yellow);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 2px solid var(--primary-color);
   background: transparent;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--logo-color);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary-color);
   cursor: pointer;
-  transition: 0.3s;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
-.category-tabs button.active,
 .category-tabs button:hover {
-  background-color: var(--card-background);
-  color: var(--logo-color);
+  background-color: var(--primary-color-light);
+  transform: translateY(-1px);
 }
 
-/* === Deal Cards === */
+.category-tabs button.active {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  box-shadow: var(--shadow-md);
+}
+
+.deal-cards-wrapper {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--spacing-sm);
+  margin: 0 calc(-1 * var(--spacing-md));
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+}
+
+.deal-cards-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.deal-cards-wrapper {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* ===== DEAL CARDS ===== */
 .deal-cards {
   display: flex;
-  gap: 20px;
+  gap: var(--spacing-md);
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
+  padding: var(--spacing-xs) 0;
 }
 
 .deal-card {
@@ -184,182 +260,354 @@ body,
   min-width: 280px;
   max-width: 280px;
   height: 240px;
-  border-radius: 15px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 20px var(--shadow-color);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.deal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
 }
 
 .deal-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.deal-card:hover img {
+  transform: scale(1.05);
 }
 
 .deal-card .overlay {
   position: absolute;
   bottom: 0;
-  padding: 20px;
-  width: 100%;
-  background: linear-gradient(205deg, transparent, rgba(0, 0, 0, 0.7));
-  color: #fff;
+  left: 0;
+  right: 0;
+  padding: var(--spacing-md);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  color: var(--button-text-color);
+  backdrop-filter: blur(4px);
 }
 
 .deal-card .overlay span {
-  font-size: 13px;
-  /* opacity: 0.85; */
-  color: var(--yellow);
+  font-size: var(--font-size-xs);
+  color: var(--primary-color);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .deal-card .overlay h4 {
-  margin: 5px 0 0;
-  font-size: 16px;
-  font-weight: 600;
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
 }
 
 .deal-card .badge {
   position: absolute;
-  /* top: 10px; */
-  right: 14px;
-  background-color: #001233;
-  color: #fff;
-  padding: 13px 10px;
-  border-radius: 0 0 10px 10px;
-  font-size: 14px;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--button-text-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
 }
 
-/* === Popular Categories === */
+/* ===== POPULAR CATEGORIES ===== */
 .popular-categories {
-  margin: 40px auto;
+  margin: var(--spacing-2xl) auto;
   max-width: 1200px;
-  padding: 0 20px;
-}
-
-.popular-categories {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+  padding: 0 var(--spacing-md);
 }
 
 .popular-categories h3 {
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--logo-color);
-  margin-bottom: 30px;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+
+.popular-categories h3 span {
+  color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 20px;
+  gap: var(--spacing-md);
   justify-content: center;
-  margin-top: 1rem;
+  margin-top: var(--spacing-lg);
 }
 
-/* Category card styles now handled by unified card-system.css */
-
-/* ===== Popular restuarants ==== */
-.popular_restaurants {
-  /* padding: 40px 20px; */
-  background-color: var(--card-background);
-  margin: 40px auto;
-  max-width: 1200px;
-  padding: 2rem 0;
+.category-card {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
   text-align: center;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color-light);
+}
+
+.category-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.category-card h4 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-color);
+  margin: var(--spacing-sm) 0;
+}
+
+.category-card p {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-muted);
+  margin: 0;
+}
+
+/* ===== POPULAR RESTAURANTS ===== */
+.popular_restaurants {
+  background: var(--card-background);
+  margin: var(--spacing-2xl) auto;
+  max-width: 1200px;
+  padding: var(--spacing-2xl) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .popular_restaurants h3 {
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--logo-color);
-  margin-bottom: 24px;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+
+.popular_restaurants h3 span {
+  color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .restaurant-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--spacing-md);
   justify-content: center;
 }
 
 .restaurant-card {
-  background-color: var(--card-background);
-  /* width: 110px; */
-  /* padding: 16px 12px; */
-  border-radius: 12px;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
   text-align: center;
-  transition: transform 0.2s ease;
+  transition: all var(--transition-normal);
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .restaurant-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color-light);
 }
 
 .restaurant-card img {
   width: 100%;
   height: 130px;
   object-fit: contain;
-  /* margin-bottom: 12px; */
+  transition: transform var(--transition-normal);
+}
+
+.restaurant-card:hover img {
+  transform: scale(1.05);
 }
 
 .restaurant-card p {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--logo-color);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color);
   margin: 0;
-  padding: 6px 2px 6px 4px;
-  border-radius: 0px 0px 12px 12px;
+  padding: var(--spacing-sm);
+  background: var(--card-background);
 }
 
-/* ==== FOOTER PLACEHOLDER ==== */
+/* ===== FOOTER ===== */
 footer {
-  /* padding: 30px 20px; */
-  background-color: #001233;
-  color: white;
-  /* text-align: center; */
-  font-size: 14px;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--button-text-color);
+  padding: var(--spacing-2xl) var(--spacing-md);
   margin-top: auto;
+  border-top: 1px solid var(--border-color);
 }
 
-/* Dashboard */
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+}
 
+.footer-section h4 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-md);
+  color: var(--button-text-color);
+}
+
+.footer-section p,
+.footer-section a {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  line-height: 1.6;
+}
+
+.footer-section a:hover {
+  color: var(--button-text-color);
+  text-decoration: underline;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== ADMIN DASHBOARD ===== */
 .admin-dashboard {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  background: var(--background-color);
+}
+
+.admin-header {
+  background: var(--card-background);
+  padding: var(--spacing-xl) var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-lg);
 }
 
 .admin-header h1 {
-  margin-bottom: 20px;
-  color: #03081f;
-  font-weight: 900;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.admin-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-muted);
+  font-weight: var(--font-weight-normal);
 }
 
 .admin-dashboard,
 .admin-products,
 .admin-orders,
 .admin-users {
-  padding: 20px;
+  padding: var(--spacing-lg) var(--spacing-md);
   background-color: var(--background-color);
   color: var(--text-color);
-}
-
-.admin-header {
-  margin-bottom: 20px;
-}
-
-.admin-subtitle {
-  color: var(--text-color-dark);
 }
 
 .chart-container {
   width: 100%;
   height: 300px;
-  margin-top: 40px;
+  margin-top: var(--spacing-xl);
+  background: var(--card-background);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .sales-overview-title {
-  color: var(--text-color-dark);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-color);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Admin cards and components */
+.admin-card {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card h3 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-card p {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-muted);
+  margin: 0;
 }
 
 /* Enhanced responsive styles */
@@ -429,31 +677,50 @@ footer {
 @media (max-width: 768px) {
   .Home {
     width: 100%;
-    margin: 10px auto;
+    margin: var(--spacing-sm) auto;
   }
 
   .Home .Home_text {
-    padding: 20px 15px;
-    gap: 20px;
+    padding: var(--spacing-lg) var(--spacing-md);
+    gap: var(--spacing-lg);
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .Home .Home_text .person {
+    max-width: 100%;
+    margin-top: var(--spacing-lg);
   }
 
   .top-deals-container,
   .popular-categories,
   .popular_restaurants {
-    padding: 0 10px;
-    margin: 30px auto;
+    padding: 0 var(--spacing-sm);
+    margin: var(--spacing-xl) auto;
   }
 
   .top-deals-header h3,
   .popular-categories h3,
   .popular_restaurants h3 {
-    font-size: 24px;
+    font-size: var(--font-size-2xl);
     text-align: center;
   }
 
+  .category-tabs {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    justify-content: center;
+  }
+
+  .category-tabs button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    min-width: auto;
+  }
+
   .deal-cards {
-    gap: 15px;
-    padding: 0 5px;
+    gap: var(--spacing-md);
+    padding: 0 var(--spacing-xs);
   }
 
   .deal-card {
@@ -463,14 +730,17 @@ footer {
   }
 
   .deal-card .overlay {
-    padding: 15px;
+    padding: var(--spacing-md);
   }
 
-  /* Category styles now handled by card-system.css */
+  .category-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--spacing-md);
+  }
 
   .restaurant-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    gap: var(--spacing-md);
   }
 
   .restaurant-card {
@@ -481,16 +751,32 @@ footer {
     height: 100px;
   }
 
+  .partner-banner-box,
+  .availperks-box {
+    flex: 1 1 100%;
+    padding: var(--spacing-lg);
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: var(--spacing-xl);
+  }
+
   .admin-dashboard,
   .admin-products,
   .admin-orders,
   .admin-users {
-    padding: 15px;
+    padding: var(--spacing-md);
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
   }
 
   .chart-container {
     height: 250px;
-    margin-top: 30px;
+    margin-top: var(--spacing-xl);
   }
 }
 
@@ -535,43 +821,66 @@ footer {
   }
 }
 
+/* Mobile devices */
 @media (max-width: 480px) {
   .Home {
-    margin: 5px auto;
-    border-radius: 8px;
+    width: 100%;
+    margin: var(--spacing-sm) auto;
+    padding: var(--spacing-md);
   }
 
   .Home .Home_text {
-    padding: 15px 8px;
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
     flex-direction: column;
     text-align: center;
+  }
+
+  .Home .Home_text h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .Home .Home_text .person {
+    max-width: 100%;
+    margin-top: var(--spacing-md);
+  }
+
+  .navbar {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .navlinks {
+    display: none;
   }
 
   .top-deals-container,
   .popular-categories,
   .popular_restaurants {
-    padding: 0 5px;
-    margin: 20px auto;
+    padding: var(--spacing-md);
+    margin: var(--spacing-lg) auto;
   }
 
   .top-deals-header h3,
   .popular-categories h3,
   .popular_restaurants h3 {
-    font-size: 20px;
-    margin-bottom: 15px;
+    font-size: var(--font-size-xl);
+    text-align: center;
   }
 
   .category-tabs {
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    justify-content: center;
   }
 
   .category-tabs button {
-    padding: 6px 12px;
-    font-size: 13px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    min-width: auto;
   }
 
   .deal-cards {
-    gap: 10px;
+    gap: var(--spacing-sm);
     padding: 0;
   }
 
@@ -582,18 +891,18 @@ footer {
   }
 
   .deal-card .badge {
-    padding: 8px 6px;
-    font-size: 12px;
+    padding: var(--spacing-xs) var(--spacing-xs);
+    font-size: var(--font-size-xs);
   }
 
   .category-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
   }
 
   .category-card {
     width: 100%;
-    padding-bottom: 0.5rem;
+    padding: var(--spacing-sm);
   }
 
   .category-card img {
@@ -601,17 +910,17 @@ footer {
   }
 
   .category-card h4 {
-    font-size: 12px;
-    margin: 6px 0 2px;
+    font-size: var(--font-size-xs);
+    margin: var(--spacing-xs) 0;
   }
 
   .category-card p {
-    font-size: 10px;
+    font-size: var(--font-size-xs);
   }
 
   .restaurant-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .restaurant-card {
@@ -622,20 +931,72 @@ footer {
     height: 80px;
   }
 
+  .partner-banner-row {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .partner-banner-box,
+  .availperks-box {
+    flex: 1 1 100%;
+    padding: var(--spacing-lg);
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: var(--spacing-lg);
+  }
+
   .admin-dashboard,
   .admin-products,
   .admin-orders,
   .admin-users {
-    padding: 10px;
+    padding: var(--spacing-sm);
+  }
+
+  .admin-header {
+    padding: var(--spacing-lg) var(--spacing-sm);
   }
 
   .admin-header h1 {
-    font-size: 24px;
+    font-size: var(--font-size-2xl);
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .chart-container {
     height: 200px;
-    margin-top: 20px;
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+  }
+}
+
+/* Large screens */
+@media (min-width: 1200px) {
+  .Home,
+  .top-deals-container,
+  .popular-categories,
+  .popular_restaurants {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .deal-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .restaurant-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -717,69 +1078,80 @@ footer {
   }
 }
 
-/* --- Partner Banner & Avail Perks Responsive Layout --- */
+/* ===== PARTNER BANNER & PERKS ===== */
 .partner-banner-row {
   display: flex;
-  gap: 2rem;
+  gap: var(--spacing-xl);
   justify-content: space-between;
   align-items: stretch;
   flex-wrap: wrap;
+  margin: var(--spacing-2xl) auto;
+  max-width: 1200px;
+  padding: 0 var(--spacing-md);
 }
 
 .partner-banner-box,
 .availperks-box {
   flex: 1 1 48%;
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
+  transition: all var(--transition-normal);
+}
+
+.partner-banner-box:hover,
+.availperks-box:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
 }
 
 .partner-banner-box .title,
 .availperks-box .availperks-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #03081f;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-color);
 }
 
 .partner-banner-box .subtitle,
 .availperks-box .availperks-subtitle {
-  font-size: 18px;
-  color: #1a237e;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-lg);
+  color: var(--brand-primary);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
 }
 
 .partner-banner-box .top-label,
 .availperks-box .availperks-label {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-color-muted);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cta-button {
-  margin-top: 1rem;
-  padding: 10px 20px;
-  background-color: #fc8a06;
-  color: white;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: var(--button-text-color);
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
 }
 
 .cta-button:hover {
-  background-color: #e67805;
-}
-
-@media (max-width: 768px) {
-  .partner-banner-box,
-  .availperks-box {
-    flex: 1 1 100%;
-  }
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--primary-color-hover), var(--accent-color));
 }

@@ -1,8 +1,9 @@
 import React from 'react';
+import './Cookies.css';
 
 const Cookies = () => {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="cookies-container">
       <h1>Cookie Policy</h1>
       <p>This Cookie Policy explains what cookies are, how we use them, and how you can manage them.</p>
       <h2>1. What are Cookies?</h2>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 import "./ProductDetail.css";
 import axios from "../../utils/axios";
+import { processImageUrl } from "../../utils/apiConfig";
 import {
   getProductReviews,
   toggleHelpful,
@@ -529,20 +531,7 @@ export default function ProductDetail() {
   //   return image || "/images/offer1.png";
   // };
 
-  const processImageUrl = (image) => {
-    const getFullUrl = (img) =>
-      img.startsWith("/uploads")
-        ? `${import.meta.env.VITE_API_BASE_URL_PROD}${img}`
-        : img;
-
-    if (Array.isArray(image) && image.length > 0) {
-      return getFullUrl(image[0]);
-    } else if (typeof image === "string" && image.length > 0) {
-      return getFullUrl(image);
-    }
-
-    return "/images/offer1.png";
-  };
+  // processImageUrl is now imported from utils
 
   const calculateDiscountedPriceFinal = (price, discount) => {
     if (!discount || discount <= 0) return price;

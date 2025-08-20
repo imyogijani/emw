@@ -1,8 +1,9 @@
 import React from 'react';
+import './Terms.css';
 
 const Terms = () => {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="terms-container">
       <h1>Terms and Conditions</h1>
       <p>These are the terms and conditions for using our service.</p>
       <h2>1. Acceptance of Terms</h2>

@@ -17,6 +17,7 @@ import {
   Shield,
 } from "lucide-react";
 import axios from "../../utils/axios";
+import { processImageUrl } from "../../utils/apiConfig";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
 import { trackEvent } from "../../analytics/trackEvent";
 
@@ -191,20 +192,7 @@ export default function Menu() {
     }
   };
 
-  const processImageUrl = (image) => {
-    const getFullUrl = (img) =>
-      img.startsWith("/uploads")
-        ? `${import.meta.env.VITE_API_BASE_URL_PROD}${img}`
-        : img;
-
-    if (Array.isArray(image) && image.length > 0) {
-      return getFullUrl(image[0]);
-    } else if (typeof image === "string" && image.length > 0) {
-      return getFullUrl(image);
-    }
-
-    return "/images/offer1.png";
-  };
+  // processImageUrl is now imported from utils
   const ProductCard = ({ item, isListView = false }) => {
     const navigate = useNavigate();
 

@@ -1,8 +1,9 @@
 import React from 'react';
+import './EmailPolicy.css';
 
 const EmailPolicy = () => {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="email-policy-container">
       <h1>Email Policy</h1>
       <p>This Email Policy outlines how E-Mall World uses email communication and what you can expect when you subscribe to our mailing lists.</p>
       <h2>1. Our Commitment to Your Privacy</h2>

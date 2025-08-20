@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
+import { processImageUrl } from "../../utils/apiConfig";
 import "./Products.css";
 import { useNavigate } from "react-router-dom";
 
@@ -368,15 +369,7 @@ const Products = () => {
       <div className="products-grid-container">
         <div className="product-cards-container">
           {products.map((product) => {
-            let imageUrl = "";
-            const baseURL = import.meta.env.VITE_API_BASE_URL_PROD || "";
-            if (typeof product.image === "string" && product.image) {
-              if (product.image.startsWith("/uploads/")) {
-                imageUrl = `${baseURL}${product.image}`;
-              } else {
-                imageUrl = `${baseURL}/uploads/products/${product.image}`;
-              }
-            }
+            const imageUrl = processImageUrl(product.image);
             return (
               <div key={product._id} className="product-card">
                 <div className="product-card-header">

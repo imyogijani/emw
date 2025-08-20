@@ -1,0 +1,87 @@
+.cookies-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.cookies-container h1 {
+  color: #6f42c1;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 3px solid #6f42c1;
+  padding-bottom: 10px;
+}
+
+.cookies-container h2 {
+  color: #495057;
+  font-size: 1.5rem;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-left: 4px solid #6f42c1;
+  padding-left: 15px;
+}
+
+.cookies-container p {
+  margin-bottom: 15px;
+  text-align: justify;
+  font-size: 1rem;
+}
+
+.cookies-container ul {
+  margin: 15px 0;
+  padding-left: 20px;
+}
+
+.cookies-container li {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.cookies-container li b {
+  color: #6f42c1;
+  font-weight: 600;
+}
+
+.cookies-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  z-index: -1;
+}
+
+@media (max-width: 768px) {
+  .cookies-container {
+    padding: 20px 15px;
+  }
+  
+  .cookies-container h1 {
+    font-size: 2rem;
+  }
+  
+  .cookies-container h2 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cookies-container h1 {
+    font-size: 1.8rem;
+  }
+  
+  .cookies-container h2 {
+    font-size: 1.2rem;
+  }
+  
+  .cookies-container p,
+  .cookies-container li {
+    font-size: 0.9rem;
+  }
+}

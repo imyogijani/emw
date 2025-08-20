@@ -1,30 +1,21 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { State, City } from '../models/locationModel.js';
 
-//  __dirname banane ka tarika (ESM me)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-//  Correct file path
-const filePath = path.join(__dirname, "../data/india-pincodes.json");
-
-//  Read file
-const pincodesData = JSON.parse(fs.readFileSync(filePath, "utf8"));
-
-//  Get all states
+// Get all states
 export const getStates = async (req, res) => {
   try {
     const searchQuery = (req.query.search || "").trim().toLowerCase();
-    const states = Object.keys(pincodesData).map((state) => state.trim());
-
-    const filteredStates = searchQuery
-      ? states.filter((state) => state.toLowerCase().includes(searchQuery))
-      : states;
+    
+    let query = { active: true };
+    if (searchQuery) {
+      query.name = { $regex: searchQuery, $options: 'i' };
+    }
+    
+    const states = await State.find(query).select('name').sort({ name: 1 });
+    const stateNames = states.map(state => state.name);
 
     res.status(200).json({
       success: true,
-      data: filteredStates,
+      data: stateNames,
     });
   } catch (error) {
     console.error("Error fetching states:", error);
@@ -35,41 +26,37 @@ export const getStates = async (req, res) => {
   }
 };
 
-//  Get cities for a state
+// Get cities for a state
 export const getCitiesByState = async (req, res) => {
   try {
     let { state } = req.params;
-    const { search } = req.query; // For filtering cities by name
+    const { search } = req.query;
 
-    // Normalize to lowercase for matching
-    state = state.toLowerCase();
+    // Find the state first
+    const stateDoc = await State.findOne({ 
+      name: { $regex: `^${state}$`, $options: 'i' },
+      active: true 
+    });
 
-    // Convert keys to lowercase for case-insensitive search
-    const normalizedStates = Object.keys(pincodesData).reduce((acc, key) => {
-      acc[key.toLowerCase()] = pincodesData[key];
-      return acc;
-    }, {});
-
-    if (!normalizedStates[state]) {
+    if (!stateDoc) {
       return res.status(404).json({
         success: false,
         message: "State not found",
       });
     }
 
-    let cities = Object.keys(normalizedStates[state]);
-
-    // If search query is provided, filter cities
+    // Build query for cities
+    let query = { state: stateDoc._id, active: true };
     if (search) {
-      const searchLower = search.toLowerCase();
-      cities = cities.filter((city) =>
-        city.toLowerCase().includes(searchLower)
-      );
+      query.name = { $regex: search, $options: 'i' };
     }
+
+    const cities = await City.find(query).select('name').sort({ name: 1 });
+    const cityNames = cities.map(city => city.name);
 
     res.status(200).json({
       success: true,
-      data: cities,
+      data: cityNames,
     });
   } catch (error) {
     console.error("Error fetching cities:", error);
@@ -80,51 +67,66 @@ export const getCitiesByState = async (req, res) => {
   }
 };
 
-export const getPincodesByCity = (req, res) => {
+export const getPincodesByCity = async (req, res) => {
   try {
-    const stateName = req.params.state.trim().toLowerCase();
-    const cityName = req.params.city.trim().toLowerCase();
-    const search = (req.query.search || "").trim(); // optional pincode/area search
+    const stateName = req.params.state.trim();
+    const cityName = req.params.city.trim();
+    const search = (req.query.search || "").trim();
 
-    // Find state (case-insensitive)
-    const state = Object.keys(pincodesData).find(
-      (s) => s.trim().toLowerCase() === stateName
-    );
+    // Find state
+    const stateDoc = await State.findOne({
+      name: { $regex: `^${stateName}$`, $options: 'i' },
+      active: true
+    });
 
-    if (!state) {
-      return res
-        .status(404)
-        .json({ success: false, message: "State not found" });
+    if (!stateDoc) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "State not found" 
+      });
     }
 
-    // Find city (case-insensitive)
-    const city = Object.keys(pincodesData[state]).find(
-      (c) => c.trim().toLowerCase() === cityName
-    );
+    // Find city
+    const cityDoc = await City.findOne({
+      name: { $regex: `^${cityName}$`, $options: 'i' },
+      state: stateDoc._id,
+      active: true
+    });
 
-    if (!city) {
-      return res
-        .status(404)
-        .json({ success: false, message: "City not found" });
+    if (!cityDoc) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "City not found" 
+      });
     }
 
-    let pinCodes = pincodesData[state][city]; // { AreaName: "Pincode" }
+    let areas = cityDoc.areas;
 
-    // If user gave a search query, filter results
+    // Filter areas if search query provided
     if (search) {
-      pinCodes = Object.fromEntries(
-        Object.entries(pinCodes).filter(([area, pincode]) => {
-          return (
-            area.toLowerCase().includes(search.toLowerCase()) || // match by area name
-            pincode.toString().includes(search) // match by pincode number
-          );
-        })
-      );
+      areas = areas.filter(area => {
+        return (
+          area.name.toLowerCase().includes(search.toLowerCase()) ||
+          area.pincode.toString().includes(search)
+        );
+      });
     }
 
-    res.status(200).json({ success: true, data: pinCodes });
+    // Convert to the expected format { AreaName: "Pincode" }
+    const pinCodes = {};
+    areas.forEach(area => {
+      pinCodes[area.name] = area.pincode;
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      data: pinCodes 
+    });
   } catch (error) {
     console.error("Error fetching pincodes:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal Server Error" 
+    });
   }
 };

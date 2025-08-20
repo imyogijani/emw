@@ -4,6 +4,7 @@ import "./Home.css";
 import "./theme-override.css";
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/axios";
+import { processImageUrl, processCategoryImageUrl } from "../../utils/apiConfig";
 import { toast } from "react-toastify";
 import BottomCard from "./BottomCard";
 import { useCart } from "../../context/CartContext";
@@ -192,20 +193,7 @@ export default function Home() {
     });
   }, []);
 
-  const processImageUrl = (image) => {
-    const getFullUrl = (img) =>
-      img.startsWith("/uploads")
-        ? `${import.meta.env.VITE_API_BASE_URL_PROD}${img}`
-        : img;
-
-    if (Array.isArray(image) && image.length > 0) {
-      return getFullUrl(image[0]);
-    } else if (typeof image === "string" && image.length > 0) {
-      return getFullUrl(image);
-    }
-
-    return "/images/offer1.png";
-  };
+  // processImageUrl is now imported from utils
 
   const calculateDealPrice = (offer) => {
     if (offer.price) return offer.price;
@@ -624,11 +612,7 @@ const CategoryCard = ({ category, setActiveCategory }) => (
   >
     <div className="card-image-container">
       <img
-        src={
-          category.image
-            ? `${import.meta.env.VITE_API_BASE_URL_PROD}${category.image}`
-            : "https://images.pexels.com/photos/11077404/pexels-photo-11077404.jpeg"
-        }
+        src={processCategoryImageUrl(category.image) || "https://images.pexels.com/photos/11077404/pexels-photo-11077404.jpeg"}
         alt={category.name}
         className="card-image"
         onError={(e) => {
@@ -735,20 +719,7 @@ const DealsSection = ({ deals }) => (
   </div>
 );
 
-const processImageUrl = (image) => {
-  const getFullUrl = (img) =>
-    img.startsWith("/uploads")
-      ? `${import.meta.env.VITE_API_BASE_URL_PROD}${img}`
-      : img;
-
-  if (Array.isArray(image) && image.length > 0) {
-    return getFullUrl(image[0]);
-  } else if (typeof image === "string" && image.length > 0) {
-    return getFullUrl(image);
-  }
-
-  return "/images/offer1.png";
-};
+// processImageUrl is now imported from utils
 const DealCard = ({ deal }) => (
   <div className="card-base card-large deal-card">
     <div className="card-image-container">

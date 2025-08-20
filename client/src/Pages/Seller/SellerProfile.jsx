@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
+import { processImageUrl } from "../../utils/apiConfig";
 import "./SellerProfile.css";
 import AddressModal from "./AddressModal";
 import { Edit, Trash2 } from "lucide-react";
@@ -230,26 +231,15 @@ const SellerProfile = () => {
   };
 
   // Show preview of new shop image if selected
-  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL_PROD; // Change if needed for production
   const shopImagePreview = shopImage
     ? URL.createObjectURL(shopImage)
     : profile && profile.shopImage
-    ? profile.shopImage.startsWith("/uploads/")
-      ? `${BACKEND_URL}${profile.shopImage}`
-      : profile.shopImage
+    ? processImageUrl(profile.shopImage)
     : profile && profile.avatar
-    ? profile.avatar.startsWith("/uploads/")
-      ? `${BACKEND_URL}${profile.avatar}`
-      : profile.avatar
+    ? processImageUrl(profile.avatar)
     : "/vite.svg";
 
-  const processImageUrl = (image) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL_PROD || "";
-    if (image && image.startsWith("/uploads")) {
-      return `${baseURL}${image}`;
-    }
-    return image || "/images/offer1.png";
-  };
+  // processImageUrl is now imported from utils
 
   if (loading) return <div>Loading...</div>;
   if (!profile) return <div>No profile data</div>;

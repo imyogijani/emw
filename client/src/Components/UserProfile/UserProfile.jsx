@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import "./UserProfile.css";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
+import { processImageUrl } from "../../utils/apiConfig";
 import {
   FaUser,
   FaEnvelope,
@@ -164,13 +165,7 @@ const UserProfile = ({ onClose }) => {
     }
   };
 
-  const processImageUrl = (image) => {
-    const baseURL = import.meta.env.VITE_API_BASE_URL_PROD || "";
-    if (image && image.startsWith("/uploads")) {
-      return `${baseURL}${image}`;
-    }
-    return image || "/images/offer1.png";
-  };
+  // processImageUrl is now imported from utils
 
   if (loading) {
     return (

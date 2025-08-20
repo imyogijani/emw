@@ -14,7 +14,7 @@ import {
   authenticateToken,
   authorizeAdmin,
 } from "../middlewares/authMiddleware.js";
-import upload from "../middlewares/uploadMiddleware.js";
+import upload, { saveImageToDatabase } from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -25,6 +25,7 @@ router.post(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
+  saveImageToDatabase,
   createCategoryController
 );
 
@@ -34,6 +35,7 @@ router.post(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
+  saveImageToDatabase,
   createCategoryController
 );
 
@@ -51,6 +53,7 @@ router.post(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
+  saveImageToDatabase,
   updateCategoryController
 );
 

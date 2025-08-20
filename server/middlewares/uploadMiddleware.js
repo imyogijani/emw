@@ -2,6 +2,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import CategoryImage from "../models/categoryImageModel.js";
+import SellerImage from "../models/sellerImageModel.js";
+import AdminImage from "../models/adminImageModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,11 +67,15 @@ const storage = multer.diskStorage({
     }
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(
-      null,
-      uniqueSuffix + "-" + file.originalname.replace(/\s+/g, "-").toLowerCase()
-    );
+    // Preserve original filename with sanitization
+    const sanitizedName = file.originalname
+      .replace(/\s+/g, "-")
+      .toLowerCase()
+      .replace(/[^a-z0-9.-]/g, "");
+    
+    // Add timestamp only if file already exists to avoid conflicts
+    const finalName = sanitizedName;
+    cb(null, finalName);
   },
 });
 
@@ -89,4 +96,73 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
 });
+
+// Middleware to save image metadata to database
+export const saveImageToDatabase = async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  try {
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.VITE_API_BASE_URL_PROD 
+      : `http://localhost:${process.env.PORT || 8080}`;
+    
+    const imageUrl = `${baseUrl}/uploads/${getImageCategory(req)}/${req.file.filename}`;
+    
+    let imageModel;
+    const imageData = {
+      originalName: req.file.originalname,
+      filename: req.file.filename,
+      path: req.file.path,
+      url: imageUrl,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      uploadedBy: req.user?._id || null,
+      isActive: true,
+    };
+
+    // Determine which model to use based on route
+    if (req.baseUrl.includes('category') || req.originalUrl.includes('category')) {
+      imageData.categoryId = req.body.categoryId || null;
+      imageModel = new CategoryImage(imageData);
+    } else if (req.baseUrl.includes('seller') || req.originalUrl.includes('seller')) {
+      imageData.imageType = req.body.imageType || 'product';
+      imageData.entityId = req.body.entityId || null;
+      imageData.entityType = req.body.entityType || 'Product';
+      imageData.sellerId = req.user?._id || req.body.sellerId;
+      imageModel = new SellerImage(imageData);
+    } else {
+      // Admin images
+      imageData.imageType = req.body.imageType || 'system';
+      imageData.entityId = req.body.entityId || null;
+      imageData.entityType = req.body.entityType || null;
+      imageModel = new AdminImage(imageData);
+    }
+
+    const savedImage = await imageModel.save();
+    req.imageRecord = savedImage;
+    next();
+  } catch (error) {
+    console.error('Error saving image to database:', error);
+    next(); // Continue even if DB save fails
+  }
+};
+
+// Helper function to determine image category from request
+const getImageCategory = (req) => {
+  if (req.baseUrl.includes('category') || req.originalUrl.includes('category')) {
+    return 'categories';
+  } else if (req.baseUrl.includes('brand') || req.originalUrl.includes('brand')) {
+    return 'brands';
+  } else if (req.baseUrl.includes('product')) {
+    return 'products';
+  } else if (req.baseUrl.includes('avatar') || req.originalUrl.includes('avatar')) {
+    return 'avatars';
+  } else if (req.file?.fieldname === 'shopImage' || req.file?.fieldname === 'shopImages') {
+    return 'shopowner';
+  }
+  return 'uploads';
+};
+
 export default upload;

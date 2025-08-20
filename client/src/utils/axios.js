@@ -1,15 +1,16 @@
 import axios from "axios";
-import { toast } from "react-toastify"; // Added missing import
-// console.log("Local API URL:", import.meta.env.VITE_API_BASE_URL_PROD);
-// console.log("Prod API URL:", import.meta.env.VITE_API_BASE_URL_PROD);
+import { toast } from "react-toastify";
+import { getApiBaseUrl } from "./apiConfig";
+
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL_PROD,
-  // baseURL: import.meta.env.VITE_API_BASE_URL_PROD,
+  baseURL: getApiBaseUrl(),
   timeout: 15000, // Increased timeout for file uploads
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+console.log("Using API Base URL:", getApiBaseUrl());
 
 console.log("Axios Instance Configuration:", {
   baseURL: instance.defaults.baseURL,

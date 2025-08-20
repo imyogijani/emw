@@ -1,8 +1,9 @@
 import React from 'react';
+import './CreateBusiness.css';
 
 const CreateBusinessAccount = () => {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="create-business-container">
       <h1>Create a Business Account with E-Mall World</h1>
       <p>Streamline your corporate food orders and manage expenses with an E-Mall World Business Account. Perfect for companies looking to provide meals for employees or clients.</p>
       <h2>Benefits of a Business Account</h2>
@@ -28,28 +29,28 @@ const CreateBusinessAccount = () => {
       </ul>
       <h2>Ready to Get Started?</h2>
       <p>Fill out the form below to create your business account, or contact us at business@emallworld.com for a personalized consultation.</p>
-      <form style={{ marginTop: '20px', border: '1px solid #ccc', padding: '20px', borderRadius: '8px' }}>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="companyName" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Company Name:</label>
-          <input type="text" id="companyName" name="companyName" style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ddd' }} />
+      <form className="business-form">
+        <div className="form-group">
+          <label htmlFor="companyName">Company Name:</label>
+          <input type="text" id="companyName" name="companyName" />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="contactPerson" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contact Person:</label>
-          <input type="text" id="contactPerson" name="contactPerson" style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ddd' }} />
+        <div className="form-group">
+          <label htmlFor="contactPerson">Contact Person:</label>
+          <input type="text" id="contactPerson" name="contactPerson" />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="email" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Business Email:</label>
-          <input type="email" id="email" name="email" style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ddd' }} />
+        <div className="form-group">
+          <label htmlFor="email">Business Email:</label>
+          <input type="email" id="email" name="email" />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="phone" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Phone Number:</label>
-          <input type="tel" id="phone" name="phone" style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ddd' }} />
+        <div className="form-group">
+          <label htmlFor="phone">Phone Number:</label>
+          <input type="tel" id="phone" name="phone" />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="employees" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Number of Employees:</label>
-          <input type="number" id="employees" name="employees" style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ddd' }} />
+        <div className="form-group">
+          <label htmlFor="employees">Number of Employees:</label>
+          <input type="number" id="employees" name="employees" />
         </div>
-        <button type="submit" style={{ backgroundColor: '#6f42c1', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>Create Account</button>
+        <button type="submit" className="submit-btn">Create Account</button>
       </form>
     </div>
   );
