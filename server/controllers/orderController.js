@@ -26,6 +26,7 @@ export const getAllOrdersAdmin = asyncHandler(async (req, res) => {
     fromDate,
     toDate,
     userId,
+    search, //  search by name/email/phone
   } = req.query;
 
   const filter = {};
@@ -53,23 +54,80 @@ export const getAllOrdersAdmin = asyncHandler(async (req, res) => {
     };
   }
 
+  //  Search in user fields
+  let userFilter = {};
+  if (search) {
+    const searchRegex = { $regex: search, $options: "i" };
+
+    // Step 1: find users that match name/email/phone
+    const matchingUsers = await mongoose.model("users").find(
+      {
+        $or: [
+          { names: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex },
+        ],
+      },
+      "_id"
+    );
+
+    const userIds = matchingUsers.map((u) => u._id);
+
+    // Step 2: apply to orders filter
+    filter.$or = [
+      { orderId: searchRegex }, // custom orderId
+      { userId: { $in: userIds } }, // match customers
+    ];
+
+    // If search is valid MongoDB _id
+    if (mongoose.Types.ObjectId.isValid(search)) {
+      filter.$or.push({ _id: new mongoose.Types.ObjectId(search) });
+    }
+  }
+
   const totalOrders = await Order.countDocuments(filter);
 
   const orders = await Order.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("userId", "name email") // fetch user info
+    .populate("userId", "names email phone") // fetch user info
     .select(
-      "userId items totalAmount paymentMethod paymentStatus orderStatus isPaid createdAt"
+      "orderId userId totalAmount paymentMethod paymentStatus orderStatus isPaid createdAt"
     );
+
+  const formattedOrders = orders.map((order) => ({
+    orderId: order._id,
+    customeOrderId: order.orderId,
+    customer: {
+      name: order.userId?.names,
+      email: order.userId?.email,
+      phone: order.userId?.phone,
+    },
+    totalAmount: order.totalAmount,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    orderStatus: order.orderStatus,
+    createdAt: order.createdAt,
+  }));
+
+  const stats = {
+    totalOrders: await Order.countDocuments(),
+    pending: await Order.countDocuments({ orderStatus: "pending" }),
+    processing: await Order.countDocuments({ orderStatus: "processing" }),
+    confirmed: await Order.countDocuments({ orderStatus: "confirmed" }),
+    in_transit: await Order.countDocuments({ orderStatus: "in_transit" }),
+    delivered: await Order.countDocuments({ orderStatus: "delivered" }),
+    cancelled: await Order.countDocuments({ orderStatus: "cancelled" }),
+  };
 
   res.status(200).json({
     success: true,
+    stats,
     totalOrders,
     currentPage: page,
     totalPages: Math.ceil(totalOrders / limit),
-    orders,
+    orders: formattedOrders,
   });
 });
 
@@ -847,3 +905,95 @@ export const confirmAllItemsReceived = asyncHandler(async (req, res) => {
   await order.save();
   res.json({ success: true, message: "Order fully marked as delivered." });
 });
+
+export const updateAdminOrderStatus = async (req, res) => {
+  try {
+    let { orderStatus } = req.body;
+    const { orderId } = req.params;
+
+    orderStatus = orderStatus.toLowerCase();
+
+    const allowedStatuses = [
+      "processing",
+      "confirmed",
+      "in_transit",
+      "delivered",
+      "cancelled",
+    ];
+
+    if (!allowedStatuses.includes(orderStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid order status. Allowed: ${allowedStatuses.join(", ")}`,
+      });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    // 🚨 Restriction Rules
+    if (order.orderStatus === "delivered") {
+      return res.status(400).json({
+        success: false,
+        message: "Order is already delivered and cannot be updated further.",
+      });
+    }
+
+    if (order.orderStatus === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "Order is already cancelled and cannot be updated further.",
+      });
+    }
+
+    // Example of strict flow: you can’t skip steps
+    const statusFlow = {
+      processing: ["confirmed", "cancelled"],
+      confirmed: ["in_transit", "cancelled"],
+      in_transit: ["delivered", "cancelled"],
+      delivered: [], // no further updates
+      cancelled: [], // no further updates
+    };
+
+    if (!statusFlow[order.orderStatus].includes(orderStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid transition from ${order.orderStatus} → ${orderStatus}`,
+      });
+    }
+
+    // ✅ Update status
+    order.orderStatus = orderStatus;
+    order.timeline.push({ status: orderStatus });
+
+    order.items = order.items.map((item) => ({
+      ...item.toObject(),
+      deliveryStatus: orderStatus === "in_transit" ? "shipped" : orderStatus,
+    }));
+
+    if (orderStatus === "delivered") {
+      order.deliveredAt = new Date();
+    }
+    if (orderStatus === "cancelled") {
+      order.cancelledAt = new Date();
+    }
+
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Order status updated to ${orderStatus}`,
+    });
+  } catch (error) {
+    console.error("Update Order Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating order status",
+      error: error.message,
+    });
+  }
+};

@@ -16,19 +16,26 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [stats, setStats] = useState({});
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [searchTerm, filterStatus]);
 
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get("/api/admin/orders", {
         headers: { Authorization: `Bearer ${token}` },
+        params: {
+          search: searchTerm || undefined, // search by name/email/phone/orderId/_id
+          orderStatus: filterStatus !== "all" ? filterStatus : undefined, //  filter by status
+        },
       });
       setOrders(response.data.orders);
+      setStats(response.data.stats);
+      console.log("Fetched Orders:", response.data.orders);
     } catch (error) {
       toast.error("Error fetching orders");
     } finally {
@@ -41,7 +48,7 @@ const Orders = () => {
       const token = localStorage.getItem("token");
       await axios.patch(
         `/api/admin/orders/${orderId}/status`,
-        { status: newStatus },
+        { orderStatus: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Order status updated successfully");
@@ -54,11 +61,11 @@ const Orders = () => {
   const filteredOrders = orders.filter((order) => {
     // Use orderId if present, else fallback to ORD + last 6 of _id
     const orderId =
-      order.orderId ||
+      order.customeOrderId ||
       (order._id ? `ORD${order._id.toString().slice(-6).toUpperCase()}` : "");
     // For customer name, prefer user.name, then user.names, then user.email (but not just email alone)
     let customerName =
-      order.customerName || order.user?.name || order.user?.names || "";
+      order.customer?.name || order.user?.name || order.user?.names || "";
     if (!customerName && order.user && order.user.email) {
       // Only use email if no name fields exist, and mask it for privacy
       const email = order.user.email;
@@ -84,7 +91,7 @@ const Orders = () => {
     };
   };
 
-  const stats = getOrderStats();
+  // const stats = getOrderStats();
 
   if (loading) {
     return (
@@ -109,7 +116,7 @@ const Orders = () => {
           </div>
           <div className="stat-details">
             <h3>Total Orders</h3>
-            <p>{stats.total}</p>
+            <p>{stats?.totalOrders}</p>
           </div>
         </div>
         <div className="stat-card">
@@ -118,7 +125,7 @@ const Orders = () => {
           </div>
           <div className="stat-details">
             <h3>Pending Orders</h3>
-            <p>{stats.pending}</p>
+            <p>{stats?.pending}</p>
           </div>
         </div>
         <div className="stat-card">
@@ -127,7 +134,7 @@ const Orders = () => {
           </div>
           <div className="stat-details">
             <h3>Processing</h3>
-            <p>{stats.processing}</p>
+            <p>{stats?.processing}</p>
           </div>
         </div>
         <div className="stat-card">
@@ -136,7 +143,7 @@ const Orders = () => {
           </div>
           <div className="stat-details">
             <h3>Delivered</h3>
-            <p>{stats.delivered}</p>
+            <p>{stats?.delivered}</p>
           </div>
         </div>
       </div>
@@ -178,24 +185,20 @@ const Orders = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.length === 0 ? (
+            {orders.length === 0 ? (
               <tr>
                 <td colSpan="6" className="no-orders">
                   No orders found
                 </td>
               </tr>
             ) : (
-              filteredOrders.map((order) => {
+              orders.map((order) => {
                 const orderId =
-                  order.orderId ||
+                  order?.customeOrderId ||
                   (order._id
                     ? `ORD${order._id.toString().slice(-6).toUpperCase()}`
                     : "");
-                let customerName =
-                  order.customerName ||
-                  order.user?.name ||
-                  order.user?.names ||
-                  "";
+                let customerName = order.customer?.name || "Guest";
                 if (!customerName && order.user && order.user.email) {
                   const email = order.user.email;
                   customerName = email.replace(/(.{2}).+(@.+)/, "$1***$2");
@@ -210,14 +213,16 @@ const Orders = () => {
                         ? new Date(order.createdAt).toLocaleDateString()
                         : "-"}
                     </td>
-                    <td>₹{order.amount || order.total}</td>
+                    <td>₹{order.totalAmount || order.total}</td>
                     <td>
                       <span
                         className={`status-badge ${
-                          order.status ? order.status.toLowerCase() : ""
+                          order.orderStatus
+                            ? order.orderStatus.toLowerCase()
+                            : ""
                         }`}
                       >
-                        {order.status}
+                        {order.orderStatus}
                       </span>
                     </td>
                     <td>
@@ -225,7 +230,7 @@ const Orders = () => {
                         <button
                           className="action-btn view"
                           onClick={() =>
-                            handleStatusUpdate(order._id, "processing")
+                            handleStatusUpdate(order.orderId, "processing")
                           }
                           title="Process Order"
                         >
@@ -234,7 +239,7 @@ const Orders = () => {
                         <button
                           className="action-btn complete"
                           onClick={() =>
-                            handleStatusUpdate(order._id, "delivered")
+                            handleStatusUpdate(order.orderId, "delivered")
                           }
                           title="Mark as Delivered"
                         >
@@ -243,7 +248,7 @@ const Orders = () => {
                         <button
                           className="action-btn cancel"
                           onClick={() =>
-                            handleStatusUpdate(order._id, "cancelled")
+                            handleStatusUpdate(order.orderId, "cancelled")
                           }
                           title="Cancel Order"
                         >

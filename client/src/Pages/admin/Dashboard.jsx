@@ -45,15 +45,27 @@ const Dashboard = () => {
     sellersTrend: [],
     revenueTrend: [],
   });
+  const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  // Filters
+  const [startDate, setStartDate] = useState("2025-08-01");
+  const [endDate, setEndDate] = useState("2025-08-20");
+  const [status, setStatus] = useState(""); // optional filter
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("/api/admin/dashboard-stats", {
+        const response = await axios.get("/api/analytics/admin", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("dashboard‑stats →", response.data); // <— add this
-        setStats(response.data.data);
+
+        console.log("dashboard‑stats →", response.data);
+        setStats(response.data.stats);
       } catch (error) {
         console.error("Error fetching stats:", error);
       }
@@ -61,6 +73,22 @@ const Dashboard = () => {
 
     fetchStats();
   }, []);
+  // useEffect(() => {
+  //   const fetchAdminAnalytics = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       const response = await axios.get("/api/analytics/admin", {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       // setUserStats(response.data);
+  //       console.log("User Stats →", response.data.stats);
+  //     } catch (error) {
+  //       console.error("Error fetching user stats:", error);
+  //     }
+  //   };
+
+  //   fetchAdminAnalytics();
+  // }, []);
 
   useEffect(() => {
     const fetchTrends = async () => {
@@ -78,6 +106,37 @@ const Dashboard = () => {
 
     fetchTrends();
   }, []);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+
+        const response = await axios.get("/api/admin/recent-orders", {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            startDate,
+            endDate,
+            status,
+            page,
+            limit,
+          },
+        });
+
+        console.log("recent-orders →", response.data);
+
+        setOrders(response.data.orders || []);
+        setTotalPages(response.data.totalPages || 1);
+      } catch (error) {
+        console.error("Error fetching recent orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [page, limit, startDate, endDate, status]);
 
   const pieData = [
     { name: "Active Users", value: stats.totalUsers },
@@ -122,13 +181,13 @@ const Dashboard = () => {
                     color: "#232f3e",
                   }}
                 >
-                  {stats.totalUsers}
+                  {stats.users?.total || 0}
                 </p>
                 <p
                   className="card-description"
                   style={{ color: "#28a745", fontSize: "11px" }}
                 >
-                  +{stats.userStats?.weeklyGrowth || 0}% this week
+                  +{stats.users?.growthPercent || 0}% this week
                 </p>
               </div>
             </div>
@@ -163,13 +222,13 @@ const Dashboard = () => {
                     color: "#232f3e",
                   }}
                 >
-                  {stats.totalSellers}
+                  {stats.sellers?.total || 0}
                 </p>
                 <p
                   className="card-description"
                   style={{ color: "#28a745", fontSize: "11px" }}
                 >
-                  +{stats.shopStats?.weeklyGrowth || 0}% this week
+                  +{stats.sellers?.growthPercent || 0}% this week
                 </p>
               </div>
             </div>
@@ -204,7 +263,7 @@ const Dashboard = () => {
                     color: "#232f3e",
                   }}
                 >
-                  {stats.totalProducts}
+                  {stats?.products || 0}
                 </p>
               </div>
             </div>
@@ -239,7 +298,7 @@ const Dashboard = () => {
                     color: "#232f3e",
                   }}
                 >
-                  ₹{stats.revenue}
+                  ₹{stats?.revenue.fromOrders || 0}
                 </p>
               </div>
             </div>
@@ -324,11 +383,11 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {stats.recentOrders?.map((order) => (
-                <tr key={order._id}>
-                  <td>#{order._id.slice(-6)}</td>
-                  <td>{order.customerName}</td>
-                  <td>{order.shopName}</td>
+              {orders?.map((order) => (
+                <tr key={order.orderId}>
+                  <td>#{order.orderId}</td>
+                  <td>{order.customer}</td>
+                  <td>{order.shops.map((name) => name).join(", ")}</td>
                   <td>₹{order.amount}</td>
                   <td>
                     <span className={`status ${order.status.toLowerCase()}`}>

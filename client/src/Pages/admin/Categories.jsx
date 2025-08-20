@@ -11,7 +11,7 @@ const Categories = () => {
   const [subCategoryName, setSubCategoryName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [brandName, setBrandName] = useState("");
-  const [selectedBrands, setSelectedBrands] = useState([]);
+  // const [selectedBrands, setSelectedBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,6 +25,7 @@ const Categories = () => {
   const [itemTypeToDelete, setItemTypeToDelete] = useState(null);
   const [categoryImage, setCategoryImage] = useState(null);
   const [editCategoryImage, setEditCategoryImage] = useState(null);
+  const [gstPercentage, setGstPercentage] = useState();
   // HSN code state variables removed for categories - now only used for subcategories
   const [subSuggestedHsnCodes, setSubSuggestedHsnCodes] = useState("");
   const [subDefaultHsnCode, setSubDefaultHsnCode] = useState("");
@@ -36,10 +37,15 @@ const Categories = () => {
   const [brandDescription, setBrandDescription] = useState("");
   const [brandLogo, setBrandLogo] = useState(null);
 
+  const [selectedBrands, setSelectedBrands] = useState([]); // selected brands
+
   const [editingBrand, setEditingBrand] = useState(null);
   const [editBrandName, setEditBrandName] = useState("");
   const [editBrandDescription, setEditBrandDescription] = useState("");
   const [editBrandLogo, setEditBrandLogo] = useState(null);
+  const [selectedSubBrands, setSelectedSubBrands] = useState([]);
+  const [selectedSubBrandDetails, setSelectedSubBrandDetails] = useState([]);
+  const [newBrandName, setNewBrandName] = useState("");
 
   // const [loading, setLoading] = useState(false);
 
@@ -107,6 +113,9 @@ const Categories = () => {
       const subcategoryData = {
         name: subCategoryName.trim(),
         parent: selectedCategory,
+        gstPercentage: gstPercentage || null,
+        // defaultHsnCode: subDefaultHsnCode.trim() || "",
+        brands: selectedSubBrands,
       };
 
       // Add HSN code fields if provided
@@ -126,6 +135,10 @@ const Categories = () => {
       setSelectedCategory("");
       setSubSuggestedHsnCodes("");
       setSubDefaultHsnCode("");
+      // setSubDefaultHsnCode("");
+      setGstPercentage("");
+      setSelectedSubBrands([]);
+      setSelectedSubBrandDetails([]);
       toast.success(`Subcategory added successfully.`);
       await initialLoad();
     } catch (err) {
@@ -300,6 +313,24 @@ const Categories = () => {
     fetchBrands();
   }, []);
 
+  // remove selected brand
+  const handleRemoveSelectedBrand = (brandId) => {
+    setSelectedSubBrands(selectedSubBrands.filter((id) => id !== brandId));
+    setSelectedSubBrandDetails(
+      selectedSubBrandDetails.filter((b) => b._id !== brandId)
+    );
+  };
+
+  const handleBrandSelectForSubcategory = (e) => {
+    const brandId = e.target.value;
+    const brand = brands.find((b) => b._id === brandId);
+
+    if (!brandId || selectedSubBrands.includes(brandId)) return;
+
+    setSelectedSubBrands([...selectedSubBrands, brandId]);
+    setSelectedSubBrandDetails([...selectedSubBrandDetails, brand]);
+  };
+
   // Add brand
   const handleAddBrand = async (e) => {
     e.preventDefault();
@@ -322,6 +353,24 @@ const Categories = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add brand");
       console.error(error);
+    }
+  };
+
+  const handleAddNewBrand = async () => {
+    if (!newBrandName.trim()) {
+      toast.error("Brand name required");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("name", newBrandName.trim());
+      const { data } = await axiosInstance.post("/api/brands/create", formData);
+
+      toast.success("Brand added successfully");
+      setBrands([...brands, data.brand]); //  add new brand to dropdown immediately
+      setNewBrandName("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add brand");
     }
   };
 
@@ -406,7 +455,7 @@ const Categories = () => {
             onChange={handleCategoryImageChange}
             required
           />
-          <div className="brand-input-container">
+          {/* <div className="brand-input-container">
             <input
               className="form-input"
               type="text"
@@ -431,7 +480,7 @@ const Categories = () => {
                 </button>
               </span>
             ))}
-          </div>
+          </div> */}
 
           {/* HSN codes are now handled only at subcategory level */}
           <button type="submit" className="btn btn-primary">
@@ -462,14 +511,15 @@ const Categories = () => {
             onChange={(e) => setSubCategoryName(e.target.value)}
             className="form-input"
           />
+
+          <input
+            type="text"
+            placeholder="Gst Percentage(e.g., 18)"
+            value={gstPercentage}
+            onChange={(e) => setGstPercentage(e.target.value)}
+            className="form-input"
+          />
           <div className="hsn-input-section">
-            <input
-              className="form-input"
-              type="text"
-              placeholder="Suggested HSN Codes (comma-separated, e.g., 6403, 6404)"
-              value={subSuggestedHsnCodes}
-              onChange={(e) => setSubSuggestedHsnCodes(e.target.value)}
-            />
             <input
               className="form-input"
               type="text"
@@ -478,6 +528,82 @@ const Categories = () => {
               onChange={(e) => setSubDefaultHsnCode(e.target.value)}
             />
           </div>
+
+          {/* <div className="brand-input-container">
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Brand Name (e.g., Nike, Adidas)"
+              value={brandName}
+              onChange={(e) => setBrandName(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={handleAddBrand}
+              className="btn btn-secondary"
+            >
+              Add Brand
+            </button>
+          </div>
+
+          <div className="selected-brands-list">
+            {selectedBrands.map((brand, index) => (
+              <span key={index} className="brand-tag">
+                {brand}
+                <button type="button" onClick={() => handleRemoveBrand(brand)}>
+                  x
+                </button>
+              </span>
+            ))}
+          </div> */}
+
+          <label>Select Brand:</label>
+          <select
+            onChange={handleBrandSelectForSubcategory}
+            className="form-input"
+            value="" // reset after select
+          >
+            <option value="">-- Select Brand --</option>
+            {brands.map((brand) => (
+              <option key={brand._id} value={brand._id}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Show selected brands as tags */}
+          <div className="selected-brands-list">
+            {selectedSubBrandDetails.map((brand) => (
+              <span key={brand._id} className="brand-tag">
+                {brand.name}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSelectedBrand(brand._id)}
+                >
+                  x
+                </button>
+              </span>
+            ))}
+          </div>
+
+          {/* Add new brand box */}
+          <div className="brand-input-container">
+            <input
+              type="text"
+              placeholder="New Brand Name (e.g. Nike, Adidas)"
+              value={newBrandName}
+              onChange={(e) => setNewBrandName(e.target.value)}
+              className="form-input"
+            />
+            <button
+              type="button"
+              onClick={handleAddNewBrand}
+              className="btn btn-secondary"
+            >
+              Add Brand
+            </button>
+          </div>
+
           <button type="submit" className="btn btn-primary">
             Add Subcategory
           </button>

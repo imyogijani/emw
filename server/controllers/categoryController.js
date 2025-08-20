@@ -5,16 +5,25 @@ import fs from "fs";
 import path from "path";
 import Product from "../models/productModel.js";
 import User from "../models/userModel.js";
+import mongoose from "mongoose";
+import Brand from "../models/brandModel.js";
 
 // Create Category
 export const createCategoryController = async (req, res) => {
   try {
     // console.log("[DEBUG] req.body:", req.body);
     // console.log("[DEBUG] req.file:", req.file);
-    let { name, parent, brands, gstPercentage, suggestedHsnCodes, defaultHsnCode } = req.body;
+    let {
+      name,
+      parent,
+      brands,
+      gstPercentage,
+      suggestedHsnCodes,
+      defaultHsnCode,
+    } = req.body;
     // Convert gstPercentage to number if string
     gstPercentage = Number(gstPercentage) || 0;
-    
+
     let image = "";
     if (req.file) {
       console.log("Category image upload:", req.file);
@@ -45,7 +54,7 @@ export const createCategoryController = async (req, res) => {
     if (existingCategory) {
       return res.status(409).send({ message: "Category already exists" });
     }
-    
+
     // Create category data object
     const categoryData = {
       name,
@@ -55,7 +64,7 @@ export const createCategoryController = async (req, res) => {
       brands: brands || [],
       gstPercentage,
     };
-    
+
     // Only add HSN codes for subcategories (when parent exists)
     if (parent) {
       // Parse suggestedHsnCodes if it's a string
@@ -69,7 +78,7 @@ export const createCategoryController = async (req, res) => {
       categoryData.suggestedHsnCodes = suggestedHsnCodes || [];
       categoryData.defaultHsnCode = defaultHsnCode || "";
     }
-    
+
     const category = await new Category(categoryData);
 
     if (parent) {
@@ -86,7 +95,7 @@ export const createCategoryController = async (req, res) => {
         message: "GST percentage is required for subcategories",
       });
     }
-    
+
     await category.save();
     res.status(201).send({
       success: true,
@@ -240,7 +249,14 @@ export const deleteCategoryController = async (req, res) => {
 // Update category
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name, parent, brands, gstPercentage, suggestedHsnCodes, defaultHsnCode } = req.body;
+    const {
+      name,
+      parent,
+      brands,
+      gstPercentage,
+      suggestedHsnCodes,
+      defaultHsnCode,
+    } = req.body;
 
     // First, get the current category to check if it's a subcategory
     const currentCategory = await Category.findById(req.params.id);
@@ -262,11 +278,13 @@ export const updateCategoryController = async (req, res) => {
     if (typeof gstPercentage !== "undefined") {
       updateData.gstPercentage = gstPercentage;
     }
-    
+
     // Only handle HSN codes for subcategories (categories with parent)
     if (currentCategory.parent || parent) {
       if (suggestedHsnCodes !== undefined) {
-        updateData.suggestedHsnCodes = Array.isArray(suggestedHsnCodes) ? suggestedHsnCodes : [];
+        updateData.suggestedHsnCodes = Array.isArray(suggestedHsnCodes)
+          ? suggestedHsnCodes
+          : [];
       }
       if (typeof defaultHsnCode !== "undefined") {
         updateData.defaultHsnCode = defaultHsnCode;
@@ -315,14 +333,179 @@ export const updateCategoryController = async (req, res) => {
   }
 };
 
+// Update SubCategory
+export const updateSubCategoryController = async (req, res) => {
+  try {
+    const { name, parent, brands, gstPercentage } = req.body;
+
+    const subCategory = await Category.findById(req.params.id);
+    if (!subCategory) {
+      return res
+        .status(404)
+        .json({ success: false, message: "SubCategory not found" });
+    }
+
+    const updateData = {};
+
+    //  Name & Slug
+    if (name) {
+      if (name.trim().length < 2) {
+        return res.status(400).json({
+          success: false,
+          message: "SubCategory name must be at least 2 characters long",
+        });
+      }
+
+      const existing = await Category.findOne({
+        name: name.trim(),
+        _id: { $ne: req.params.id },
+      });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "SubCategory with this name already exists",
+        });
+      }
+
+      updateData.name = name.trim();
+      updateData.slug = slugify(name, { lower: true });
+    }
+
+    //  Parent (move subcategory to another category or unlink)
+    if (typeof parent !== "undefined") {
+      if (parent === "") {
+        updateData.parent = null; // unlink
+      } else {
+        if (!mongoose.Types.ObjectId.isValid(parent)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid parent category ID",
+          });
+        }
+        if (parent === req.params.id) {
+          return res.status(400).json({
+            success: false,
+            message: "A subcategory cannot be its own parent",
+          });
+        }
+
+        const parentCategory = await Category.findById(parent);
+        if (!parentCategory) {
+          return res.status(400).json({
+            success: false,
+            message: "Parent category not found",
+          });
+        }
+
+        updateData.parent = parent;
+      }
+    }
+
+    // 4. Brands validation
+    if (brands !== undefined) {
+      if (!Array.isArray(brands)) {
+        return res.status(400).json({
+          success: false,
+          message: "Brands must be an array",
+        });
+      }
+
+      let brandIds = [];
+
+      for (let b of brands) {
+        // Check if passed value is an ObjectId
+        if (mongoose.Types.ObjectId.isValid(b)) {
+          const brandExists = await Brand.findById(b);
+          if (!brandExists) {
+            return res.status(400).json({
+              success: false,
+              message: `Brand not found with ID: ${b}`,
+            });
+          }
+          brandIds.push(b);
+        } else {
+          // Treat it as a name instead of ID
+          const brandByName = await Brand.findOne({ name: b.trim() });
+          if (!brandByName) {
+            return res.status(400).json({
+              success: false,
+              message: `Brand not found with name: ${b}`,
+            });
+          }
+          brandIds.push(brandByName._id);
+        }
+      }
+
+      updateData.brands = brandIds;
+    }
+
+    //  GST %
+    if (typeof gstPercentage !== "undefined") {
+      const gst = Number(gstPercentage);
+      if (isNaN(gst) || gst < 0 || gst > 50) {
+        return res.status(400).json({
+          success: false,
+          message: "GST percentage must be between 0 and 50",
+        });
+      }
+      updateData.gstPercentage = gst;
+    }
+
+    //  Handle Image Upload
+    let oldImagePath = null;
+    if (req.file) {
+      if (subCategory.image) {
+        oldImagePath = path.join(
+          path.resolve(),
+          "backend/public",
+          subCategory.image.startsWith("/")
+            ? subCategory.image
+            : `/${subCategory.image}`
+        );
+      }
+      updateData.image = `/uploads/categories/${req.file.filename}`;
+    }
+
+    const updatedCategory = await Category.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true }
+    )
+      .populate("parent")
+      .populate("brands");
+
+    //  Delete old image if replaced
+    if (req.file && oldImagePath && fs.existsSync(oldImagePath)) {
+      try {
+        fs.unlinkSync(oldImagePath);
+      } catch (err) {
+        console.error("Error deleting old image:", err);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "SubCategory updated successfully",
+      category: updatedCategory,
+    });
+  } catch (error) {
+    console.error("Update SubCategory Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating subcategory",
+      error: error.message,
+    });
+  }
+};
+
 // Get HSN suggestions for subcategory only (more precise)
 export const getHsnSuggestionsController = async (req, res) => {
   try {
     const { subcategoryId } = req.query;
-    
+
     let suggestions = [];
     let defaultHsn = "";
-    
+
     // Only fetch HSN codes from subcategory for better precision
     if (subcategoryId) {
       const subcategory = await Category.findById(subcategoryId);
@@ -331,12 +514,12 @@ export const getHsnSuggestionsController = async (req, res) => {
         defaultHsn = subcategory.defaultHsnCode || "";
       }
     }
-    
+
     res.status(200).json({
       success: true,
       suggestedHsnCodes: suggestions,
       defaultHsnCode: defaultHsn,
-      source: 'subcategory'
+      source: "subcategory",
     });
   } catch (error) {
     console.error("Error fetching HSN suggestions:", error);
