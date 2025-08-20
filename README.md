@@ -8,3 +8,8 @@ GA_MEASUREMENT_ID=G-67KNQNB8NG
 VITE_API_BASE_URL_LOCAL=http://localhost:8080/
 VITE_API_BASE_URL_PROD=https://api.emallworld.com/
 
+
+
+# server /.env file 
+APP_SECRET=superLongRandomSecretKey12345
+
