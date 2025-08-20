@@ -545,3 +545,88 @@
   align-items: center;
   justify-content: flex-start;
 }
+
+/* Shopowner Details Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 34, 62, 0.18);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.18s;
+}
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-box {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(26,35,126,0.13);
+  padding: 2.5rem 2.2rem 2rem 2.2rem;
+  min-width: 340px;
+  max-width: 98vw;
+  width: 420px;
+  position: relative;
+  animation: popInModal 0.22s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes popInModal {
+  0% { transform: scale(0.92) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.modal-box h3 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a237e;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.2px;
+  text-align: center;
+}
+.details-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-bottom: 1.1rem;
+  font-size: 1.08rem;
+}
+.details-label {
+  color: #64748b;
+  font-weight: 600;
+  min-width: 110px;
+  flex-shrink: 0;
+}
+.details-value {
+  color: #1a237e;
+  font-weight: 500;
+  word-break: break-word;
+}
+.modal-btn.cancel {
+  background: #e3e8ee;
+  color: #1a237e;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-weight: 700;
+  font-size: 1.08rem;
+  margin-top: 1.2rem;
+  transition: background 0.18s, color 0.18s;
+  cursor: pointer;
+}
+.modal-btn.cancel:hover {
+  background: #1a237e;
+  color: #fff;
+}
+@media (max-width: 600px) {
+  .modal-box {
+    padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+    min-width: 0;
+    width: 98vw;
+  }
+  .details-row {
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 1rem;
+  }
+}

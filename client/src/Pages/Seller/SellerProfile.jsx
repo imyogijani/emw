@@ -278,7 +278,7 @@ const SellerProfile = () => {
           >
             <div className="seller-profile-avatar">
               <img
-                src={processImageUrl(profile.sellerId.shopImage)}
+                src={shopImagePreview}
                 alt="shop avatar"
                 style={{
                   width: 90,
