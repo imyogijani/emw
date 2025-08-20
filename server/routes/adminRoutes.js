@@ -19,12 +19,16 @@ import {
   addCity,
   deleteState,
   deleteCity,
+  getAdminOrdersController,
 } from "../controllers/adminController.js";
 import {
   updateProduct,
   deleteAllProducts,
 } from "../controllers/productController.js";
-import { getAllOrdersAdmin } from "../controllers/orderController.js";
+import {
+  getAllOrdersAdmin,
+  updateAdminOrderStatus,
+} from "../controllers/orderController.js";
 import {
   createMenuItem,
   getAllMenuItems,
@@ -67,6 +71,8 @@ router.patch("/users/:id/subscription", updateShopownerSubscription);
 
 // Orders management
 router.get("/orders", getAllOrdersAdmin);
+router.get("/recent-orders", getAdminOrdersController);
+router.patch("/orders/:orderId/status", updateAdminOrderStatus);
 
 // Menu management
 router.post("/menu-items", createMenuItem);

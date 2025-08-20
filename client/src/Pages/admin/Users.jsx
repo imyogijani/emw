@@ -173,6 +173,12 @@ const Users = () => {
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
           className="role-filter"
+          style={{
+            width: "9vw",
+            height: "7vh",
+            marginTop: "10px",
+            padding: "10px",
+          }}
         >
           <option value="all">All Users</option>
           <option value="admin">Admins</option>
@@ -348,6 +354,97 @@ const Users = () => {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Shopowner Details Modal */}
+      {shopownerDetails && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Shopowner Details</h3>
+            {detailsLoading ? (
+              <div style={{ textAlign: "center", padding: "2rem" }}>
+                <FaSpinner className="spinner" /> Loading...
+              </div>
+            ) : (
+              <>
+                {shopownerDetails.shopImage && (
+                  <div style={{ textAlign: "center", marginBottom: 16 }}>
+                    <img
+                      src={
+                        shopownerDetails.shopImage.startsWith("/uploads")
+                          ? (import.meta.env.VITE_API_BASE_URL_PROD || "") +
+                            shopownerDetails.shopImage
+                          : shopownerDetails.shopImage
+                      }
+                      alt="Shop Logo"
+                      style={{
+                        width: 90,
+                        height: 90,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        border: "2.5px solid #e3e8ee",
+                        marginBottom: 8,
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="details-row">
+                  <span className="details-label">Name:</span>
+                  <span className="details-value">
+                    {shopownerDetails.shopownerName || shopownerDetails.names}
+                  </span>
+                </div>
+                <div className="details-row">
+                  <span className="details-label">Email:</span>
+                  <span className="details-value">
+                    {shopownerDetails.email}
+                  </span>
+                </div>
+                <div className="details-row">
+                  <span className="details-label">Phone:</span>
+                  <span className="details-value">
+                    {shopownerDetails.phone}
+                  </span>
+                </div>
+                <div className="details-row">
+                  <span className="details-label">Shop Name:</span>
+                  <span className="details-value">
+                    {shopownerDetails.shopName}
+                  </span>
+                </div>
+                <div className="details-row">
+                  <span className="details-label">Status:</span>
+                  <span className="details-value">
+                    {shopownerDetails.status}
+                  </span>
+                </div>
+                <div className="details-row">
+                  <span className="details-label">Subscription:</span>
+                  <span className="details-value">
+                    {shopownerDetails.subscription?.name || "None"}
+                  </span>
+                </div>
+                <div className="details-row">
+                  <span className="details-label">Created:</span>
+                  <span className="details-value">
+                    {shopownerDetails.createdAt
+                      ? new Date(shopownerDetails.createdAt).toLocaleString()
+                      : "-"}
+                  </span>
+                </div>
+                {/* Add more fields as needed */}
+              </>
+            )}
+            <div style={{ marginTop: "1.5rem", textAlign: "right" }}>
+              <button
+                className="modal-btn cancel"
+                onClick={() => setShopownerDetails(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

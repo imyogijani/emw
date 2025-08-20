@@ -8,6 +8,7 @@ import {
   getSubcategoriesController,
   categoriesWithShopCountController,
   getHsnSuggestionsController,
+  updateSubCategoryController,
 } from "../controllers/categoryController.js";
 import { getGSTRateByHSN } from "../controllers/hsnController.js";
 import {
@@ -45,6 +46,14 @@ router.put(
   authenticateToken,
   authorizeAdmin,
   updateCategoryController
+);
+
+router.patch(
+  "/subcategory/:id",
+  authenticateToken,
+  authorizeAdmin,
+  upload.single("image"),
+  updateSubCategoryController
 );
 
 // Add this POST route for file upload updates

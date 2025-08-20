@@ -580,20 +580,23 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
     cancelledOrders,
     totalUsers,
     totalSellers,
+    totalProducts,
     deliveredOrderData,
     activeSubscriptions,
   ] = await Promise.all([
     Order.countDocuments(),
     Order.countDocuments({ orderStatus: "delivered" }),
     Order.countDocuments({ orderStatus: "cancelled" }),
-    User.countDocuments(),
+    User.countDocuments({ role: { $ne: "admin" } }),
     Seller.countDocuments(),
+    Product.countDocuments(),
     Order.aggregate([
       { $match: { orderStatus: "delivered" } },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalAmount" },
+          totalRevenue: { $sum: "$subTotal" },
+          totalGST: { $sum: "$totalGST" },
         },
       },
     ]),
@@ -601,7 +604,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
       { $match: { isActive: true, paymentStatus: "paid" } },
       {
         $lookup: {
-          from: "subscriptions", // collection name in MongoDB
+          from: "subscriptions",
           localField: "subscription",
           foreignField: "_id",
           as: "subscriptionDetails",
@@ -611,7 +614,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
       {
         $group: {
           _id: "$billingCycle",
-          totalRevenue: { $sum: "$subscriptionDetails.price" }, // Sum price from subscription
+          totalRevenue: { $sum: "$subscriptionDetails.price" },
           activeCount: { $sum: 1 },
         },
       },
@@ -619,12 +622,46 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
   ]);
 
   const totalRevenue = deliveredOrderData[0]?.totalRevenue || 0;
+  const totalGST = deliveredOrderData[0]?.totalGST || 0;
 
   // Normalize subscription revenue
   let subscriptionRevenue = 0;
   for (const sub of activeSubscriptions) {
     subscriptionRevenue += sub.totalRevenue || 0;
   }
+
+  //  Weekly growth calculation
+  const now = new Date();
+  const startOfThisWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+  const startOfLastWeek = new Date(startOfThisWeek);
+  startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+  const endOfLastWeek = new Date(startOfThisWeek);
+
+  const [usersThisWeek, usersLastWeek, sellersThisWeek, sellersLastWeek] =
+    await Promise.all([
+      User.countDocuments({ createdAt: { $gte: startOfThisWeek } }),
+      User.countDocuments({
+        createdAt: { $gte: startOfLastWeek, $lt: endOfLastWeek },
+      }),
+      Seller.countDocuments({ createdAt: { $gte: startOfThisWeek } }),
+      Seller.countDocuments({
+        createdAt: { $gte: startOfLastWeek, $lt: endOfLastWeek },
+      }),
+    ]);
+
+  const userGrowth =
+    usersLastWeek === 0
+      ? usersThisWeek > 0
+        ? 100
+        : 0
+      : ((usersThisWeek - usersLastWeek) / usersLastWeek) * 100;
+
+  const sellerGrowth =
+    sellersLastWeek === 0
+      ? sellersThisWeek > 0
+        ? 100
+        : 0
+      : ((sellersThisWeek - sellersLastWeek) / sellersLastWeek) * 100;
 
   res.status(200).json({
     stats: {
@@ -633,10 +670,20 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
         delivered: deliveredOrders,
         cancelled: cancelledOrders,
       },
-      users: totalUsers,
-      sellers: totalSellers,
+      users: {
+        total: totalUsers,
+        newThisWeek: usersThisWeek,
+        growthPercent: userGrowth.toFixed(2),
+      },
+      sellers: {
+        total: totalSellers,
+        newThisWeek: sellersThisWeek,
+        growthPercent: sellerGrowth.toFixed(2),
+      },
+      products: totalProducts,
       revenue: {
         fromOrders: totalRevenue,
+        gstCollected: totalGST,
         fromSubscriptions: subscriptionRevenue,
       },
       subscriptions: activeSubscriptions.map((sub) => ({

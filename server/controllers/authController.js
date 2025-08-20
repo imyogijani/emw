@@ -326,6 +326,21 @@ const loginController = async (req, res) => {
       });
     }
 
+    //  Banned  check
+    if (user.status === "banned") {
+      return res.status(403).send({
+        success: false,
+        message: "Your account has been banned. Please contact support.",
+      });
+    }
+
+    // if (user.status === "inactive") {
+    //   return res.status(403).send({
+    //     success: false,
+    //     message: "Your account is inactive. Please contact support.",
+    //   });
+    // }
+
     // Check subscription status for shopowners
     if (user.role === "shopowner" && user.subscription) {
       const oneMonth = 30 * 24 * 60 * 60 * 1000; // milliseconds in a month

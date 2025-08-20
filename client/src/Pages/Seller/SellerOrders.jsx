@@ -336,7 +336,9 @@ const SellerOrders = () => {
             </select>
           </div>
 
-          <div className="filter-actions">
+          <div className="filter-actions"
+          style={{ marginBottom: "23px"}}
+          >
             <button className="apply-btn" onClick={applyFilters}>
               Apply Filters
             </button>

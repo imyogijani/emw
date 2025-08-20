@@ -248,6 +248,7 @@ export const getAllProducts = async (req, res) => {
         _id: p._id,
         name: p.name,
         price: p.price,
+        finalPrice: p.finalPrice,
         image: p.image,
         stock: p.stock,
         status: p.status,
@@ -897,6 +898,87 @@ export const deleteCity = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete city",
+    });
+  }
+};
+
+//
+
+// Admin recent orders
+export const getAdminOrdersController = async (req, res) => {
+  try {
+    let { page = 1, limit = 10, filterType, startDate, endDate } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    const query = {};
+
+    if (!filterType && !startDate && !endDate) {
+      const date = new Date();
+      date.setDate(date.getDate() - 30);
+      query.createdAt = { $gte: date };
+    }
+
+    //  Date filtering
+    if (filterType === "today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      query.createdAt = { $gte: today, $lt: tomorrow };
+    } else if (filterType === "last7days") {
+      const date = new Date();
+      date.setDate(date.getDate() - 7);
+      query.createdAt = { $gte: date };
+    } else if (filterType === "last30days") {
+      const date = new Date();
+      date.setDate(date.getDate() - 30);
+      query.createdAt = { $gte: date };
+    } else if (startDate && endDate) {
+      query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    } else if (startDate) {
+      query.createdAt = { $gte: new Date(startDate) };
+    } else if (endDate) {
+      query.createdAt = { $lte: new Date(endDate) };
+    }
+
+    //  Fetch Orders with Pagination
+    const orders = await Order.find(query)
+      .populate("userId", "names email")
+      .populate("items.sellerId", "shopName")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await Order.countDocuments(query);
+
+    //  Format Response
+    const formattedOrders = orders.map((order) => ({
+      orderId: order.orderId,
+      customer: order.userId?.names || "Guest",
+      shops: [
+        ...new Set(
+          order.items.map((item) => item.sellerId?.shopName || "Unknown")
+        ),
+      ], // unique shop names
+      amount: order.totalAmount,
+      status: order.orderStatus,
+      createdAt: order.createdAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalOrders: total,
+      orders: formattedOrders,
+    });
+  } catch (error) {
+    console.error("Error fetching admin orders:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching orders",
+      error: error.message,
     });
   }
 };

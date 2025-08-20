@@ -5,7 +5,11 @@
 }
 
 .admin-header {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
   padding: 2rem;
   border-radius: 1rem;
   margin-bottom: 2rem;
@@ -95,7 +99,7 @@
 
 .search-box svg {
   position: absolute;
-  left: 1rem;
+  left: 2rem;
   top: 50%;
   transform: translateY(-50%);
   color: #666;
@@ -237,12 +241,12 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  
+
   .orders-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .orders-table {
     min-width: 800px;
   }
@@ -454,23 +458,23 @@
   .stat-card:hover {
     transform: none;
   }
-  
+
   .action-btn {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   .status-badge {
     min-height: 32px;
     display: inline-flex;
     align-items: center;
   }
-  
+
   .search-box input {
     min-height: 44px;
   }
-  
+
   .status-filter {
     min-height: 44px;
   }
-} 
+}
