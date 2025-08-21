@@ -11,6 +11,7 @@ import Category from "../models/categoryModel.js";
 import crypto from "crypto";
 // import { sendEmail } from "../utils/sendEmail.js";
 import Product from "../models/productModel.js";
+import admin from "../config/firebaseAdmin.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,7 +74,7 @@ const __dirname = path.dirname(__filename);
 
 /**
  * User Registration Controller
- * 
+ *
  * SECURITY PROTOCOL: Admin users bypass email verification requirements
  * - Admin users are automatically verified during registration
  * - This is a documented security exception for administrative access
@@ -81,14 +82,7 @@ const __dirname = path.dirname(__filename);
  */
 const registerController = async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      names,
-      mobile,
-    } = req.body;
+    const { firstName, lastName, email, password, names, mobile } = req.body;
 
     console.log("register body request :", req.body);
 
@@ -96,16 +90,17 @@ const registerController = async (req, res) => {
     if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
       return res.status(400).send({
         success: false,
-        message: "Please enter a valid 10-digit mobile number starting with 6-9",
+        message:
+          "Please enter a valid 10-digit mobile number starting with 6-9",
       });
     }
 
     // 2. Check existing user by email or mobile
-    const existingUser = await userModel.findOne({ 
-      $or: [{ email }, { mobile }] 
+    const existingUser = await userModel.findOne({
+      $or: [{ email }, { mobile }],
     });
     if (existingUser) {
-      const field = existingUser.email === email ? 'email' : 'mobile number';
+      const field = existingUser.email === email ? "email" : "mobile number";
       return res.status(409).send({
         success: false,
         message: `User with this ${field} already exists`,
@@ -129,8 +124,8 @@ const registerController = async (req, res) => {
 
     // SECURITY PROTOCOL: Admin users bypass email verification requirement
     // This is a documented exception for administrative access
-    if (req.body.role === 'admin') {
-      userData.role = 'admin';
+    if (req.body.role === "admin") {
+      userData.role = "admin";
       userData.emailVerified = true; // Admin users don't require email verification
       userData.isOnboardingComplete = true; // Admin users skip onboarding
     }
@@ -141,7 +136,8 @@ const registerController = async (req, res) => {
     // 6. Success response
     return res.status(201).send({
       success: true,
-      message: "User registered successfully! Please verify your email to continue.",
+      message:
+        "User registered successfully! Please verify your email to continue.",
       user: {
         _id: user._id,
         firstName: user.firstName,
@@ -164,7 +160,7 @@ const registerController = async (req, res) => {
 
 /**
  * User Login Controller
- * 
+ *
  * SECURITY PROTOCOL: Admin users bypass email verification checks
  * - Admin users can login without email verification
  * - This maintains operational efficiency for system administrators
@@ -198,12 +194,28 @@ const loginController = async (req, res) => {
     }
 
     // Email verification check - SECURITY PROTOCOL: Admin users bypass this requirement
-    if (!user.emailVerified && user.role !== 'admin') {
-      return res.status(403).send({
-        success: false,
-        message: "Please verify your email before logging in.",
-        requiresEmailVerification: true,
-      });
+    //  FIXED: admin is now defined
+    // 🔥 Updated Firebase email verification logic
+    let firebaseUser;
+    if (user.role !== "admin") {
+      // Only non-admins: fetch Firebase user and check email
+      firebaseUser = await admin.auth().getUserByEmail(user.email);
+
+      if (firebaseUser.emailVerified && !user.emailVerified) {
+        user.emailVerified = true;
+        await user.save();
+      }
+
+      if (!firebaseUser.emailVerified) {
+        return res.status(403).send({
+          success: false,
+          message: "Please verify your email before logging in.",
+          requiresEmailVerification: true,
+        });
+      }
+    } else {
+      // Admin: skip Firebase email verification completely
+      console.log("Admin login: skipping Firebase email check");
     }
 
     //  Banned  check
@@ -215,7 +227,11 @@ const loginController = async (req, res) => {
     }
 
     // Check subscription status for shopowners (only if they have completed onboarding)
-    if (user.role === "shopowner" && user.subscription && user.isOnboardingComplete) {
+    if (
+      user.role === "shopowner" &&
+      user.subscription &&
+      user.isOnboardingComplete
+    ) {
       const oneMonth = 30 * 24 * 60 * 60 * 1000; // milliseconds in a month
       const now = new Date();
       const subscriptionEndDate = new Date(
@@ -255,14 +271,16 @@ const loginController = async (req, res) => {
     };
 
     // ADMIN PROTOCOL: Admin users skip onboarding and go directly to dashboard
-    if (user.role === 'admin') {
+    if (user.role === "admin") {
       responseData.redirectToAdminDashboard = true;
-      responseData.message = "Admin login successful! Redirecting to dashboard.";
+      responseData.message =
+        "Admin login successful! Redirecting to dashboard.";
     } else {
       // Add onboarding status to response for non-admin users
       if (!user.isOnboardingComplete) {
         responseData.requiresOnboarding = true;
-        responseData.message = "Login successful! Please complete your onboarding.";
+        responseData.message =
+          "Login successful! Please complete your onboarding.";
       }
     }
 
@@ -329,7 +347,8 @@ export const updateProfileController = async (req, res) => {
       if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
         return res.status(400).json({
           success: false,
-          message: "Please enter a valid 10-digit mobile number starting with 6-9",
+          message:
+            "Please enter a valid 10-digit mobile number starting with 6-9",
         });
       }
       updateUserData.mobile = mobile;
@@ -859,7 +878,7 @@ const updateRoleController = async (req, res) => {
     const { role } = req.body;
     const userId = req.userId; // From auth middleware
 
-    if (!role || !['client', 'shopowner'].includes(role)) {
+    if (!role || !["client", "shopowner"].includes(role)) {
       return res.status(400).send({
         success: false,
         message: "Valid role is required (client or shopowner)",
@@ -880,7 +899,7 @@ const updateRoleController = async (req, res) => {
     await user.save();
 
     // Create seller profile if role is shopowner
-    if (role === 'shopowner') {
+    if (role === "shopowner") {
       const existingSeller = await Seller.findOne({ user: userId });
       if (!existingSeller) {
         const seller = new Seller({
@@ -942,9 +961,9 @@ const completeOnboardingController = async (req, res) => {
 
     // Update user onboarding status
     user.isOnboardingComplete = true;
-    
+
     // Store onboarding data based on user type
-    if (userType === 'customer' && onboardingData) {
+    if (userType === "customer" && onboardingData) {
       // Store customer preferences and settings
       user.preferences = onboardingData.preferences || [];
       user.location = onboardingData.location || {};

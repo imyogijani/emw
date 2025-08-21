@@ -20,6 +20,7 @@ import {
 } from "../../firebase/firebase";
 import { trackEvent } from "../../analytics/trackEvent";
 import Mall1Logo from "../../images/Mall1.png";
+import { requestPushPermission } from "../../utils/pushNotification";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -113,6 +114,8 @@ const Register = () => {
 
       const response = await axios.post("/api/auth/register", submitData);
       if (response.data.success) {
+        const user = response.data.user;
+        await requestPushPermission(user._id);
         trackEvent("register_success", {
           email: formData.email,
           location: window.location.pathname,
