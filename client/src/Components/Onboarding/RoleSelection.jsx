@@ -37,9 +37,13 @@ const RoleSelection = () => {
       );
 
       if (response.data.success) {
-        // Update user data in localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        // Update user data in localStorage with complete response data
+        const userData = response.data.user || JSON.parse(localStorage.getItem('user') || '{}');
         userData.role = role;
+        // If sellerId is provided in response, update it
+        if (response.data.sellerId) {
+          userData.sellerId = response.data.sellerId;
+        }
         localStorage.setItem('user', JSON.stringify(userData));
 
         toast.success('Role selected successfully!');

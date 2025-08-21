@@ -20,6 +20,12 @@ import {
   deleteState,
   deleteCity,
   getAdminOrdersController,
+  getSettings,
+  updateSettings,
+  getIncompleteOnboardingUsers,
+  forceCompleteOnboarding,
+  resetOnboarding,
+  getOnboardingStats,
 } from "../controllers/adminController.js";
 import {
   updateProduct,
@@ -96,5 +102,15 @@ router.delete("/locations/city/:stateName/:cityName", deleteCity);
 
 router.get("/documents", adminGetDocuments);
 router.patch("/documents/:docId/status", adminUpdateDocumentStatus);
+
+// Settings management
+router.get("/settings", getSettings);
+router.post("/settings", updateSettings);
+
+// Onboarding management
+router.get("/onboarding/incomplete", getIncompleteOnboardingUsers);
+router.patch("/onboarding/:userId/force-complete", forceCompleteOnboarding);
+router.patch("/onboarding/:userId/reset", resetOnboarding);
+router.get("/onboarding/stats", getOnboardingStats);
 
 export default router;

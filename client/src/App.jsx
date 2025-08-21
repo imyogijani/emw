@@ -40,6 +40,8 @@ import AdminMenu from "./Pages/admin/Menu";
 import AdminDeals from "./Pages/admin/AdminDeals";
 import AdminOffers from "./Pages/admin/AdminOffers";
 import ManageLocations from "./Pages/admin/ManageLocations";
+import Settings from "./Pages/admin/Settings";
+import OnboardingManagement from "./Pages/admin/OnboardingManagement";
 import SellerDashboard from "./Pages/Seller/SellerDashboard";
 import SellerProducts from "./Pages/Seller/SellerProducts";
 import AddProduct from "./Pages/Seller/AddProduct";
@@ -97,6 +99,8 @@ function LayoutWrapper() {
     "/admin/menu",
     "/admin/offers", // Hide navbar/footer for admin offers page
     "/admin/locations", // Hide navbar/footer for admin locations page
+    "/admin/onboarding", // Hide navbar/footer for admin onboarding page
+    "/admin/settings", // Hide navbar/footer for admin settings page
     "/seller",
     "/seller/dashboard",
     "/seller/products/all",
@@ -170,12 +174,14 @@ function LayoutWrapper() {
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
           <Route path="users" element={<Users />} />
+          <Route path="onboarding" element={<OnboardingManagement />} />
           <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="categories" element={<Categories />} />
           <Route path="deals" element={<AdminDeals />} />
           <Route path="menu" element={<AdminMenu />} />
           <Route path="offers" element={<AdminOffers />} />
           <Route path="locations" element={<ManageLocations />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         <Route

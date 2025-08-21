@@ -12,6 +12,7 @@ import crypto from "crypto";
 // import { sendEmail } from "../utils/sendEmail.js";
 import Product from "../models/productModel.js";
 import admin from "../config/firebaseAdmin.js";
+import Settings from "../models/settingsModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,6 +81,7 @@ const __dirname = path.dirname(__filename);
  * - This is a documented security exception for administrative access
  * - See: server/docs/ADMIN_SECURITY_PROTOCOLS.md for full documentation
  */
+
 const registerController = async (req, res) => {
   try {
     const { firstName, lastName, email, password, names, mobile } = req.body;
@@ -110,7 +112,10 @@ const registerController = async (req, res) => {
     // 3. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Prepare base user data (no role assigned initially)
+    // 4. Get email verification settings
+    const settings = await Settings.getSettings();
+
+    // 5. Prepare base user data (no role assigned initially)
     const userData = {
       firstName: firstName || "",
       lastName: lastName || "",
@@ -119,7 +124,7 @@ const registerController = async (req, res) => {
       names: names || `${firstName} ${lastName}`.trim(),
       mobile: mobile || "",
       isOnboardingComplete: false, // Track onboarding completion
-      emailVerified: false, // Track email verification (will be set to true for admin users)
+      emailVerified: false, // Track email verification (will be set based on settings)
     };
 
     // SECURITY PROTOCOL: Admin users bypass email verification requirement
@@ -128,12 +133,17 @@ const registerController = async (req, res) => {
       userData.role = "admin";
       userData.emailVerified = true; // Admin users don't require email verification
       userData.isOnboardingComplete = true; // Admin users skip onboarding
+    } else {
+      // For non-admin users, check if email verification is disabled globally
+      if (!settings.emailVerificationEnabled) {
+        userData.emailVerified = true; // Skip verification if master setting is disabled
+      }
     }
 
-    // 5. Save user
+    // 6. Save user
     const user = await new userModel(userData).save();
 
-    // 6. Success response
+    // 7. Success response
     return res.status(201).send({
       success: true,
       message:
@@ -194,28 +204,24 @@ const loginController = async (req, res) => {
     }
 
     // Email verification check - SECURITY PROTOCOL: Admin users bypass this requirement
-    //  FIXED: admin is now defined
-    // 🔥 Updated Firebase email verification logic
-    let firebaseUser;
-    if (user.role !== "admin") {
-      // Only non-admins: fetch Firebase user and check email
-      firebaseUser = await admin.auth().getUserByEmail(user.email);
+    // Also check dynamic settings for other user types
+    const settings = await Settings.getSettings();
+    const requiresVerification =
+      settings.emailVerificationEnabled &&
+      (user.role === "admin"
+        ? false
+        : user.role === "customer"
+        ? settings.customerEmailVerification
+        : user.role === "seller"
+        ? settings.sellerEmailVerification
+        : true);
 
-      if (firebaseUser.emailVerified && !user.emailVerified) {
-        user.emailVerified = true;
-        await user.save();
-      }
-
-      if (!firebaseUser.emailVerified) {
-        return res.status(403).send({
-          success: false,
-          message: "Please verify your email before logging in.",
-          requiresEmailVerification: true,
-        });
-      }
-    } else {
-      // Admin: skip Firebase email verification completely
-      console.log("Admin login: skipping Firebase email check");
+    if (!user.emailVerified && requiresVerification) {
+      return res.status(403).send({
+        success: false,
+        message: "Please verify your email before logging in.",
+        requiresEmailVerification: true,
+      });
     }
 
     //  Banned  check
@@ -894,6 +900,27 @@ const updateRoleController = async (req, res) => {
       });
     }
 
+    // Get email verification settings
+    const settings = await Settings.getSettings();
+
+    // Check if email verification is required for the new role
+    const newRoleRequiresVerification =
+      settings.emailVerificationEnabled &&
+      (role === "shopowner"
+        ? settings.sellerEmailVerification
+        : role === "client"
+        ? settings.customerEmailVerification
+        : false);
+
+    // If switching to a role that requires verification and user is not verified
+    if (newRoleRequiresVerification && !user.emailVerified) {
+      return res.status(403).send({
+        success: false,
+        message: "Please verify your email before switching to this role.",
+        requiresEmailVerification: true,
+      });
+    }
+
     // Update user role
     user.role = role;
     await user.save();
@@ -902,15 +929,20 @@ const updateRoleController = async (req, res) => {
     if (role === "shopowner") {
       const existingSeller = await Seller.findOne({ user: userId });
       if (!existingSeller) {
+        // Generate unique shop name using user ID and timestamp
+        const uniqueShopName = `Shop_${userId.toString().slice(-6)}_${Date.now()
+          .toString()
+          .slice(-6)}`;
+
         const seller = new Seller({
           user: userId,
-          shopName: "", // Will be set during seller onboarding
+          shopName: uniqueShopName, // Unique temporary name
           ownerName: user.names || `${user.firstName} ${user.lastName}`.trim(),
           description: "",
           categories: [],
           location: "",
           specialist: [],
-          status: "pending", // Pending until onboarding is complete
+          status: "inactive", // Inactive until onboarding is complete
           kycVerified: false,
           onboardingStep: 0, // Track onboarding progress
         });
@@ -932,6 +964,7 @@ const updateRoleController = async (req, res) => {
         role: user.role,
         isOnboardingComplete: user.isOnboardingComplete,
         emailVerified: user.emailVerified,
+        sellerId: user.sellerId, // Include sellerId for shopowner role
       },
     });
   } catch (error) {
