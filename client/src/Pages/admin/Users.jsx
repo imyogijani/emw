@@ -110,6 +110,13 @@ const Users = () => {
     }
   };
 
+  const getRoleDisplayText = (user) => {
+    if (!user.role || user.role === 'unknown' || user.role === '') {
+      return user.isOnboardingComplete === false ? 'Not selected yet' : 'Pending';
+    }
+    return user.role;
+  };
+
   const getUserStats = () => {
     const stats = users.reduce((acc, user) => {
       acc[user.role.toLowerCase()] = (acc[user.role.toLowerCase()] || 0) + 1;
@@ -206,8 +213,8 @@ const Users = () => {
                   <p className="user-email">{user.email}</p>
                   <p>
                     Role:{" "}
-                    <span className={`role-badge ${user.role}`}>
-                      {user.role}
+                    <span className={`role-badge ${user.role || 'pending'}`}>
+                      {getRoleDisplayText(user)}
                     </span>
                   </p>
                   <p>

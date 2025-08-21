@@ -13,6 +13,8 @@ import {
   FaHandshake,
   FaTag,
   FaBell,
+  FaCog,
+  FaUserCheck,
 } from "react-icons/fa";
 import { useTheme } from "../ThemeContext";
 import { toast } from "react-toastify";
@@ -43,12 +45,14 @@ const adminLinks = [
   },
   { name: "Orders", path: "/admin/orders", icon: <FaShoppingCart /> },
   { name: "Users", path: "/admin/users", icon: <FaUsers /> },
+  { name: "Onboarding", path: "/admin/onboarding", icon: <FaUserCheck /> },
   { name: "Deals", path: "/admin/deals", icon: <FaHandshake /> },
 
   { name: "Subscriptions", path: "/admin/subscriptions", icon: <FaTag /> },
 
   { name: "Menu", path: "/admin/menu", icon: <FaBookOpen /> },
   { name: "Today's Offers", path: "/admin/offers", icon: <FaBell /> },
+  { name: "Settings", path: "/admin/settings", icon: <FaCog /> },
 ];
 
 const AdminSidebar = ({ onClose }) => {

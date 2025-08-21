@@ -4,6 +4,7 @@ import Order from "../models/orderModel.js";
 import Subscription from "../models/subscriptionModel.js";
 import Seller from "../models/sellerModel.js";
 import Category from "../models/categoryModel.js";
+import Settings from "../models/settingsModel.js";
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
@@ -347,6 +348,56 @@ export const getAllUsers = async (req, res) => {
       status: user.status || "active",
       createdAt: user.createdAt,
       isOnboardingComplete: user.isOnboardingComplete || false,
+    }));
+
+    // 6. Send response
+    res.status(200).json({
+      success: true,
+      users: formattedUsers,
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / limit),
+      currentPage: Number(page),
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch users",
+      error: error.message,
+    });
+  }
+};
+
+// Get incomplete onboarding users
+export const getIncompleteOnboardingUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, role } = req.query;
+    
+    const filter = {
+      isOnboardingComplete: { $ne: true }
+    };
+    
+    if (role) {
+      filter.role = role.toLowerCase();
+    }
+    
+    const totalUsers = await User.countDocuments(filter);
+    
+    const users = await User.find(filter)
+      .populate("subscription")
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+    
+    const formattedUsers = users.map((user) => ({
+      _id: user._id,
+      name: user.names || user.shopName || 'N/A',
+      email: user.email || 'N/A',
+      role: user.role ? user.role.toLowerCase() : 'unknown',
+      status: user.status || "active",
+      createdAt: user.createdAt,
+      isOnboardingComplete: user.isOnboardingComplete || false,
       registrationStatus: user.emailVerified ? 'verified' : 'pending',
       subscription:
         user.role === "shopowner" && user.subscription
@@ -356,8 +407,7 @@ export const getAllUsers = async (req, res) => {
             }
           : undefined,
     }));
-
-    // 6. Return paginated response
+    
     res.json({
       success: true,
       totalUsers,
@@ -366,10 +416,146 @@ export const getAllUsers = async (req, res) => {
       users: formattedUsers,
     });
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching incomplete onboarding users:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching users",
+      message: "Error fetching incomplete onboarding users",
+      error: error.message,
+    });
+  }
+};
+
+// Force complete onboarding for a user
+export const forceCompleteOnboarding = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    
+    user.isOnboardingComplete = true;
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: "Onboarding marked as complete",
+      user: {
+        _id: user._id,
+        name: user.names || user.shopName || 'N/A',
+        email: user.email,
+        role: user.role,
+        isOnboardingComplete: user.isOnboardingComplete,
+      },
+    });
+  } catch (error) {
+    console.error("Error forcing onboarding completion:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating onboarding status",
+      error: error.message,
+    });
+  }
+};
+
+// Reset onboarding for a user
+export const resetOnboarding = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    
+    user.isOnboardingComplete = false;
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: "Onboarding reset successfully",
+      user: {
+        _id: user._id,
+        name: user.names || user.shopName || 'N/A',
+        email: user.email,
+        role: user.role,
+        isOnboardingComplete: user.isOnboardingComplete,
+      },
+    });
+  } catch (error) {
+    console.error("Error resetting onboarding:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error resetting onboarding status",
+      error: error.message,
+    });
+  }
+};
+
+// Get onboarding statistics
+export const getOnboardingStats = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const completedOnboarding = await User.countDocuments({ isOnboardingComplete: true });
+    const incompleteOnboarding = await User.countDocuments({ isOnboardingComplete: { $ne: true } });
+    
+    // Get stats by role
+    const roleStats = await User.aggregate([
+      {
+        $group: {
+          _id: "$role",
+          total: { $sum: 1 },
+          completed: {
+            $sum: {
+              $cond: [{ $eq: ["$isOnboardingComplete", true] }, 1, 0]
+            }
+          },
+          incomplete: {
+            $sum: {
+              $cond: [{ $ne: ["$isOnboardingComplete", true] }, 1, 0]
+            }
+          }
+        }
+      }
+    ]);
+    
+    // Get recent incomplete users
+    const recentIncomplete = await User.find({
+      isOnboardingComplete: { $ne: true }
+    })
+    .select("names email role createdAt")
+    .sort({ createdAt: -1 })
+    .limit(5);
+    
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        completedOnboarding,
+        incompleteOnboarding,
+        completionRate: totalUsers > 0 ? ((completedOnboarding / totalUsers) * 100).toFixed(2) : 0,
+        roleStats,
+        recentIncomplete: recentIncomplete.map(user => ({
+          _id: user._id,
+          name: user.names || 'N/A',
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt
+        }))
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching onboarding stats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching onboarding statistics",
       error: error.message,
     });
   }
@@ -982,5 +1168,112 @@ export const getAdminOrdersController = async (req, res) => {
       message: "Error fetching orders",
       error: error.message,
     });
+  }
+};
+
+// Get admin settings
+export const getSettings = async (req, res) => {
+  try {
+    const settings = await Settings.getSettings();
+    
+    return res.status(200).json({
+      success: true,
+      settings: {
+        emailVerificationEnabled: settings.emailVerificationEnabled,
+        customerEmailVerification: settings.customerEmailVerification,
+        sellerEmailVerification: settings.sellerEmailVerification,
+        maintenanceMode: settings.maintenanceMode,
+        allowRegistration: settings.allowRegistration,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching settings:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching settings",
+      error: error.message,
+    });
+  }
+};
+
+// Update admin settings
+export const updateSettings = async (req, res) => {
+  try {
+    const {
+      emailVerificationEnabled,
+      customerEmailVerification,
+      sellerEmailVerification,
+      maintenanceMode,
+      allowRegistration,
+    } = req.body;
+
+    // Validate input
+    const updates = {};
+    if (typeof emailVerificationEnabled === 'boolean') {
+      updates.emailVerificationEnabled = emailVerificationEnabled;
+    }
+    if (typeof customerEmailVerification === 'boolean') {
+      updates.customerEmailVerification = customerEmailVerification;
+    }
+    if (typeof sellerEmailVerification === 'boolean') {
+      updates.sellerEmailVerification = sellerEmailVerification;
+    }
+    if (typeof maintenanceMode === 'boolean') {
+      updates.maintenanceMode = maintenanceMode;
+    }
+    if (typeof allowRegistration === 'boolean') {
+      updates.allowRegistration = allowRegistration;
+    }
+
+    // If email verification is disabled, disable customer and seller verification too
+    if (updates.emailVerificationEnabled === false) {
+      updates.customerEmailVerification = false;
+      updates.sellerEmailVerification = false;
+    }
+
+    const settings = await Settings.updateSettings(updates);
+    
+    return res.status(200).json({
+      success: true,
+      message: "Settings updated successfully",
+      settings: {
+        emailVerificationEnabled: settings.emailVerificationEnabled,
+        customerEmailVerification: settings.customerEmailVerification,
+        sellerEmailVerification: settings.sellerEmailVerification,
+        maintenanceMode: settings.maintenanceMode,
+        allowRegistration: settings.allowRegistration,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating settings:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating settings",
+      error: error.message,
+    });
+  }
+};
+
+// Helper function to check if email verification is required for a specific user type
+export const isEmailVerificationRequired = async (userType = 'customer') => {
+  try {
+    const settings = await Settings.getSettings();
+    
+    if (!settings.emailVerificationEnabled) {
+      return false;
+    }
+    
+    if (userType === 'customer' || userType === 'client') {
+      return settings.customerEmailVerification;
+    }
+    
+    if (userType === 'seller' || userType === 'shopowner') {
+      return settings.sellerEmailVerification;
+    }
+    
+    return true; // Default to requiring verification
+  } catch (error) {
+    console.error("Error checking email verification requirement:", error);
+    return true; // Default to requiring verification on error
   }
 };
