@@ -35,6 +35,11 @@ const categorySchema = new mongoose.Schema(
       max: 50,
       default: 0, // default 0% GST
     },
+    defaultHsnCode: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     brands: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -42,6 +47,7 @@ const categorySchema = new mongoose.Schema(
       },
     ],
   },
+
   { timestamps: true }
 );
 

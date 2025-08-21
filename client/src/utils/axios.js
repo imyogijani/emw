@@ -3,7 +3,8 @@ import { toast } from "react-toastify";
 import { getApiBaseUrl } from "./apiConfig";
 
 const instance = axios.create({
-  baseURL: getApiBaseUrl(),
+  baseURL: import.meta.env.VITE_API_BASE_URL_LOCAL,
+  // baseURL: import.meta.env.VITE_API_BASE_URL_PROD,
   timeout: 15000, // Increased timeout for file uploads
   headers: {
     "Content-Type": "application/json",

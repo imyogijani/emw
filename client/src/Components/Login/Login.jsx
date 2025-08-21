@@ -68,7 +68,12 @@ const Login = () => {
       navigate("/admin/dashboard");
     } else if (role === "shopowner") {
       // Check if seller profile is completed (e.g., sellerId exists and has required fields)
-      if (!userObj?.sellerId || !userObj.sellerId.shopName || !userObj.sellerId.categories || userObj.sellerId.categories.length === 0) {
+      if (
+        !userObj?.sellerId ||
+        !userObj.sellerId.shopName ||
+        !userObj.sellerId.categories ||
+        userObj.sellerId.categories.length === 0
+      ) {
         navigate("/seller/onboarding");
       } else {
         navigate("/seller/dashboard");
@@ -113,19 +118,19 @@ const Login = () => {
     setError("");
     try {
       // Step 1: Firebase check
-      // const userCred = await signInWithEmailAndPassword(
-      //   auth,
-      //   formData.email,
-      //   formData.password
-      // );
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
 
       // // Step 2: Check email verification
-      // if (!userCred.user.emailVerified) {
-      //   await sendEmailVerification(userCred.user); //  Resend email
-      //   toast.error("Please verify your email. Verification email resent.");
-      //   setIsLoading(false);
-      //   return;
-      // }
+      if (!userCred.user.emailVerified) {
+        await sendEmailVerification(userCred.user); //  Resend email
+        toast.error("Please verify your email. Verification email resent.");
+        setIsLoading(false);
+        return;
+      }
 
       const response = await axios.post("/api/auth/login", formData);
       if (response.data.success) {
@@ -204,11 +209,7 @@ const Login = () => {
       <div className="login-visual-section">
         <div className="welcome-content">
           <div className="logo-container">
-            <img
-              src={Mall1Logo}
-              alt="EMW Logo"
-              className="main-logo"
-            />
+            <img src={Mall1Logo} alt="EMW Logo" className="main-logo" />
           </div>
           <div className="welcome-text">
             <h1>Welcome Back!</h1>

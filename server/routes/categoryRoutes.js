@@ -15,7 +15,9 @@ import {
   authenticateToken,
   authorizeAdmin,
 } from "../middlewares/authMiddleware.js";
-import upload, { saveImageToDatabase } from "../middlewares/uploadMiddleware.js";
+import upload, {
+  saveImageToDatabase,
+} from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 

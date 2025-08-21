@@ -27,12 +27,12 @@ export const createCategoryController = async (req, res) => {
 
     let image = "";
     let imageId = null;
-    
+
     if (req.file && req.imageRecord) {
       console.log("Category image upload:", req.file);
       image = req.imageRecord.url;
       imageId = req.imageRecord._id;
-      
+
       // Update the image record with category ID after category is created
       // This will be done after category creation
     } else if (req.file) {
@@ -100,6 +100,12 @@ export const createCategoryController = async (req, res) => {
       }
     }
 
+    if (parent && (!defaultHsnCode || defaultHsnCode.trim() === "")) {
+      return res
+        .status(400)
+        .json({ message: "HSN code is required for subcategories" });
+    }
+
     //  GST check for subcategory
     if (parent && gstPercentage === 0) {
       return res.status(400).json({
@@ -108,17 +114,17 @@ export const createCategoryController = async (req, res) => {
     }
 
     await category.save();
-    
+
     // Update image record with category ID if image was uploaded
     if (imageId) {
       try {
         await CategoryImage.findByIdAndUpdate(imageId, {
           categoryId: category._id,
           entityId: category._id,
-          entityType: 'Category'
+          entityType: "Category",
         });
       } catch (imageUpdateError) {
-        console.error('Error updating image record:', imageUpdateError);
+        console.error("Error updating image record:", imageUpdateError);
       }
     }
     res.status(201).send({
@@ -143,54 +149,54 @@ export const categoryController = async (req, res) => {
       path: "children",
       populate: { path: "children" },
     });
-    
+
     // Enhance categories with image information from database
     const enhancedCategories = await Promise.all(
       categories.map(async (category) => {
         const categoryObj = category.toObject();
-        
+
         // Get image from database
         const categoryImage = await CategoryImage.findOne({
           categoryId: category._id,
-          isActive: true
+          isActive: true,
         }).sort({ createdAt: -1 });
-        
+
         if (categoryImage) {
           categoryObj.imageInfo = {
             id: categoryImage._id,
             originalName: categoryImage.originalName,
             url: categoryImage.url,
-            metadata: categoryImage.metadata
+            metadata: categoryImage.metadata,
           };
         }
-        
+
         // Enhance children with image info too
         if (categoryObj.children && categoryObj.children.length > 0) {
           categoryObj.children = await Promise.all(
             categoryObj.children.map(async (child) => {
               const childImage = await CategoryImage.findOne({
                 categoryId: child._id,
-                isActive: true
+                isActive: true,
               }).sort({ createdAt: -1 });
-              
+
               if (childImage) {
                 child.imageInfo = {
                   id: childImage._id,
                   originalName: childImage.originalName,
                   url: childImage.url,
-                  metadata: childImage.metadata
+                  metadata: childImage.metadata,
                 };
               }
-              
+
               return child;
             })
           );
         }
-        
+
         return categoryObj;
       })
     );
-    
+
     res.status(200).send({
       success: true,
       message: "All Categories List",
@@ -329,7 +335,8 @@ export const updateCategoryController = async (req, res) => {
       suggestedHsnCodes,
       defaultHsnCode,
     } = req.body;
-
+    console.log("[DEBUG] Update Category Request Body:", req.body);
+    console.log("[DEBUG] req.file:", req.file);
     // First, get the current category to check if it's a subcategory
     const currentCategory = await Category.findById(req.params.id);
     if (!currentCategory) {
@@ -364,8 +371,7 @@ export const updateCategoryController = async (req, res) => {
     }
     let oldImagePath = null;
     if (req.file) {
-      // Use the already fetched currentCategory to get the old image path
-      if (currentCategory && currentCategory.image) {
+      if (currentCategory.image) {
         oldImagePath = path.join(
           path.resolve(),
           "backend/public",
@@ -374,9 +380,9 @@ export const updateCategoryController = async (req, res) => {
             : `/${currentCategory.image}`
         );
       }
-      // FIX: Use correct path for frontend
       updateData.image = `/uploads/categories/${req.file.filename}`;
     }
+
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },

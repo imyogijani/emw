@@ -40,6 +40,9 @@ const Categories = () => {
 
   const [selectedBrands, setSelectedBrands] = useState([]); // selected brands
 
+  const [editSubGstPercentage, setEditSubGstPercentage] = useState("");
+  const [selectedParentCategory, setSelectedParentCategory] = useState("");
+
   const [editingBrand, setEditingBrand] = useState(null);
   const [editBrandName, setEditBrandName] = useState("");
   const [editBrandDescription, setEditBrandDescription] = useState("");
@@ -209,7 +212,9 @@ const Categories = () => {
   };
 
   const handleEditCategoryImageChange = (e) => {
-    setEditCategoryImage(e.target.files[0]);
+    if (e.target.files && e.target.files[0]) {
+      setEditCategoryImage(e.target.files[0]);
+    }
   };
 
   const handleSaveCategoryUpdate = async () => {
@@ -217,15 +222,20 @@ const Categories = () => {
     try {
       const formData = new FormData();
       formData.append("name", newCategoryName.trim());
-      if (editCategoryImage) formData.append("image", editCategoryImage);
-      selectedBrands.forEach((brand) => formData.append("brands[]", brand));
+      if (editCategoryImage) {
+        formData.append("image", editCategoryImage, editCategoryImage.name);
+      }
 
-      // HSN codes are now handled only at subcategory level
+      // Debug: log formData
+      for (let [key, value] of formData.entries()) {
+        console.log("FormData:", key, value);
+      }
 
       await axiosInstance.post(
         `/api/category/update-category/${editingCategory._id}`,
         formData
-      ); // Removed manual Content-Type
+      );
+
       toast.success("Category updated successfully.");
       await initialLoad();
       resetEditState();
@@ -239,26 +249,46 @@ const Categories = () => {
     if (!editingSubCategory?._id || !newSubCategoryName.trim()) return;
 
     try {
-      const updateData = {
-        name: newSubCategoryName.trim(),
-      };
+      const formData = new FormData();
+      formData.append("name", newSubCategoryName.trim());
 
-      // Add HSN code fields if provided
-      if (editSubSuggestedHsnCodes.trim()) {
-        const hsnArray = editSubSuggestedHsnCodes
-          .split(",")
-          .map((code) => code.trim())
-          .filter((code) => code);
-        updateData.suggestedHsnCodes = hsnArray;
+      // Parent (from dropdown)
+      if (selectedParentCategory) {
+        formData.append("parent", selectedParentCategory);
       }
+
+      // GST %
+      if (editSubGstPercentage) {
+        formData.append("gstPercentage", editSubGstPercentage);
+      }
+
+      // Brands
+      if (selectedSubBrands.length > 0) {
+        selectedSubBrands.forEach((brandId) =>
+          formData.append("brands[]", brandId)
+        );
+      }
+
+      // Suggested HSN
+
+      // Default HSN
       if (editSubDefaultHsnCode.trim()) {
-        updateData.defaultHsnCode = editSubDefaultHsnCode.trim();
+        formData.append("defaultHsnCode", editSubDefaultHsnCode.trim());
       }
 
-      await axiosInstance.put(
-        `/api/category/update-category/${editingSubCategory._id}`,
-        updateData
+      // Image (if changed)
+      if (editCategoryImage) {
+        formData.append("image", editCategoryImage);
+      }
+
+      await axiosInstance.patch(
+        `/api/category/subcategory/${editingSubCategory._id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
+
       toast.success("Subcategory updated successfully.");
       await initialLoad();
       resetEditState();
@@ -680,68 +710,155 @@ const Categories = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>{editingCategory ? "Edit Category" : "Edit Subcategory"}</h2>
+
             <input
               type="text"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
             />
+
             <input
               type="file"
               accept="image/*"
               onChange={handleEditCategoryImageChange}
             />
-            <div className="brand-input-container">
-              <input
-                type="text"
-                placeholder="Brand Name (e.g., Nike, Adidas)"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-              />
-              <button type="button" onClick={handleAddBrand}>
-                Add Brand
-              </button>
-            </div>
-            <div className="selected-brands-list">
-              {selectedBrands.map((brand, index) => (
-                <span key={index} className="brand-tag">
-                  {brand}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveBrand(brand)}
-                  >
-                    x
-                  </button>
-                </span>
-              ))}
-            </div>
 
-            {/* HSN codes for categories removed - now handled only at subcategory level */}
-            {editingSubCategory && (
-              <div className="hsn-input-section">
-                <input
-                  className="form-input"
-                  type="text"
-                  placeholder="Suggested HSN Codes (comma-separated, e.g., 6403, 6404)"
-                  value={editSubSuggestedHsnCodes}
-                  onChange={(e) => setEditSubSuggestedHsnCodes(e.target.value)}
-                />
-                <input
-                  className="form-input"
-                  type="text"
-                  placeholder="Default HSN Code (e.g., 6403)"
-                  value={editSubDefaultHsnCode}
-                  onChange={(e) => setEditSubDefaultHsnCode(e.target.value)}
-                />
-              </div>
-            )}
             <div className="modal-actions">
               <button
                 className="btn btn-primary"
-                onClick={
-                  editingCategory
-                    ? handleSaveCategoryUpdate
-                    : handleSaveSubCategoryUpdate
-                }
+                onClick={handleSaveCategoryUpdate}
+              >
+                Save
+              </button>
+              <button className="btn btn-secondary" onClick={resetEditState}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingSubCategory && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Edit Subcategory</h2>
+
+            {/* Parent Category Dropdown */}
+            <div className="form-group">
+              <label>Parent Category</label>
+              <select
+                value={selectedParentCategory || editingSubCategory.parent}
+                onChange={(e) => setSelectedParentCategory(e.target.value)}
+                className="form-input"
+              >
+                <option value="">-- Select Parent Category --</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Subcategory Name */}
+            <div className="form-group">
+              <label>Subcategory Name</label>
+              <input
+                type="text"
+                value={newSubCategoryName}
+                onChange={(e) => setNewSubCategoryName(e.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            {/* GST % */}
+            <div className="form-group">
+              <label>GST Percentage</label>
+              <input
+                type="number"
+                value={editSubGstPercentage}
+                onChange={(e) => setEditSubGstPercentage(e.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            {/* Subcategory Image */}
+            <div className="form-group">
+              <label>Subcategory Image</label>
+              {editCategoryImage ? (
+                <img
+                  src={URL.createObjectURL(editCategoryImage)}
+                  alt="Preview"
+                  className="image-preview"
+                />
+              ) : (
+                editingSubCategory.image && (
+                  <img
+                    src={processCategoryImageUrl(editingSubCategory.image)}
+                    alt="Subcategory"
+                    className="image-preview"
+                  />
+                )
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setEditCategoryImage(e.target.files[0])}
+              />
+            </div>
+
+            {/* HSN Codes Section */}
+
+            <div className="form-group">
+              <label>Default HSN Code</label>
+              <input
+                type="text"
+                value={editSubDefaultHsnCode}
+                onChange={(e) => setEditSubDefaultHsnCode(e.target.value)}
+                placeholder="6403"
+                className="form-input"
+              />
+            </div>
+
+            {/* Selected Brands */}
+            <div className="form-group">
+              <label>Selected Brands</label>
+              <div className="selected-brands-list">
+                {selectedSubBrandDetails.map((brand) => (
+                  <span key={brand._id} className="brand-tag">
+                    {brand.name}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSelectedBrand(brand._id)}
+                    >
+                      x
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Add Brand */}
+            <div className="form-group">
+              <label>Add Brand</label>
+              <select
+                onChange={handleBrandSelectForSubcategory}
+                className="form-input"
+                value=""
+              >
+                <option value="">-- Select Brand --</option>
+                {brands.map((brand) => (
+                  <option key={brand._id} value={brand._id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn btn-primary"
+                onClick={handleSaveSubCategoryUpdate}
               >
                 Save
               </button>
