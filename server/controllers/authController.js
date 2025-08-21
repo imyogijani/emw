@@ -216,12 +216,34 @@ const loginController = async (req, res) => {
         ? settings.sellerEmailVerification
         : true);
 
-    if (!user.emailVerified && requiresVerification) {
-      return res.status(403).send({
-        success: false,
-        message: "Please verify your email before logging in.",
-        requiresEmailVerification: true,
-      });
+    // if (!user.emailVerified && requiresVerification) {
+    //   return res.status(403).send({
+    //     success: false,
+    //     message: "Please verify your email before logging in.",
+    //     requiresEmailVerification: true,
+    //   });
+    // }
+
+    let firebaseUser;
+    if (user.role !== "admin") {
+      // Only non-admins: fetch Firebase user and check email
+      firebaseUser = await admin.auth().getUserByEmail(user.email);
+
+      if (firebaseUser.emailVerified && !user.emailVerified) {
+        user.emailVerified = true;
+        await user.save();
+      }
+
+      if (!firebaseUser.emailVerified) {
+        return res.status(403).send({
+          success: false,
+          message: "Please verify your email before logging in.",
+          requiresEmailVerification: true,
+        });
+      }
+    } else {
+      // Admin: skip Firebase email verification completely
+      console.log("Admin login: skipping Firebase email check");
     }
 
     //  Banned  check

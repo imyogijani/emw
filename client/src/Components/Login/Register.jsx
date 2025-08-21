@@ -65,27 +65,24 @@ const Register = () => {
     setIsLoading(true);
     setError("");
 
-    // Validate password confirmation
+    // Basic validations
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
       toast.error("Passwords do not match");
+      setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
 
-    // Validate mobile number
-    const mobileRegex = /^[6-9]\d{9}$/;
-    if (!mobileRegex.test(formData.mobile)) {
-      setError("Please enter a valid 10-digit mobile number");
+    if (!/^[6-9]\d{9}$/.test(formData.mobile)) {
       toast.error("Please enter a valid 10-digit mobile number");
+      setError("Please enter a valid 10-digit mobile number");
       setIsLoading(false);
       return;
     }
 
-    // Validate password strength
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
       toast.error("Password must be at least 6 characters long");
+      setError("Password must be at least 6 characters long");
       setIsLoading(false);
       return;
     }
@@ -96,65 +93,58 @@ const Register = () => {
     });
 
     try {
+      // STEP 1: Call backend first
+      const submitData = {
+        ...formData,
+        names: `${formData.firstName} ${formData.lastName}`.trim(),
+      };
+      const response = await axios.post("/api/auth/register", submitData);
+
+      if (!response.data.success) {
+        toast.error(response.data.message);
+        setError(response.data.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // STEP 2: Only now create Firebase user
       const userCred = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
 
-      // Send verification email
-      await sendEmailVerification(userCred.user);
-      toast.success("Email verification sent. Please check your inbox.");
-
-      // Prepare data for backend
-      const submitData = {
-        ...formData,
-        names: `${formData.firstName} ${formData.lastName}`.trim(),
-      };
-
-      const response = await axios.post("/api/auth/register", submitData);
-      if (response.data.success) {
-        const user = response.data.user;
-        await requestPushPermission(user._id);
-        trackEvent("register_success", {
-          email: formData.email,
-          location: window.location.pathname,
-        });
-
-        toast.success(
-          "Registration successful! Please check your email for verification, then login."
-        );
-        navigate("/login");
-      } else {
-        setError(response.data.message);
-        toast.error(response.data.message);
+      // Send verification email (only for non-admin)
+      if (submitData.role !== "admin") {
+        await sendEmailVerification(userCred.user);
+        toast.success("Email verification sent. Please check your inbox.");
       }
+
+      const user = response.data.user;
+      await requestPushPermission(user._id);
+
+      trackEvent("register_success", {
+        email: formData.email,
+        location: window.location.pathname,
+      });
+
+      toast.success(
+        "Registration successful! Please check your email to verify."
+      );
+      navigate("/login");
     } catch (err) {
+      console.error("Registration error:", err);
       trackEvent("register_failed", {
         email: formData.email,
         reason: err.message || err.code,
         location: window.location.pathname,
       });
 
-      console.error("Firebase registration error:", err);
       const errorCode = err.code;
-
       if (errorCode === "auth/email-already-in-use") {
         toast.error("This email is already registered. Try logging in.");
-      } else if (errorCode === "auth/invalid-email") {
-        toast.error("Invalid email address. Please check your email.");
-      } else if (errorCode === "auth/weak-password") {
-        toast.error("Password is too weak. Must be at least 6 characters.");
-      } else if (errorCode === "auth/network-request-failed") {
-        toast.error("Network error. Please check your connection.");
-      } else if (errorCode === "auth/operation-not-allowed") {
-        toast.error(
-          "Email/password sign-up is not allowed. Enable it in Firebase Authentication settings."
-        );
       } else {
-        toast.error(
-          `Registration failed: ${err.message || "Try again later."}`
-        );
+        toast.error(err.message || "Registration failed. Try again later.");
       }
     } finally {
       setIsLoading(false);
