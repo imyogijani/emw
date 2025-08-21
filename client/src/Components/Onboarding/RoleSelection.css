@@ -1,0 +1,243 @@
+.role-selection-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.role-selection-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.role-selection-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.role-selection-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.role-selection-header p {
+  font-size: 1.2rem;
+  color: #718096;
+  margin: 0;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.role-option {
+  border: 3px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f7fafc;
+  position: relative;
+  overflow: hidden;
+}
+
+.role-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.role-option:hover::before {
+  left: 100%;
+}
+
+.role-option:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.role-option.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+}
+
+.role-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.seller-icon {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+.customer-icon {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+}
+
+.role-option.selected .role-icon {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.role-option h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: inherit;
+}
+
+.role-option p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.role-option ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.role-option li {
+  padding: 8px 0;
+  position: relative;
+  padding-left: 25px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.role-option li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  color: #48bb78;
+  font-weight: bold;
+}
+
+.role-option.selected li::before {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  color: #4a5568;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .role-selection-card {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+  
+  .role-selection-header h1 {
+    font-size: 2rem;
+  }
+  
+  .role-options {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .role-option {
+    padding: 25px 20px;
+  }
+  
+  .role-icon {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .role-selection-container {
+    padding: 10px;
+  }
+  
+  .role-selection-card {
+    padding: 25px 15px;
+  }
+  
+  .role-selection-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .role-selection-header p {
+    font-size: 1rem;
+  }
+  
+  .role-option {
+    padding: 20px 15px;
+  }
+  
+  .role-option h3 {
+    font-size: 1.3rem;
+  }
+}

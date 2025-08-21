@@ -58,6 +58,7 @@ import Checkout from "./Pages/Checkout/Checkout";
 import Payment from "./Pages/Payment/Payment";
 import Invoice from "./Pages/Invoice/Invoice";
 import SellerOnboarding from "./Pages/Seller/SellerOnboarding";
+import Onboarding from "./Components/Onboarding/Onboarding";
 
 
 function LayoutWrapper() {
@@ -83,6 +84,7 @@ function LayoutWrapper() {
     "/register",
     "/checkout",
     "/payment",
+    "/onboarding",
 
     "/admin",
     "/admin/dashboard",
@@ -132,6 +134,7 @@ function LayoutWrapper() {
         <Route path="login" element={<AuthTransition><Login /></AuthTransition>} />
         <Route path="register" element={<AuthTransition><Register /></AuthTransition>} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/onboarding/*" element={<Onboarding />} />
 
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />

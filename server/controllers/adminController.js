@@ -338,14 +338,16 @@ export const getAllUsers = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-    // 5. Format response (same as your existing)
+    // 5. Format response with null checks and onboarding status
     const formattedUsers = users.map((user) => ({
       _id: user._id,
-      name: user.names || user.shopName,
-      email: user.email,
-      role: user.role.toLowerCase(),
+      name: user.names || user.shopName || 'N/A',
+      email: user.email || 'N/A',
+      role: user.role ? user.role.toLowerCase() : 'unknown',
       status: user.status || "active",
       createdAt: user.createdAt,
+      isOnboardingComplete: user.isOnboardingComplete || false,
+      registrationStatus: user.emailVerified ? 'verified' : 'pending',
       subscription:
         user.role === "shopowner" && user.subscription
           ? {

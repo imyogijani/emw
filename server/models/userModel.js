@@ -3,10 +3,20 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    firstName: {
+      type: String,
+      required: [true, "First name is required"],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: [true, "Last name is required"],
+      trim: true,
+    },
     role: {
       type: String,
-      required: [true, "Role is required"],
       enum: ["admin", "shopowner", "client"],
+      default: null, // Will be set during onboarding
     },
     avatar: {
       type: String,
@@ -14,24 +24,39 @@ const userSchema = new mongoose.Schema(
     },
     names: {
       type: String,
-      required: function () {
-        if (this.role === "client" || this.role === "admin") {
-          return true;
-        }
-        return false;
-      },
+      required: false, // Will be computed from firstName + lastName
     },
-
     email: {
       type: String,
       required: [true, "Email is required"],
       unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    mobile: {
+      type: String,
+      required: [true, "Mobile number is required"],
+      unique: true,
+      trim: true,
+      validate: {
+        validator: function(v) {
+          return /^[6-9]\d{9}$/.test(v);
+        },
+        message: "Please enter a valid 10-digit mobile number starting with 6-9"
+      }
     },
     password: {
       type: String,
       required: [true, "Password is required"],
     },
-
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isOnboardingComplete: {
+      type: Boolean,
+      default: false,
+    },
     address: {
       addressLine: { type: String, required: false },
       addressLine2: { type: String, required: false },
@@ -42,7 +67,7 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "Phone Number is required"],
+      required: false, // Will be collected during onboarding
     },
     avatar: {
       type: String,

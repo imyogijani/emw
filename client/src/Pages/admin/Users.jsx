@@ -216,11 +216,25 @@ const Users = () => {
                       {user.status}
                     </span>
                   </p>
+                  <p>
+                    Registration:{" "}
+                    <span className={`status-badge ${user.registrationStatus || 'pending'}`}>
+                      {user.registrationStatus === 'verified' ? 'Verified' : 'Pending'}
+                    </span>
+                  </p>
+                  {user.role === "shopowner" && (
+                    <p>
+                      Onboarding:{" "}
+                      <span className={`status-badge ${user.isOnboardingComplete ? 'completed' : 'pending'}`}>
+                        {user.isOnboardingComplete ? 'Completed' : 'Pending'}
+                      </span>
+                    </p>
+                  )}
                   {user.role === "shopowner" && user.subscription && (
                     <p>
                       Subscription:{" "}
                       <span className="subscription-name">
-                        {user.subscription.name}
+                        {user.subscription.planName || user.subscription.name}
                       </span>
                     </p>
                   )}

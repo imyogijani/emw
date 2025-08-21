@@ -131,17 +131,22 @@ const Login = () => {
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        console.log(
-          "user data",
-          localStorage.getItem("user", JSON.stringify(response.data.user))
-        );
-        console.log(
-          "user token",
-          localStorage.getItem("token", JSON.stringify(response.data.token))
-        );
-
+        
         document.cookie = `token=${response.data.token}; path=/; max-age=86400; secure; samesite=strict`;
-        toast.success("Welcome back! 👋");
+        toast.success(response.data.message || "Welcome back! 👋");
+        
+        // ADMIN PROTOCOL: Check for admin dashboard redirection first
+        if (response.data.redirectToAdminDashboard) {
+          navigate("/admin/dashboard");
+          return;
+        }
+        
+        // Check if onboarding is required for non-admin users
+        if (response.data.requiresOnboarding) {
+          navigate("/onboarding");
+          return;
+        }
+        
         if (customerOnly) {
           if (response.data.user.role === "client") {
             navigate(returnUrl);
@@ -153,12 +158,18 @@ const Login = () => {
             localStorage.removeItem("user");
           }
         } else {
-          redirectBasedOnRole(response.data.user.role, response.data.user);
+          // Redirect based on role only if onboarding is complete
+          if (response.data.user.role) {
+            redirectBasedOnRole(response.data.user.role, response.data.user);
+          } else {
+            // If no role is set, redirect to onboarding
+            navigate("/onboarding");
+          }
         }
 
         await trackEvent("login", {
           method: "email",
-          role: response.data.user.role,
+          role: response.data.user.role || "unknown",
           location: window.location.pathname,
         });
       } else {
@@ -169,7 +180,21 @@ const Login = () => {
     } catch (err) {
       let errorMsg = "Login failed. Please try again.";
 
-      if (err.code === "auth/user-not-found") {
+      // Handle backend API errors
+      if (err.response && err.response.data) {
+        errorMsg = err.response.data.message;
+        
+        // Handle email verification requirement
+        if (err.response.data.requiresEmailVerification) {
+          toast.error("Please verify your email before logging in. Check your inbox for the verification link.");
+          setError("Email verification required");
+          setFormData((prev) => ({
+            ...prev,
+            password: "",
+          }));
+          return;
+        }
+      } else if (err.code === "auth/user-not-found") {
         errorMsg = "No account found with this email.";
       } else if (err.code === "auth/wrong-password") {
         errorMsg = "Incorrect password. Please try again.";

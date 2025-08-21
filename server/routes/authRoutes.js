@@ -11,6 +11,10 @@ import {
   acceptPlanUpdateController,
   forgotPassword,
   resetPassword,
+  verifyEmailController,
+  resendVerificationController,
+  updateRoleController,
+  completeOnboardingController,
 } from "../controllers/authController.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import { authenticateToken } from "../middlewares/authMiddleware.js";
@@ -77,5 +81,15 @@ router.get("/uploads/avatars/:filename", (req, res) => {
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+
+// Email verification routes
+router.post("/verify-email", verifyEmailController);
+router.post("/resend-verification", resendVerificationController);
+
+// Update role route
+router.patch("/update-role", authenticateToken, updateRoleController);
+
+// Complete onboarding route
+router.patch("/complete-onboarding", authenticateToken, completeOnboardingController);
 
 export default router;

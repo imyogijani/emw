@@ -109,7 +109,7 @@ export const getProductReviews = async (req, res) => {
     const { productId } = req.params;
 
     const reviews = await Review.find({ product: productId })
-      .populate("user", "role names shopownerName") // Populate required fields
+      .populate("user", "role names firstName lastName") // Populate required fields
       .sort({ createdAt: -1 });
 
     const updatedReviews = reviews.map((review) => {
@@ -119,7 +119,7 @@ export const getProductReviews = async (req, res) => {
       if (user.role === "client" || user.role === "admin") {
         username = user.names;
       } else if (user.role === "shopowner") {
-        username = user.shopownerName;
+        username = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.names;
       }
 
       return {
