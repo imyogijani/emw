@@ -104,7 +104,6 @@ const sellerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 sellerSchema.index({ shopName: 1 });
-sellerSchema.index({ shopownerName: 1 });
 sellerSchema.index({ status: 1 });
 sellerSchema.index({ createdAt: -1 });
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
@@ -18,6 +19,10 @@ const SellerOnboarding = () => {
     brands: [],
     shopLogo: null,
     logoPreview: null,
+    categoryInput: "",
+    brandInput: "",
+    categoryInputFocused: false,
+    brandInputFocused: false,
 
     // Step 2 - Shop Timing
     workingHours: {
@@ -44,44 +49,15 @@ const SellerOnboarding = () => {
     navigate("/login");
   };
 
-  // Subscription plans data
-  const subscriptionPlans = [
-    {
-      id: "basic",
-      name: "Basic",
-      price: "₹499/month",
-      features: [
-        "List up to 50 products",
-        "Basic analytics",
-        "Standard support",
-        "Single location",
-      ],
-    },
-    {
-      id: "premium",
-      name: "Premium",
-      price: "₹999/month",
-      features: [
-        "Unlimited products",
-        "Advanced analytics",
-        "Priority support",
-        "Multiple locations",
-        "Custom branding",
-      ],
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      price: "₹1999/month",
-      features: [
-        "Everything in Premium",
-        "API access",
-        "Dedicated account manager",
-        "Custom development",
-        "24/7 support",
-      ],
-    },
-  ];
+  // Cleanup effect for logo preview URL
+  useEffect(() => {
+    return () => {
+      // Clean up logo preview URL on component unmount
+      if (formData.logoPreview) {
+        URL.revokeObjectURL(formData.logoPreview);
+      }
+    };
+  }, [formData.logoPreview]);
 
   // Fetch categories and brands on component mount
   useEffect(() => {
@@ -95,14 +71,11 @@ const SellerOnboarding = () => {
         const res = await axios.get("/api/subscriptions");
         if (res.data.success) {
           setPlans(res.data.subscriptions);
-          // console.log(
-          //   "OnBoarding - Get subscriptions Plan",
-          //   res.data.subscriptions
-          // );
         } else {
-          toast(res.data.message || "Failed to load plans");
+          toast.error(res.data.message || "Failed to load plans");
         }
       } catch (err) {
+        console.error("Error fetching subscription plans:", err);
         toast.error("Failed to fetch subscription plans.");
       } finally {
         setLoading(false);
@@ -113,11 +86,10 @@ const SellerOnboarding = () => {
 
   const fetchCategories = async () => {
     try {
-      // Fetch from new server endpoint for shop categories
       const response = await axios.get("/api/category/get-category");
       setCategories(response.data.categories || []);
-      // console.log("Fetched categories:", response.data.categories);
     } catch (error) {
+      console.error("Error fetching categories:", error);
       toast.error("Failed to fetch categories");
     }
   };
@@ -125,9 +97,9 @@ const SellerOnboarding = () => {
   const fetchBrands = async () => {
     try {
       const response = await axios.get("/api/brands");
-      // console.log("Fetched brands:", response.data.brands);
       setBrands(response.data.brands || []);
     } catch (error) {
+      console.error("Error fetching brands:", error);
       toast.error("Failed to fetch brands");
     }
   };
@@ -135,6 +107,10 @@ const SellerOnboarding = () => {
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Clean up previous preview URL to prevent memory leaks
+      if (formData.logoPreview) {
+        URL.revokeObjectURL(formData.logoPreview);
+      }
       setFormData({
         ...formData,
         shopLogo: file,
@@ -216,6 +192,7 @@ const SellerOnboarding = () => {
           toast.error("Shop logo is required");
           return false;
         }
+        // Brands are now optional - no validation needed
         break;
       case 2:
         // At least one day should be open
@@ -285,8 +262,10 @@ const SellerOnboarding = () => {
       });
 
       toast.success("Profile completed successfully!");
-      // Redirect to seller dashboard or appropriate page
+      // Redirect to seller dashboard
+      navigate("/seller/dashboard");
     } catch (error) {
+      console.error("Profile completion error:", error);
       toast.error(
         error.response?.data?.message || "Failed to complete profile"
       );
@@ -299,8 +278,22 @@ const SellerOnboarding = () => {
   const submitStep1 = async () => {
     try {
       setLoading(true);
-      const sellerId = JSON.parse(localStorage.getItem("user")).sellerId;
-      // console.log("Submitting  Seller Id :", sellerId);
+      
+      // Safe localStorage access
+      const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        toast.error("User session not found. Please login again.");
+        navigate("/login");
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      const sellerId = user?.sellerId;
+      
+      if (!sellerId?._id) {
+        toast.error("Seller ID not found. Please contact support.");
+        return;
+      }
 
       const fd = new FormData();
       fd.append("sellerId", sellerId._id);
@@ -312,10 +305,10 @@ const SellerOnboarding = () => {
       }
 
       const response = await axios.post("/api/seller/onboarding/step1", fd);
-      // console.log("Step 1 response:", response.data);
       toast.success("Step 1 saved successfully");
-      setStep(2); // go next
+      setStep(2);
     } catch (error) {
+      console.error("Step 1 submission error:", error);
       toast.error(error.response?.data?.message || "Failed to save Step 1");
     } finally {
       setLoading(false);
@@ -326,7 +319,22 @@ const SellerOnboarding = () => {
   const submitStep2 = async () => {
     try {
       setLoading(true);
-      const sellerId = JSON.parse(localStorage.getItem("user")).sellerId;
+      
+      // Safe localStorage access
+      const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        toast.error("User session not found. Please login again.");
+        navigate("/login");
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      const sellerId = user?.sellerId;
+      
+      if (!sellerId?._id) {
+        toast.error("Seller ID not found. Please contact support.");
+        return;
+      }
 
       // Convert frontend workingHours → backend format
       const convertedTimings = {};
@@ -336,7 +344,7 @@ const SellerOnboarding = () => {
             { openTime: timing.open, closeTime: timing.close },
           ];
         } else {
-          convertedTimings[day] = []; // closed means empty array
+          convertedTimings[day] = [];
         }
       });
 
@@ -350,10 +358,10 @@ const SellerOnboarding = () => {
         `/api/shop-timing/${sellerId._id}`,
         data
       );
-      // console.log("Shop timings saved successfully", response.data);
       toast.success("Shop timings saved successfully");
-      setStep(3); // go next
+      setStep(3);
     } catch (error) {
+      console.error("Step 2 submission error:", error);
       toast.error(error.response?.data?.message || "Failed to save timings");
     } finally {
       setLoading(false);
@@ -392,13 +400,21 @@ const SellerOnboarding = () => {
     }
   };
 
-  // Get seller name from localStorage
-  let sellerName = "Seller";
-  try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    sellerName =
-      user?.names || user?.shopownerName || user?.shopName || "Seller";
-  } catch {}
+  // Get seller name from localStorage with proper error handling
+  const getSellerName = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return "Seller";
+      
+      const user = JSON.parse(userStr);
+      return user?.firstName || user?.names || user?.shopownerName || user?.shopName || "Seller";
+    } catch (error) {
+      console.warn("Error parsing user data from localStorage:", error);
+      return "Seller";
+    }
+  };
+  
+  const sellerName = getSellerName();
 
   const renderBasicDetailsForm = () => (
     <div className="form-step">
@@ -478,8 +494,6 @@ const SellerOnboarding = () => {
                   key={catId}
                 >
                   {cat.name}
-
-                  {/* {console.log("Category tag:", cat.name, "ID:", cat._id)} */}
                   <button
                     type="button"
                     className="remove-tag"
@@ -529,12 +543,12 @@ const SellerOnboarding = () => {
       </div>
 
       <div className="form-group">
-        <label className="form-label">Brands</label>
+        <label className="form-label">Brands (Optional)</label>
         <div className="multi-select-tags">
           <input
             type="text"
             className="form-input"
-            placeholder="Type to filter brands..."
+            placeholder="Type to filter brands... (Optional)"
             value={formData.brandInput || ""}
             onChange={(e) =>
               setFormData({ ...formData, brandInput: e.target.value })

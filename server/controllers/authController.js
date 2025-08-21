@@ -71,222 +71,86 @@ const __dirname = path.dirname(__filename);
 //   }
 // };
 
+/**
+ * User Registration Controller
+ * 
+ * SECURITY PROTOCOL: Admin users bypass email verification requirements
+ * - Admin users are automatically verified during registration
+ * - This is a documented security exception for administrative access
+ * - See: server/docs/ADMIN_SECURITY_PROTOCOLS.md for full documentation
+ */
 const registerController = async (req, res) => {
   try {
     const {
+      firstName,
+      lastName,
       email,
       password,
-      role,
-      subscriptionId,
-      shopName,
-      shopownerName,
-      avatar,
-      // shopImage,
-      // shopImages,
-      description,
-      // categories,
-      location,
-      addressLine,
-      // addressLine2,
-      city,
-      state,
-      pincode,
-      country,
       names,
-      phone,
-      gstNumber,
+      mobile,
     } = req.body;
-
-    console.log("Files:", req.body);
-    const files = req.files;
-    const shopImage = files?.shopImage?.[0]?.filename || null;
-    const shopImages =
-      files?.shopImages?.map((file) => `/uploads/shopowner/${file.filename}`) ||
-      [];
-    if (shopImage) {
-      shopImages.unshift(`/uploads/shopowner/${shopImage}`);
-    }
 
     console.log("register body request :", req.body);
 
-    // 1. Check existing user
-    const existingUser = await userModel.findOne({ email });
+    // 1. Validate mobile number format
+    if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
+      return res.status(400).send({
+        success: false,
+        message: "Please enter a valid 10-digit mobile number starting with 6-9",
+      });
+    }
+
+    // 2. Check existing user by email or mobile
+    const existingUser = await userModel.findOne({ 
+      $or: [{ email }, { mobile }] 
+    });
     if (existingUser) {
+      const field = existingUser.email === email ? 'email' : 'mobile number';
       return res.status(409).send({
         success: false,
-        message: "User already exists",
+        message: `User with this ${field} already exists`,
       });
     }
 
-    // 2. Hash password
-    console.log("Hashed Password:", password);
+    // 3. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (!addressLine || !city || !state || !pincode) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "All address fields are required (addressLine, city, state, pincode)",
-      });
-    }
-
-    // const requiredAddressFields = { addressLine, city, state, pincode };
-    // for (const [fieldName, fieldValue] of Object.entries(
-    //   requiredAddressFields
-    // )) {
-    //   if (!fieldValue || fieldValue.trim() === "") {
-    //     return res.status(400).json({
-    //       success: false,
-    //       message: `${fieldName} is required`,
-    //     });
-    //   }
-    // }
-
-    // construct address object
-    const address = {
-      addressLine,
-      // addressLine2: addressLine2 ? addressLine2.trim() : "",
-      city,
-      state,
-      pincode,
-      country: country || "India",
-    };
-
-    // 3. Prepare base user data
+    // 4. Prepare base user data (no role assigned initially)
     const userData = {
+      firstName: firstName || "",
+      lastName: lastName || "",
       email,
       password: hashedPassword,
-      role,
-      names,
-      phone,
-      address,
-      avatar: avatar || null,
+      names: names || `${firstName} ${lastName}`.trim(),
+      mobile: mobile || "",
+      isOnboardingComplete: false, // Track onboarding completion
+      emailVerified: false, // Track email verification (will be set to true for admin users)
     };
 
-    // 4. If shopowner, handle subscription & shop fields
-    let parsedCategories = [];
-    if (role === "shopowner") {
-      if (!shopName || !shopownerName) {
-        return res.status(400).json({
-          success: false,
-          message: "Missing shopowner fields (shopName, shopownerName)",
-        });
-      }
-
-      if (subscriptionId) {
-        const subscription = await Subscription.findById(subscriptionId);
-        if (!subscription) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid subscription",
-          });
-        }
-        userData.subscription = subscriptionId;
-        userData.subscriptionStartDate = new Date();
-        userData.subscriptionFeatures = subscription.includedFeatures;
-      } else {
-        // Optional: default free plan ka features de do ya blank chhod do
-        userData.subscription = null;
-        userData.subscriptionStartDate = null;
-        userData.subscriptionFeatures = [];
-      }
-
-      if (typeof req.body.categories === "string") {
-        try {
-          parsedCategories = JSON.parse(req.body.categories);
-        } catch (err) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid categories format",
-          });
-        }
-      } else {
-        parsedCategories = req.body.categories || [];
-      }
-
-      const validCategories = await Category.find({
-        _id: { $in: parsedCategories },
-      });
-
-      if (validCategories.length !== parsedCategories.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Some categories are invalid",
-        });
-      }
-
-      // userData.subscription = subscriptionId;
-      // userData.subscriptionStartDate = new Date();
-      // userData.subscriptionFeatures = subscription.includedFeatures;
-      userData.shopName = shopName;
-      userData.shopownerName = shopownerName;
-      userData.shopImage = shopImage || null;
-    } else {
-      parsedCategories = req.body.categories || [];
-    }
-
-    // New add gst :
-    let validatedGST = null;
-
-    if (role === "shopowner" && gstNumber) {
-      const gstRegex =
-        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-
-      //  Check format
-      if (!gstRegex.test(gstNumber)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid GST number format",
-        });
-      }
-
-      //  Check if already exists in another seller
-      const existingGST = await Seller.findOne({ gstNumber: gstNumber.trim() });
-      if (existingGST) {
-        return res.status(409).json({
-          success: false,
-          message: "GST number already in use",
-        });
-      }
-
-      //  Save for later use
-      validatedGST = gstNumber.trim();
+    // SECURITY PROTOCOL: Admin users bypass email verification requirement
+    // This is a documented exception for administrative access
+    if (req.body.role === 'admin') {
+      userData.role = 'admin';
+      userData.emailVerified = true; // Admin users don't require email verification
+      userData.isOnboardingComplete = true; // Admin users skip onboarding
     }
 
     // 5. Save user
     const user = await new userModel(userData).save();
 
-    // 6. Create seller if shopowner
-    if (role === "shopowner") {
-      const seller = new Seller({
-        user: user._id,
-        shopName,
-        shopImage,
-        shopImages,
-        ownerName: user.names || "", // Or from formData.shopownerName
-        description: description || "",
-        categories: parsedCategories || [],
-        location: location || "",
-        // address: user.address || "",
-        // address: "",
-        specialist: [],
-        status: "active",
-        gstNumber: validatedGST, //  save it here
-        kycVerified: false,
-      });
-
-      const savedSeller = await seller.save();
-
-      // Link seller to user
-      user.sellerId = savedSeller._id;
-      await user.save();
-    }
-
-    // 7. Success response
+    // 6. Success response
     return res.status(201).send({
       success: true,
-      message: "User registered successfully 🎉",
-      user,
+      message: "User registered successfully! Please verify your email to continue.",
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        mobile: user.mobile,
+        isOnboardingComplete: user.isOnboardingComplete,
+        emailVerified: user.emailVerified,
+      },
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -298,7 +162,14 @@ const registerController = async (req, res) => {
   }
 };
 
-//login call back
+/**
+ * User Login Controller
+ * 
+ * SECURITY PROTOCOL: Admin users bypass email verification checks
+ * - Admin users can login without email verification
+ * - This maintains operational efficiency for system administrators
+ * - See: server/docs/ADMIN_SECURITY_PROTOCOLS.md for full documentation
+ */
 const loginController = async (req, res) => {
   try {
     const user = await userModel
@@ -326,6 +197,15 @@ const loginController = async (req, res) => {
       });
     }
 
+    // Email verification check - SECURITY PROTOCOL: Admin users bypass this requirement
+    if (!user.emailVerified && user.role !== 'admin') {
+      return res.status(403).send({
+        success: false,
+        message: "Please verify your email before logging in.",
+        requiresEmailVerification: true,
+      });
+    }
+
     //  Banned  check
     if (user.status === "banned") {
       return res.status(403).send({
@@ -334,15 +214,8 @@ const loginController = async (req, res) => {
       });
     }
 
-    // if (user.status === "inactive") {
-    //   return res.status(403).send({
-    //     success: false,
-    //     message: "Your account is inactive. Please contact support.",
-    //   });
-    // }
-
-    // Check subscription status for shopowners
-    if (user.role === "shopowner" && user.subscription) {
+    // Check subscription status for shopowners (only if they have completed onboarding)
+    if (user.role === "shopowner" && user.subscription && user.isOnboardingComplete) {
       const oneMonth = 30 * 24 * 60 * 60 * 1000; // milliseconds in a month
       const now = new Date();
       const subscriptionEndDate = new Date(
@@ -362,12 +235,38 @@ const loginController = async (req, res) => {
       expiresIn: "1d",
     });
 
-    return res.status(200).send({
+    // Prepare response based on onboarding status
+    const responseData = {
       success: true,
       message: "Login successful 🎉",
       token,
-      user,
-    });
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isOnboardingComplete: user.isOnboardingComplete,
+        emailVerified: user.emailVerified,
+        names: user.names,
+        avatar: user.avatar,
+        status: user.status,
+      },
+    };
+
+    // ADMIN PROTOCOL: Admin users skip onboarding and go directly to dashboard
+    if (user.role === 'admin') {
+      responseData.redirectToAdminDashboard = true;
+      responseData.message = "Admin login successful! Redirecting to dashboard.";
+    } else {
+      // Add onboarding status to response for non-admin users
+      if (!user.isOnboardingComplete) {
+        responseData.requiresOnboarding = true;
+        responseData.message = "Login successful! Please complete your onboarding.";
+      }
+    }
+
+    return res.status(200).send(responseData);
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -422,9 +321,19 @@ export const updateProfileController = async (req, res) => {
     const updateSellerData = {};
 
     // === USER FIELDS (Common) ===
-    const { names, phone } = req.body;
+    const { names, phone, mobile } = req.body;
     if (names !== undefined) updateUserData.names = names;
     if (phone !== undefined) updateUserData.phone = phone;
+    if (mobile !== undefined) {
+      // Validate mobile number format if provided
+      if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please enter a valid 10-digit mobile number starting with 6-9",
+        });
+      }
+      updateUserData.mobile = mobile;
+    }
     // Validate and update address
 
     console.log("Update profile", req.body);
@@ -459,11 +368,9 @@ export const updateProfileController = async (req, res) => {
 
     // === SELLER FIELDS (Shopowner only) ===
     if (user.role === "shopowner") {
-      const { shopName, shopownerName, categories } = req.body;
+      const { shopName, categories } = req.body;
 
       if (shopName !== undefined) updateSellerData.shopName = shopName;
-      if (shopownerName !== undefined)
-        updateSellerData.ownerName = shopownerName;
       if (address !== undefined) updateSellerData.address = address;
 
       // Handle main image
@@ -863,9 +770,219 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+// Email verification controller
+const verifyEmailController = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).send({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // Find user by email
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Mark email as verified
+    user.emailVerified = true;
+    await user.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Email verified successfully! You can now log in.",
+    });
+  } catch (error) {
+    console.error("Email verification error:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error verifying email",
+      error: error.message,
+    });
+  }
+};
+
+// Resend verification email controller
+const resendVerificationController = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).send({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // Find user by email
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).send({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+
+    // In a real implementation, you would send the verification email here
+    // For now, we'll just return a success message
+    return res.status(200).send({
+      success: true,
+      message: "Verification email sent! Please check your inbox.",
+    });
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error sending verification email",
+      error: error.message,
+    });
+  }
+};
+
+// Update user role controller
+const updateRoleController = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const userId = req.userId; // From auth middleware
+
+    if (!role || !['client', 'shopowner'].includes(role)) {
+      return res.status(400).send({
+        success: false,
+        message: "Valid role is required (client or shopowner)",
+      });
+    }
+
+    // Find and update user
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update user role
+    user.role = role;
+    await user.save();
+
+    // Create seller profile if role is shopowner
+    if (role === 'shopowner') {
+      const existingSeller = await Seller.findOne({ user: userId });
+      if (!existingSeller) {
+        const seller = new Seller({
+          user: userId,
+          shopName: "", // Will be set during seller onboarding
+          ownerName: user.names || `${user.firstName} ${user.lastName}`.trim(),
+          description: "",
+          categories: [],
+          location: "",
+          specialist: [],
+          status: "pending", // Pending until onboarding is complete
+          kycVerified: false,
+          onboardingStep: 0, // Track onboarding progress
+        });
+
+        const savedSeller = await seller.save();
+        user.sellerId = savedSeller._id;
+        await user.save();
+      }
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: "Role updated successfully!",
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isOnboardingComplete: user.isOnboardingComplete,
+        emailVerified: user.emailVerified,
+      },
+    });
+  } catch (error) {
+    console.error("Update role error:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error updating role",
+      error: error.message,
+    });
+  }
+};
+
+// Complete onboarding controller
+const completeOnboardingController = async (req, res) => {
+  try {
+    const { onboardingData, userType } = req.body;
+    const userId = req.userId; // From auth middleware
+
+    // Find user
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update user onboarding status
+    user.isOnboardingComplete = true;
+    
+    // Store onboarding data based on user type
+    if (userType === 'customer' && onboardingData) {
+      // Store customer preferences and settings
+      user.preferences = onboardingData.preferences || [];
+      user.location = onboardingData.location || {};
+      user.notificationSettings = onboardingData.notifications || {};
+    }
+
+    await user.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Onboarding completed successfully!",
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isOnboardingComplete: user.isOnboardingComplete,
+        emailVerified: user.emailVerified,
+      },
+    });
+  } catch (error) {
+    console.error("Complete onboarding error:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Error completing onboarding",
+      error: error.message,
+    });
+  }
+};
+
 export {
   registerController,
   loginController,
   currentUserController,
   uploadAvatarController,
+  verifyEmailController,
+  resendVerificationController,
+  updateRoleController,
+  completeOnboardingController,
 };

@@ -46,12 +46,13 @@ export const onboardingStep1 = async (req, res) => {
       });
     }
 
-    if (!brands) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one brand is required",
-      });
-    }
+    // Brands are optional now
+    // if (!brands) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "At least one brand is required",
+    //   });
+    // }
 
     // Images from multer
     const files = req.files;
@@ -90,25 +91,23 @@ export const onboardingStep1 = async (req, res) => {
       });
     }
 
-    //  validate brands
-    let parsedBrands = Array.isArray(brands) ? brands : JSON.parse(brands);
+    //  validate brands (optional)
+    let parsedBrands = [];
+    if (brands) {
+      parsedBrands = Array.isArray(brands) ? brands : JSON.parse(brands);
+      
+      if (parsedBrands.length > 0) {
+        const validBrands = await Brand.find({
+          _id: { $in: parsedBrands },
+        });
 
-    if (parsedBrands.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one brand is required",
-      });
-    }
-
-    const validBrands = await Brand.find({
-      _id: { $in: parsedBrands },
-    });
-
-    if (validBrands.length !== parsedBrands.length) {
-      return res.status(400).json({
-        success: false,
-        message: "Some brands are invalid",
-      });
+        if (validBrands.length !== parsedBrands.length) {
+          return res.status(400).json({
+            success: false,
+            message: "Some brands are invalid",
+          });
+        }
+      }
     }
 
     //  update seller document
@@ -116,7 +115,7 @@ export const onboardingStep1 = async (req, res) => {
     seller.shopImage = shopImage || seller.shopImage;
     seller.shopImages = shopImages.length > 0 ? shopImages : seller.shopImages;
     seller.categories = parsedCategories;
-    seller.brands = parsedBrands;
+    seller.brands = parsedBrands || [];
 
     if (seller.onboardingStep) {
       seller.onboardingStep = seller.onboardingStep + 1;

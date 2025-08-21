@@ -27,6 +27,7 @@ const UserProfile = ({ onClose }) => {
     shopownerName: "",
     email: "",
     phone: "",
+    mobile: "",
     address: "",
     avatar: "",
     role: "",
@@ -53,6 +54,7 @@ const UserProfile = ({ onClose }) => {
         shopownerName: userData.shopownerName || "",
         email: userData.email || "",
         phone: userData.phone || "",
+        mobile: userData.mobile || "",
         address: userData.address || "",
         avatar: userData.avatar || "",
         role: userData.role || "",
@@ -104,6 +106,7 @@ const UserProfile = ({ onClose }) => {
           shopownerName: updatedUser.shopownerName || prev.shopownerName,
           email: updatedUser.email,
           phone: updatedUser.phone,
+          mobile: updatedUser.mobile,
           address: updatedUser.address,
           avatar: updatedUser.avatar,
         }));
@@ -314,6 +317,25 @@ const UserProfile = ({ onClose }) => {
                   disabled={!isEditing}
                   placeholder="Phone Number"
                   className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div className="input-group">
+                {/* <FaPhone className="input-icon" /> */}
+                <label htmlFor="">Mobile:</label>
+                <input
+                  type="tel"
+                  name="mobile"
+                  value={formData.mobile}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="Mobile Number"
+                  className="form-input"
+                  pattern="[6-9]\d{9}"
+                  maxLength="10"
+                  title="Please enter a valid 10-digit mobile number starting with 6-9"
                 />
               </div>
             </div>
