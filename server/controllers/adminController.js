@@ -14,6 +14,80 @@ import { State, City } from "../models/locationModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Toggle demo access for seller
+export const toggleDemoAccess = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.role !== "shopowner") {
+      return res.status(400).json({
+        success: false,
+        message: "Demo access can only be set for sellers",
+      });
+    }
+
+    user.demoAccess = !user.demoAccess;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Demo access ${
+        user.demoAccess ? "enabled" : "disabled"
+      } for seller`,
+      demoAccess: user.demoAccess,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get all sellers with demo status
+export const getSellersWithDemoStatus = async (req, res) => {
+  try {
+    // Query params (defaults: page=1, limit=10)
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    // Calculate skip
+    const skip = (page - 1) * limit;
+
+    // Fetch sellers with pagination
+    const sellers = await User.find({ role: "shopowner" })
+      .select("firstName lastName names email demoAccess")
+      .populate("sellerId", "shopName")
+      .skip(skip)
+      .limit(limit);
+
+    // Total count for pagination metadata
+    const totalSellers = await User.countDocuments({ role: "shopowner" });
+
+    res.status(200).json({
+      success: true,
+      page,
+      limit,
+      totalPages: Math.ceil(totalSellers / limit),
+      totalSellers,
+      sellers: sellers.map((seller) => ({
+        id: seller._id,
+        name: `${seller.firstName} ${seller.lastName}`,
+        email: seller.email,
+        shopName: seller.sellerId ? seller.sellerId.shopName : "N/A",
+        demoAccess: seller.demoAccess,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Get dashboard statistics
 export const getDashboardStats = async (req, res) => {
   try {
@@ -342,9 +416,9 @@ export const getAllUsers = async (req, res) => {
     // 5. Format response with null checks and onboarding status
     const formattedUsers = users.map((user) => ({
       _id: user._id,
-      name: user.names || user.shopName || 'N/A',
-      email: user.email || 'N/A',
-      role: user.role ? user.role.toLowerCase() : 'unknown',
+      name: user.names || user.shopName || "N/A",
+      email: user.email || "N/A",
+      role: user.role ? user.role.toLowerCase() : "unknown",
       status: user.status || "active",
       createdAt: user.createdAt,
       isOnboardingComplete: user.isOnboardingComplete || false,
@@ -372,33 +446,33 @@ export const getAllUsers = async (req, res) => {
 export const getIncompleteOnboardingUsers = async (req, res) => {
   try {
     const { page = 1, limit = 10, role } = req.query;
-    
+
     const filter = {
-      isOnboardingComplete: { $ne: true }
+      isOnboardingComplete: { $ne: true },
     };
-    
+
     if (role) {
       filter.role = role.toLowerCase();
     }
-    
+
     const totalUsers = await User.countDocuments(filter);
-    
+
     const users = await User.find(filter)
       .populate("subscription")
       .select("-password")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
-    
+
     const formattedUsers = users.map((user) => ({
       _id: user._id,
-      name: user.names || user.shopName || 'N/A',
-      email: user.email || 'N/A',
-      role: user.role ? user.role.toLowerCase() : 'unknown',
+      name: user.names || user.shopName || "N/A",
+      email: user.email || "N/A",
+      role: user.role ? user.role.toLowerCase() : "unknown",
       status: user.status || "active",
       createdAt: user.createdAt,
       isOnboardingComplete: user.isOnboardingComplete || false,
-      registrationStatus: user.emailVerified ? 'verified' : 'pending',
+      registrationStatus: user.emailVerified ? "verified" : "pending",
       subscription:
         user.role === "shopowner" && user.subscription
           ? {
@@ -407,7 +481,7 @@ export const getIncompleteOnboardingUsers = async (req, res) => {
             }
           : undefined,
     }));
-    
+
     res.json({
       success: true,
       totalUsers,
@@ -429,7 +503,7 @@ export const getIncompleteOnboardingUsers = async (req, res) => {
 export const forceCompleteOnboarding = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({
@@ -437,16 +511,16 @@ export const forceCompleteOnboarding = async (req, res) => {
         message: "User not found",
       });
     }
-    
+
     user.isOnboardingComplete = true;
     await user.save();
-    
+
     res.json({
       success: true,
       message: "Onboarding marked as complete",
       user: {
         _id: user._id,
-        name: user.names || user.shopName || 'N/A',
+        name: user.names || user.shopName || "N/A",
         email: user.email,
         role: user.role,
         isOnboardingComplete: user.isOnboardingComplete,
@@ -466,7 +540,7 @@ export const forceCompleteOnboarding = async (req, res) => {
 export const resetOnboarding = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({
@@ -474,16 +548,16 @@ export const resetOnboarding = async (req, res) => {
         message: "User not found",
       });
     }
-    
+
     user.isOnboardingComplete = false;
     await user.save();
-    
+
     res.json({
       success: true,
       message: "Onboarding reset successfully",
       user: {
         _id: user._id,
-        name: user.names || user.shopName || 'N/A',
+        name: user.names || user.shopName || "N/A",
         email: user.email,
         role: user.role,
         isOnboardingComplete: user.isOnboardingComplete,
@@ -503,9 +577,13 @@ export const resetOnboarding = async (req, res) => {
 export const getOnboardingStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
-    const completedOnboarding = await User.countDocuments({ isOnboardingComplete: true });
-    const incompleteOnboarding = await User.countDocuments({ isOnboardingComplete: { $ne: true } });
-    
+    const completedOnboarding = await User.countDocuments({
+      isOnboardingComplete: true,
+    });
+    const incompleteOnboarding = await User.countDocuments({
+      isOnboardingComplete: { $ne: true },
+    });
+
     // Get stats by role
     const roleStats = await User.aggregate([
       {
@@ -514,42 +592,45 @@ export const getOnboardingStats = async (req, res) => {
           total: { $sum: 1 },
           completed: {
             $sum: {
-              $cond: [{ $eq: ["$isOnboardingComplete", true] }, 1, 0]
-            }
+              $cond: [{ $eq: ["$isOnboardingComplete", true] }, 1, 0],
+            },
           },
           incomplete: {
             $sum: {
-              $cond: [{ $ne: ["$isOnboardingComplete", true] }, 1, 0]
-            }
-          }
-        }
-      }
+              $cond: [{ $ne: ["$isOnboardingComplete", true] }, 1, 0],
+            },
+          },
+        },
+      },
     ]);
-    
+
     // Get recent incomplete users
     const recentIncomplete = await User.find({
-      isOnboardingComplete: { $ne: true }
+      isOnboardingComplete: { $ne: true },
     })
-    .select("names email role createdAt")
-    .sort({ createdAt: -1 })
-    .limit(5);
-    
+      .select("names email role createdAt")
+      .sort({ createdAt: -1 })
+      .limit(5);
+
     res.json({
       success: true,
       stats: {
         totalUsers,
         completedOnboarding,
         incompleteOnboarding,
-        completionRate: totalUsers > 0 ? ((completedOnboarding / totalUsers) * 100).toFixed(2) : 0,
+        completionRate:
+          totalUsers > 0
+            ? ((completedOnboarding / totalUsers) * 100).toFixed(2)
+            : 0,
         roleStats,
-        recentIncomplete: recentIncomplete.map(user => ({
+        recentIncomplete: recentIncomplete.map((user) => ({
           _id: user._id,
-          name: user.names || 'N/A',
+          name: user.names || "N/A",
           email: user.email,
           role: user.role,
-          createdAt: user.createdAt
-        }))
-      }
+          createdAt: user.createdAt,
+        })),
+      },
     });
   } catch (error) {
     console.error("Error fetching onboarding stats:", error);
@@ -840,11 +921,11 @@ export const getAllLocations = async (req, res) => {
     // Get all states with their cities and areas
     const states = await State.find({ active: true })
       .populate({
-        path: 'cities',
+        path: "cities",
         match: { active: true },
-        select: 'name areas'
+        select: "name areas",
       })
-      .select('name');
+      .select("name");
 
     // Transform to legacy format for backward compatibility
     const pincodesData = {};
@@ -853,17 +934,17 @@ export const getAllLocations = async (req, res) => {
 
     for (const state of states) {
       pincodesData[state.name] = {};
-      
-      const cities = await City.find({ 
-        state: state._id, 
-        active: true 
-      }).select('name areas');
-      
+
+      const cities = await City.find({
+        state: state._id,
+        active: true,
+      }).select("name areas");
+
       for (const city of cities) {
         totalCities++;
         pincodesData[state.name][city.name] = {};
-        
-        city.areas.forEach(area => {
+
+        city.areas.forEach((area) => {
           pincodesData[state.name][city.name][area.name] = area.pincode;
           totalPincodes++;
         });
@@ -904,7 +985,7 @@ export const addState = async (req, res) => {
 
     // Check if state already exists
     const existingState = await State.findOne({
-      name: { $regex: `^${stateName.trim()}$`, $options: 'i' }
+      name: { $regex: `^${stateName.trim()}$`, $options: "i" },
     });
 
     if (existingState) {
@@ -916,8 +997,8 @@ export const addState = async (req, res) => {
 
     const newState = new State({
       name: stateName.trim(),
-      createdBy: req.user?.id || 'admin',
-      updatedBy: req.user?.id || 'admin'
+      createdBy: req.user?.id || "admin",
+      updatedBy: req.user?.id || "admin",
     });
 
     await newState.save();
@@ -950,8 +1031,8 @@ export const addCity = async (req, res) => {
 
     // Find the state
     const state = await State.findOne({
-      name: { $regex: `^${stateName.trim()}$`, $options: 'i' },
-      active: true
+      name: { $regex: `^${stateName.trim()}$`, $options: "i" },
+      active: true,
     });
 
     if (!state) {
@@ -963,8 +1044,8 @@ export const addCity = async (req, res) => {
 
     // Check if city already exists in this state
     const existingCity = await City.findOne({
-      name: { $regex: `^${cityName.trim()}$`, $options: 'i' },
-      state: state._id
+      name: { $regex: `^${cityName.trim()}$`, $options: "i" },
+      state: state._id,
     });
 
     if (existingCity) {
@@ -977,8 +1058,8 @@ export const addCity = async (req, res) => {
     const newCity = new City({
       name: cityName.trim(),
       state: state._id,
-      createdBy: req.user?.id || 'admin',
-      updatedBy: req.user?.id || 'admin'
+      createdBy: req.user?.id || "admin",
+      updatedBy: req.user?.id || "admin",
     });
 
     await newCity.save();
@@ -1003,7 +1084,7 @@ export const deleteState = async (req, res) => {
     const { stateName } = req.params;
 
     const state = await State.findOne({
-      name: { $regex: `^${stateName}$`, $options: 'i' }
+      name: { $regex: `^${stateName}$`, $options: "i" },
     });
 
     if (!state) {
@@ -1015,16 +1096,16 @@ export const deleteState = async (req, res) => {
 
     // Soft delete - mark as inactive
     state.active = false;
-    state.updatedBy = req.user?.id || 'admin';
+    state.updatedBy = req.user?.id || "admin";
     await state.save();
 
     // Also soft delete all cities in this state
     await City.updateMany(
       { state: state._id },
-      { 
-        active: false, 
-        updatedBy: req.user?.id || 'admin',
-        updatedAt: new Date()
+      {
+        active: false,
+        updatedBy: req.user?.id || "admin",
+        updatedAt: new Date(),
       }
     );
 
@@ -1048,8 +1129,8 @@ export const deleteCity = async (req, res) => {
 
     // Find the state first
     const state = await State.findOne({
-      name: { $regex: `^${stateName}$`, $options: 'i' },
-      active: true
+      name: { $regex: `^${stateName}$`, $options: "i" },
+      active: true,
     });
 
     if (!state) {
@@ -1061,8 +1142,8 @@ export const deleteCity = async (req, res) => {
 
     // Find the city
     const city = await City.findOne({
-      name: { $regex: `^${cityName}$`, $options: 'i' },
-      state: state._id
+      name: { $regex: `^${cityName}$`, $options: "i" },
+      state: state._id,
     });
 
     if (!city) {
@@ -1074,7 +1155,7 @@ export const deleteCity = async (req, res) => {
 
     // Soft delete - mark as inactive
     city.active = false;
-    city.updatedBy = req.user?.id || 'admin';
+    city.updatedBy = req.user?.id || "admin";
     await city.save();
 
     res.json({
@@ -1175,7 +1256,7 @@ export const getAdminOrdersController = async (req, res) => {
 export const getSettings = async (req, res) => {
   try {
     const settings = await Settings.getSettings();
-    
+
     return res.status(200).json({
       success: true,
       settings: {
@@ -1209,19 +1290,19 @@ export const updateSettings = async (req, res) => {
 
     // Validate input
     const updates = {};
-    if (typeof emailVerificationEnabled === 'boolean') {
+    if (typeof emailVerificationEnabled === "boolean") {
       updates.emailVerificationEnabled = emailVerificationEnabled;
     }
-    if (typeof customerEmailVerification === 'boolean') {
+    if (typeof customerEmailVerification === "boolean") {
       updates.customerEmailVerification = customerEmailVerification;
     }
-    if (typeof sellerEmailVerification === 'boolean') {
+    if (typeof sellerEmailVerification === "boolean") {
       updates.sellerEmailVerification = sellerEmailVerification;
     }
-    if (typeof maintenanceMode === 'boolean') {
+    if (typeof maintenanceMode === "boolean") {
       updates.maintenanceMode = maintenanceMode;
     }
-    if (typeof allowRegistration === 'boolean') {
+    if (typeof allowRegistration === "boolean") {
       updates.allowRegistration = allowRegistration;
     }
 
@@ -1232,7 +1313,7 @@ export const updateSettings = async (req, res) => {
     }
 
     const settings = await Settings.updateSettings(updates);
-    
+
     return res.status(200).json({
       success: true,
       message: "Settings updated successfully",
@@ -1255,22 +1336,22 @@ export const updateSettings = async (req, res) => {
 };
 
 // Helper function to check if email verification is required for a specific user type
-export const isEmailVerificationRequired = async (userType = 'customer') => {
+export const isEmailVerificationRequired = async (userType = "customer") => {
   try {
     const settings = await Settings.getSettings();
-    
+
     if (!settings.emailVerificationEnabled) {
       return false;
     }
-    
-    if (userType === 'customer' || userType === 'client') {
+
+    if (userType === "customer" || userType === "client") {
       return settings.customerEmailVerification;
     }
-    
-    if (userType === 'seller' || userType === 'shopowner') {
+
+    if (userType === "seller" || userType === "shopowner") {
       return settings.sellerEmailVerification;
     }
-    
+
     return true; // Default to requiring verification
   } catch (error) {
     console.error("Error checking email verification requirement:", error);

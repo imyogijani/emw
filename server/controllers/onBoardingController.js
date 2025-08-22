@@ -12,7 +12,7 @@ export const onboardingStep1 = async (req, res) => {
   try {
     const { categories, brands, shopName, sellerId } = req.body;
 
-    // console.log("Obboarding Body", req.body);
+    console.log("Obboarding Body", req.body);
 
     //  sellerId check
     if (!sellerId) {
@@ -95,7 +95,7 @@ export const onboardingStep1 = async (req, res) => {
     let parsedBrands = [];
     if (brands) {
       parsedBrands = Array.isArray(brands) ? brands : JSON.parse(brands);
-      
+
       if (parsedBrands.length > 0) {
         const validBrands = await Brand.find({
           _id: { $in: parsedBrands },

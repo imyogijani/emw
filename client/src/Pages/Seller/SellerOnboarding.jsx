@@ -278,7 +278,7 @@ const SellerOnboarding = () => {
   const submitStep1 = async () => {
     try {
       setLoading(true);
-      
+
       // Safe localStorage access
       const userStr = localStorage.getItem("user");
       if (!userStr) {
@@ -286,17 +286,18 @@ const SellerOnboarding = () => {
         navigate("/login");
         return;
       }
-      
+
       const user = JSON.parse(userStr);
       const sellerId = user?.sellerId;
-      
-      if (!sellerId?._id) {
+      // console.log("User details:", sellerId);
+
+      if (!sellerId) {
         toast.error("Seller ID not found. Please contact support.");
         return;
       }
 
       const fd = new FormData();
-      fd.append("sellerId", sellerId._id);
+      fd.append("sellerId", sellerId);
       fd.append("shopName", formData.shopName);
       fd.append("categories", JSON.stringify(formData.categories));
       fd.append("brands", JSON.stringify(formData.brands));
@@ -304,6 +305,7 @@ const SellerOnboarding = () => {
         fd.append("shopImage", formData.shopLogo);
       }
 
+      console.log("form data onboarding step1 passed", fd);
       const response = await axios.post("/api/seller/onboarding/step1", fd);
       toast.success("Step 1 saved successfully");
       setStep(2);
@@ -319,7 +321,7 @@ const SellerOnboarding = () => {
   const submitStep2 = async () => {
     try {
       setLoading(true);
-      
+
       // Safe localStorage access
       const userStr = localStorage.getItem("user");
       if (!userStr) {
@@ -327,11 +329,11 @@ const SellerOnboarding = () => {
         navigate("/login");
         return;
       }
-      
+
       const user = JSON.parse(userStr);
       const sellerId = user?.sellerId;
-      
-      if (!sellerId?._id) {
+
+      if (!sellerId) {
         toast.error("Seller ID not found. Please contact support.");
         return;
       }
@@ -354,10 +356,7 @@ const SellerOnboarding = () => {
         incrementOnboarding: true,
       };
 
-      const response = await axios.post(
-        `/api/shop-timing/${sellerId._id}`,
-        data
-      );
+      const response = await axios.post(`/api/shop-timing/${sellerId}`, data);
       toast.success("Shop timings saved successfully");
       setStep(3);
     } catch (error) {
@@ -405,15 +404,21 @@ const SellerOnboarding = () => {
     try {
       const userStr = localStorage.getItem("user");
       if (!userStr) return "Seller";
-      
+
       const user = JSON.parse(userStr);
-      return user?.firstName || user?.names || user?.shopownerName || user?.shopName || "Seller";
+      return (
+        user?.firstName ||
+        user?.names ||
+        user?.shopownerName ||
+        user?.shopName ||
+        "Seller"
+      );
     } catch (error) {
       console.warn("Error parsing user data from localStorage:", error);
       return "Seller";
     }
   };
-  
+
   const sellerName = getSellerName();
 
   const renderBasicDetailsForm = () => (

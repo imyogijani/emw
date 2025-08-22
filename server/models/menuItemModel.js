@@ -78,6 +78,7 @@ const menuItemSchema = new mongoose.Schema(
     position: {
       type: Number,
       default: 0, // lower position → show first
+      min: 0,
     },
   },
   { timestamps: true }

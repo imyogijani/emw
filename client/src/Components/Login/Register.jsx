@@ -27,7 +27,7 @@ const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
-    mobile: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -73,9 +73,9 @@ const Register = () => {
       return;
     }
 
-    if (!/^[6-9]\d{9}$/.test(formData.mobile)) {
-      toast.error("Please enter a valid 10-digit mobile number");
-      setError("Please enter a valid 10-digit mobile number");
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      toast.error("Please enter a valid 10-digit phone number");
+      setError("Please enter a valid 10-digit phone number");
       setIsLoading(false);
       return;
     }
@@ -271,21 +271,21 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Mobile Number */}
+            {/* phone Number */}
             <div className="form-group">
               <div className="input-group">
                 {/* <FaPhone className="input-icon" /> */}
                 <input
                   type="tel"
-                  name="mobile"
-                  placeholder="Mobile Number"
-                  value={formData.mobile}
+                  name="phone"
+                  placeholder="phone Number"
+                  value={formData.phone}
                   onChange={handleChange}
                   required
                   className="form-input"
                   pattern="[6-9]\d{9}"
                   maxLength="10"
-                  title="Please enter a valid 10-digit mobile number starting with 6-9"
+                  title="Please enter a valid 10-digit phone number starting with 6-9"
                 />
               </div>
             </div>

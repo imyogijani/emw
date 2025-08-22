@@ -17,7 +17,7 @@ import {
   completeOnboardingController,
 } from "../controllers/authController.js";
 import upload from "../middlewares/uploadMiddleware.js";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
+import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 import path from "path";
 
 const router = express.Router();
@@ -87,7 +87,7 @@ router.post("/verify-email", verifyEmailController);
 router.post("/resend-verification", resendVerificationController);
 
 // Update role route
-router.patch("/update-role", authenticateToken, updateRoleController);
+router.patch("/update-role", authenticateToken, fetchUser, updateRoleController);
 
 // Complete onboarding route
 router.patch("/complete-onboarding", authenticateToken, completeOnboardingController);

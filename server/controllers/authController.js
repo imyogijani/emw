@@ -84,25 +84,24 @@ const __dirname = path.dirname(__filename);
 
 const registerController = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, names, mobile } = req.body;
+    const { firstName, lastName, email, password, names, phone } = req.body;
 
     console.log("register body request :", req.body);
 
-    // 1. Validate mobile number format
-    if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
+    // 1. Validate phone number format
+    if (phone && !/^[6-9]\d{9}$/.test(phone)) {
       return res.status(400).send({
         success: false,
-        message:
-          "Please enter a valid 10-digit mobile number starting with 6-9",
+        message: "Please enter a valid 10-digit phone number starting with 6-9",
       });
     }
 
-    // 2. Check existing user by email or mobile
+    // 2. Check existing user by email or phone
     const existingUser = await userModel.findOne({
-      $or: [{ email }, { mobile }],
+      $or: [{ email }, { phone }],
     });
     if (existingUser) {
-      const field = existingUser.email === email ? "email" : "mobile number";
+      const field = existingUser.email === email ? "email" : "phone number";
       return res.status(409).send({
         success: false,
         message: `User with this ${field} already exists`,
@@ -122,7 +121,7 @@ const registerController = async (req, res) => {
       email,
       password: hashedPassword,
       names: names || `${firstName} ${lastName}`.trim(),
-      mobile: mobile || "",
+      phone: phone || "",
       isOnboardingComplete: false, // Track onboarding completion
       emailVerified: false, // Track email verification (will be set based on settings)
     };
@@ -153,7 +152,7 @@ const registerController = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        mobile: user.mobile,
+        phone: user.phone,
         isOnboardingComplete: user.isOnboardingComplete,
         emailVerified: user.emailVerified,
       },
@@ -389,19 +388,19 @@ export const updateProfileController = async (req, res) => {
     const updateSellerData = {};
 
     // === USER FIELDS (Common) ===
-    const { names, phone, mobile } = req.body;
+    const { names, phone } = req.body;
     if (names !== undefined) updateUserData.names = names;
     if (phone !== undefined) updateUserData.phone = phone;
-    if (mobile !== undefined) {
-      // Validate mobile number format if provided
-      if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
+    if (phone !== undefined) {
+      // Validate phone number format if provided
+      if (phone && !/^[6-9]\d{9}$/.test(phone)) {
         return res.status(400).json({
           success: false,
           message:
-            "Please enter a valid 10-digit mobile number starting with 6-9",
+            "Please enter a valid 10-digit phone number starting with 6-9",
         });
       }
-      updateUserData.mobile = mobile;
+      updateUserData.phone = phone;
     }
     // Validate and update address
 
@@ -927,6 +926,7 @@ const updateRoleController = async (req, res) => {
   try {
     const { role } = req.body;
     const userId = req.userId; // From auth middleware
+    console.log("Updating role for user:", userId, "New role:", role);
 
     if (!role || !["client", "shopowner"].includes(role)) {
       return res.status(400).send({

@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false, // Will be computed from firstName + lastName
     },
+    demoAccess: {
+      type: Boolean,
+      default: false,
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -33,17 +37,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    mobile: {
+    phone: {
       type: String,
-      required: [true, "Mobile number is required"],
+      required: [true, "Phone number is required"],
       unique: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return /^[6-9]\d{9}$/.test(v);
         },
-        message: "Please enter a valid 10-digit mobile number starting with 6-9"
-      }
+        message: "Please enter a valid 10-digit phone number starting with 6-9",
+      },
     },
     password: {
       type: String,

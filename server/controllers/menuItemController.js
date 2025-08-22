@@ -20,25 +20,79 @@ export const createMenuItem = async (req, res) => {
       position,
     } = req.body;
 
+    // 🔹 Title validation
+    if (!title || title.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required and must be at least 2 characters long.",
+      });
+    }
+    if (title.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Title must not exceed 100 characters.",
+      });
+    }
+
+    // 🔹 Check duplicate title
+    const existingTitle = await MenuItem.findOne({ title: title.trim() });
+    if (existingTitle) {
+      return res.status(400).json({
+        success: false,
+        message: "A menu item with this title already exists.",
+      });
+    }
+
+    // 🔹 Filter type validation
+    const validTypes = ["Category", "Seller", "Brand", "custom"];
+    if (!filterType || !validTypes.includes(filterType)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid filterType. Allowed values: ${validTypes.join(", ")}`,
+      });
+    }
+
+    // 🔹 Filter value validation
     if (filterType !== "custom" && !filterValue) {
       return res.status(400).json({
         success: false,
-        message: "filterValue is required unless filterType is 'custom'",
+        message: "filterValue is required unless filterType is 'custom'.",
       });
     }
 
-    if (
-      filterType === "custom" &&
-      (!customProducts || customProducts.length === 0)
-    ) {
+    // 🔹 Custom products validation
+    if (filterType === "custom") {
+      if (
+        !customProducts ||
+        !Array.isArray(customProducts) ||
+        customProducts.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one custom product is required for 'custom' type.",
+        });
+      }
+    }
+
+    // 🔹 Product limit validation
+    if (productLimit && (productLimit < 1 || productLimit > 50)) {
       return res.status(400).json({
         success: false,
-        message: "Please provide at least one product for custom type.",
+        message: "productLimit must be between 1 and 50.",
       });
     }
 
+    // 🔹 Position validation
+    if (position !== undefined && position < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Position must be a positive number (0 or greater).",
+      });
+    }
+
+    // ✅ Create Menu Item
     const menuItem = await MenuItem.create({
-      title,
+      title: title.trim(),
       filterType,
       filterValue: filterType !== "custom" ? filterValue : undefined,
       customProducts: filterType === "custom" ? customProducts : [],
@@ -48,6 +102,7 @@ export const createMenuItem = async (req, res) => {
 
     res.status(201).json({ success: true, menuItem });
   } catch (error) {
+    console.error("Create Menu Item Error:", error);
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };
@@ -91,10 +146,56 @@ export const getHomeMenuItems = async (req, res) => {
 // Get All Menu Items
 export const getAllMenuItems = async (req, res) => {
   try {
-    const items = await MenuItem.find().sort({ position: 1 });
-    res.status(200).json({ success: true, data: items });
+    let {
+      page = 1,
+      limit = 10,
+      status,
+      search,
+      sort = "createdAt:desc",
+    } = req.query;
+
+    let query = {};
+
+    //  Filter by status
+    if (status) {
+      query.status = status;
+    }
+
+    //  Search by title (case-insensitive)
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+
+    //  Sorting
+    let sortOption = {};
+    if (sort) {
+      const [field, order] = sort.split(":");
+      sortOption[field] = order === "asc" ? 1 : -1;
+    } else {
+      sortOption = { createdAt: -1 }; // default sort
+    }
+
+    //  Pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Query DB
+    const [items, total] = await Promise.all([
+      MenuItem.find(query).sort(sortOption).skip(skip).limit(parseInt(limit)),
+      MenuItem.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / limit),
+      data: items,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error });
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
   }
 };
 

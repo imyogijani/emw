@@ -18,8 +18,61 @@
 .admin-subtitle {
   color: var(--text-color-light);
   font-size: 1.1rem;
+}
+
+/* Demo Seller Table Styles */
+.settings-card .ant-table {
+  background: var(--component-bg);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.settings-card .ant-table-thead > tr > th {
+  background: var(--component-bg-dark);
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.settings-card .ant-table-tbody > tr > td {
+  color: var(--text-color);
+}
+
+.settings-card .ant-switch {
+  background-color: var(--text-color-light);
+}
+
+.settings-card .ant-switch-checked {
+  background-color: var(--primary-color);
+}
+
+.settings-card .ant-pagination {
+  margin-top: 1rem;
+  text-align: right;
+}
+
+/* Fix AntD Switch inside table */
+.ant-switch {
+  background-color: #d9d9d9 !important; /* default off color */
+  min-width: 44px !important;
+  height: 22px !important;
+  border-radius: 20px !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ant-switch-checked {
+  background-color: #52c41a !important; /* green when ON */
+}
+
+.ant-switch-handle {
+  top: 2px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
   margin: 0;
 }
+
 
 .settings-container {
   max-width: 800px;

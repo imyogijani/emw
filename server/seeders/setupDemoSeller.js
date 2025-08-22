@@ -40,7 +40,7 @@ const createDemoSeller = async () => {
       lastName: "Seller",
       role: "shopowner",
       email: "demo@seller.com",
-      mobile: "9876543210",
+      phone: "9876543210",
       password: hashedPassword,
       names: "Demo Seller",
       isOnboardingComplete: true, // Skip onboarding

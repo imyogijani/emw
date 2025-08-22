@@ -1,4 +1,7 @@
 import express from "express";
+import Seller from "../models/sellerModel.js";
+import Subscription from "../models/subscriptionModel.js";
+
 import {
   authenticateToken,
   authorizeSeller,
@@ -18,6 +21,7 @@ router.post(
   authenticateToken,
   authorizeSeller,
   upload.single("shopLogo"),
+  fetchUser,
   async (req, res) => {
     try {
       const { shopName, categories, brands, workingHours, subscriptionPlan } =
@@ -41,7 +45,7 @@ router.post(
 
       // Save shop timings
       const timings = JSON.parse(workingHours);
-      await axios.post(`/api/shop-timing/${seller._id}`, { timings });
+      // await axios.post(`/api/shop-timing/${seller._id}`, { timings });
 
       // Handle subscription
       if (subscriptionPlan) {

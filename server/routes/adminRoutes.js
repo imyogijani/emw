@@ -7,6 +7,8 @@ import {
   getDashboardStats,
   getAllProducts,
   deleteProduct,
+  toggleDemoAccess,
+  getSellersWithDemoStatus,
   getAllShops,
   getAllUsers,
   deleteUser,
@@ -27,6 +29,7 @@ import {
   resetOnboarding,
   getOnboardingStats,
 } from "../controllers/adminController.js";
+
 import {
   updateProduct,
   deleteAllProducts,
@@ -50,6 +53,20 @@ import {
 } from "../controllers/sellerDocumentController.js";
 
 const router = express.Router();
+
+// Demo access routes
+router.get(
+  "/sellers-demo-status",
+  authenticateToken,
+  authorizeAdmin,
+  getSellersWithDemoStatus
+);
+router.patch(
+  "/toggle-demo-access/:userId",
+  authenticateToken,
+  authorizeAdmin,
+  toggleDemoAccess
+);
 
 // Protect all routes
 router.use(authenticateToken);
