@@ -91,6 +91,14 @@ const SellerProfile = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (user.email === "demo@seller.com") {
+      toast.info("This is a demo account. You cannot add products.");
+      return; //  stop here
+    }
     try {
       setLoading(true);
       const token = localStorage.getItem("token");

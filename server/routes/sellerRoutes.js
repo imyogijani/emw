@@ -13,17 +13,16 @@ import {
   authenticateToken,
   authorizeSeller,
 } from "../middlewares/authMiddleware.js";
+import preventDemoSellerModification from "../middlewares/demoSellerMiddleware.js";
 
 import { createCashfreeBeneficiary } from "../controllers/createCashfreeBeneficiary.js";
 
 const router = express.Router();
 
-router.get(
-  "/dashboard-stats",
-  authenticateToken,
-  authorizeSeller,
-  getSellerDashboard
-);
+// Apply preventDemoSellerModification middleware to all routes
+router.use(authenticateToken, authorizeSeller, preventDemoSellerModification);
+
+router.get("/dashboard-stats", getSellerDashboard);
 
 router.get(
   "/recent-orders",

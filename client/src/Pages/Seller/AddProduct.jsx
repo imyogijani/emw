@@ -66,7 +66,9 @@ const AddProduct = () => {
 
   const fetchHSNCodes = async (searchTerm = "") => {
     try {
-      const response = await axios.get(`/api/hsn?search=${searchTerm}&limit=20`);
+      const response = await axios.get(
+        `/api/hsn?search=${searchTerm}&limit=20`
+      );
       if (response.data.success) {
         setHsnCodes(response.data.data);
       }
@@ -87,9 +89,9 @@ const AddProduct = () => {
   };
 
   const selectHsnCode = (hsn) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      hsnCode: hsn.HSN_CD
+      hsnCode: hsn.HSN_CD,
     }));
     setHsnSearch(`${hsn.HSN_CD} - ${hsn.HSN_Description}`);
     setShowHsnDropdown(false);
@@ -190,10 +192,18 @@ const AddProduct = () => {
     }
     return true;
   };
-
+  // assuming you save email on login
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (user.email === "demo@seller.com") {
+      toast.info("This is a demo account. You cannot add products.");
+      return; //  stop here
+    }
 
     try {
       setLoading(true);
@@ -343,7 +353,10 @@ const AddProduct = () => {
 
           <div className="form-group">
             <label htmlFor="hsnCode">HSN/SAC Code</label>
-            <div className="hsn-search-container" style={{ position: 'relative' }}>
+            <div
+              className="hsn-search-container"
+              style={{ position: "relative" }}
+            >
               <input
                 type="text"
                 id="hsnCode"
@@ -356,30 +369,37 @@ const AddProduct = () => {
                 className="hsn-search-input"
               />
               {showHsnDropdown && hsnCodes.length > 0 && (
-                <div className="hsn-dropdown" style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'white',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  zIndex: 1000,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                }}>
+                <div
+                  className="hsn-dropdown"
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    backgroundColor: "white",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    zIndex: 1000,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
                   {hsnCodes.map((hsn) => (
                     <div
                       key={hsn._id}
                       onClick={() => selectHsnCode(hsn)}
                       style={{
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #eee'
+                        padding: "8px 12px",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #eee",
                       }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                      onMouseEnter={(e) =>
+                        (e.target.style.backgroundColor = "#f5f5f5")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.target.style.backgroundColor = "white")
+                      }
                     >
                       <strong>{hsn.HSN_CD}</strong> - {hsn.HSN_Description}
                     </div>

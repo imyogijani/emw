@@ -1,6 +1,7 @@
 import express from "express";
-import { authenticateToken } from "../middlewares/authMiddleware.js";
+import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
+import { demoGuard } from "../middlewares/demoGuard.js";
 import {
   addProduct,
   getSellerProducts,
@@ -17,7 +18,14 @@ import {
 const router = express.Router();
 
 // Add new product
-router.post("/add", authenticateToken, upload.array("images", 10), addProduct);
+router.post(
+  "/add",
+  authenticateToken,
+  upload.array("images", 10),
+  fetchUser,
+  demoGuard,
+  addProduct
+);
 
 // Get seller's products
 router.get("/seller-products", authenticateToken, getSellerProducts);
@@ -34,15 +42,17 @@ router.get("/:id", getSingleProductById);
 router.patch(
   "/:productId",
   authenticateToken,
+  fetchUser,
+  demoGuard,
   upload.array("images", 10),
   updateProduct
 );
 
 // Delete product
-router.delete("/:productId", authenticateToken, deleteProduct);
+router.delete("/:productId", authenticateToken, fetchUser,demoGuard, deleteProduct);
 
 // Delete all products (for testing/admin purposes)
-router.delete("/all", authenticateToken, (req, res) => {
+router.delete("/all", authenticateToken,fetchUser, (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied. Admins only." });
   }

@@ -224,26 +224,36 @@ const loginController = async (req, res) => {
     //   });
     // }
 
-    let firebaseUser;
-    if (user.role !== "admin") {
-      // Only non-admins: fetch Firebase user and check email
-      firebaseUser = await admin.auth().getUserByEmail(user.email);
+    // Skip verification for demo seller or admin
+    if (user.email !== "demo@seller.com" && user.role !== "admin") {
+      let firebaseUser;
+      try {
+        // Only non-demo, non-admin users: fetch Firebase user and check email
+        firebaseUser = await admin.auth().getUserByEmail(user.email);
 
-      if (firebaseUser.emailVerified && !user.emailVerified) {
-        user.emailVerified = true;
-        await user.save();
-      }
+        if (firebaseUser.emailVerified && !user.emailVerified) {
+          user.emailVerified = true;
+          await user.save();
+        }
 
-      if (!firebaseUser.emailVerified) {
+        if (!firebaseUser.emailVerified) {
+          return res.status(403).send({
+            success: false,
+            message: "Please verify your email before logging in.",
+            requiresEmailVerification: true,
+          });
+        }
+      } catch (error) {
+        console.error("Firebase auth error:", error);
         return res.status(403).send({
           success: false,
-          message: "Please verify your email before logging in.",
+          message: "Email verification failed. Please try again.",
           requiresEmailVerification: true,
         });
       }
     } else {
-      // Admin: skip Firebase email verification completely
-      console.log("Admin login: skipping Firebase email check");
+      // Demo seller or admin: skip Firebase email verification completely
+      console.log("Demo seller or admin login: skipping Firebase email check");
     }
 
     //  Banned  check
@@ -298,13 +308,18 @@ const loginController = async (req, res) => {
       },
     };
 
-    // ADMIN PROTOCOL: Admin users skip onboarding and go directly to dashboard
+    // Special handling for admin and demo seller
     if (user.role === "admin") {
       responseData.redirectToAdminDashboard = true;
       responseData.message =
         "Admin login successful! Redirecting to dashboard.";
+    } else if (user.email === "demo@seller.com") {
+      // Demo seller always skips onboarding
+      responseData.isOnboardingComplete = true;
+      responseData.message =
+        "Demo seller login successful! Redirecting to dashboard.";
     } else {
-      // Add onboarding status to response for non-admin users
+      // Add onboarding status for regular users
       if (!user.isOnboardingComplete) {
         responseData.requiresOnboarding = true;
         responseData.message =
@@ -354,6 +369,13 @@ export const updateProfileController = async (req, res) => {
   try {
     const userId = req.userId;
     const user = await userModel.findById(userId);
+
+    if (user.email === "demo@seller.com") {
+      return res.status(403).json({
+        success: false,
+        message: "Demo account cannot add products.",
+      });
+    }
 
     if (!user) {
       return res.status(404).json({

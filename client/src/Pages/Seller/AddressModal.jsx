@@ -91,6 +91,14 @@ const AddressModal = ({
   const handleSave = () => {
     let errors = {};
 
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (user.email === "demo@seller.com") {
+      toast.info("This is a demo account. You cannot add products.");
+      return; //  stop here
+    }
+
     if (!addressForm.addressLine1?.trim()) {
       errors.addressLine1 = "Address Line 1 is required";
     }

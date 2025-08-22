@@ -37,7 +37,17 @@ export const addProduct = async (req, res) => {
     } = req.body;
 
     // Get seller and user info
-    const seller = await Seller.findOne({ user: req.userId });
+    const seller = await Seller.findOne({ user: req.userId }).populate(
+      "user",
+      "email"
+    );
+
+    // if (seller.user.email === "demo@seller.com") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Demo account cannot add products.",
+    //   });
+    // }
     if (!seller) return res.status(404).json({ message: "Seller not found" });
 
     // if ( !seller.bankDetails || !seller.razorpayAccountId) {
@@ -75,6 +85,7 @@ export const addProduct = async (req, res) => {
     // Validate subcategory
     if (subcategory) {
       const subDoc = await Category.findById(subcategory);
+
       if (!subDoc) {
         deleteUploadedFiles(req.files);
         return res
@@ -109,7 +120,7 @@ export const addProduct = async (req, res) => {
       }
     }
 
-    console.log("1111", req.userId);
+    // console.log("1111", req.userId);
 
     //  Step : Get ALL active, paid subscriptions for this user
     const userSubs = await UserSubscription.find({
@@ -119,7 +130,7 @@ export const addProduct = async (req, res) => {
       endDate: { $gt: new Date() },
     }).populate("subscription");
 
-    console.log("Seller userSubs  ", userSubs);
+    // console.log("Seller userSubs  ", userSubs);
 
     //  If no active subscriptions found
     if (!userSubs || userSubs.length === 0) {
@@ -434,6 +445,12 @@ export const updateProduct = async (req, res) => {
 
     // Get seller
     const seller = await Seller.findOne({ user: req.userId });
+    if (seller.user.email === "demo@seller.com") {
+      return res.status(403).json({
+        success: false,
+        message: "Demo account cannot add products.",
+      });
+    }
     if (!seller) {
       return res
         .status(404)

@@ -123,6 +123,12 @@ const Login = () => {
       if (formData.email === "yogij@mail.com") {
         // Call backend API directly for admin
         response = await axios.post("/api/auth/login", formData);
+      } else if (
+        formData.email === "demo@seller.com" &&
+        formData.password === "12345678"
+      ) {
+        // Direct backend login
+        response = await axios.post("/api/auth/login", formData);
       } else {
         // --- Normal users ---
         // Step 1: Firebase sign in
@@ -159,7 +165,13 @@ const Login = () => {
           return;
         }
 
-        // Onboarding redirect
+        // Skip onboarding for demo seller
+        if (response.data.user.email === "demo@seller.com") {
+          navigate("/seller/dashboard");
+          return;
+        }
+
+        // Onboarding redirect for non-demo users
         if (response.data.requiresOnboarding) {
           navigate("/onboarding");
           return;
