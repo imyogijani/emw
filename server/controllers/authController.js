@@ -224,36 +224,37 @@ const loginController = async (req, res) => {
     // }
 
     // Skip verification for demo seller or admin
-    if (user.email !== "demo@seller.com" && user.role !== "admin") {
-      let firebaseUser;
-      try {
-        // Only non-demo, non-admin users: fetch Firebase user and check email
-        firebaseUser = await admin.auth().getUserByEmail(user.email);
 
-        if (firebaseUser.emailVerified && !user.emailVerified) {
-          user.emailVerified = true;
-          await user.save();
-        }
+    // if (user.email !== "demo@seller.com" && user.role !== "admin") {
+    //   let firebaseUser;
+    //   try {
+    //     // Only non-demo, non-admin users: fetch Firebase user and check email
+    //     firebaseUser = await admin.auth().getUserByEmail(user.email);
 
-        if (!firebaseUser.emailVerified) {
-          return res.status(403).send({
-            success: false,
-            message: "Please verify your email before logging in.",
-            requiresEmailVerification: true,
-          });
-        }
-      } catch (error) {
-        console.error("Firebase auth error:", error);
-        return res.status(403).send({
-          success: false,
-          message: "Email verification failed. Please try again.",
-          requiresEmailVerification: true,
-        });
-      }
-    } else {
-      // Demo seller or admin: skip Firebase email verification completely
-      console.log("Demo seller or admin login: skipping Firebase email check");
-    }
+    //     if (firebaseUser.emailVerified && !user.emailVerified) {
+    //       user.emailVerified = true;
+    //       await user.save();
+    //     }
+
+    //     if (!firebaseUser.emailVerified) {
+    //       return res.status(403).send({
+    //         success: false,
+    //         message: "Please verify your email before logging in.",
+    //         requiresEmailVerification: true,
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.error("Firebase auth error:", error);
+    //     return res.status(403).send({
+    //       success: false,
+    //       message: "Email verification failed. Please try again.",
+    //       requiresEmailVerification: true,
+    //     });
+    //   }
+    // } else {
+    //   // Demo seller or admin: skip Firebase email verification completely
+    //   console.log("Demo seller or admin login: skipping Firebase email check");
+    // }
 
     //  Banned  check
     if (user.status === "banned") {

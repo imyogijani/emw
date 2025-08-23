@@ -132,22 +132,22 @@ const Login = () => {
       } else {
         // --- Normal users ---
         // Step 1: Firebase sign in
-        const userCred = await signInWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
+        // const userCred = await signInWithEmailAndPassword(
+        //   auth,
+        //   formData.email,
+        //   formData.password
+        // );
 
-        // Step 2: Check email verification
-        await userCred.user.reload();
-        const refreshedUser = auth.currentUser;
+        // // Step 2: Check email verification
+        // await userCred.user.reload();
+        // const refreshedUser = auth.currentUser;
 
-        if (!refreshedUser.emailVerified) {
-          await sendEmailVerification(refreshedUser); // Resend email
-          toast.error("Please verify your email. Verification email resent.");
-          setIsLoading(false);
-          return;
-        }
+        // if (!refreshedUser.emailVerified) {
+        //   await sendEmailVerification(refreshedUser); // Resend email
+        //   toast.error("Please verify your email. Verification email resent.");
+        //   setIsLoading(false);
+        //   return;
+        // }
 
         // Step 3: Call backend API
         response = await axios.post("/api/auth/login", formData);
