@@ -980,3 +980,45 @@ export const getSellerOrdersAnalytics = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+export const updateSellerGST = async (req, res) => {
+  try {
+    const { gstNumber } = req.body;
+
+    if (!gstNumber) {
+      return res
+        .status(400)
+        .json({ success: false, message: "GST number is required" });
+    }
+
+    // GST validation (India GST format)
+    const gstRegex =
+      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!gstRegex.test(gstNumber)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid GST number format" });
+    }
+
+    // Find seller by logged-in user
+    const seller = await Seller.findOne({ user: req.user._id });
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+
+    // Update GST number
+    seller.gstNumber = gstNumber;
+    await seller.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "GST number updated successfully",
+      gstNumber: seller.gstNumber,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Server Error" });
+  }
+};

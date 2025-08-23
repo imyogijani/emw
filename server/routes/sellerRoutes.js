@@ -8,10 +8,12 @@ import {
   getCustomerOrdersBySeller,
   getSellerSalesOverview,
   getSellerOrdersAnalytics,
+  updateSellerGST,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
   authorizeSeller,
+  fetchUser,
 } from "../middlewares/authMiddleware.js";
 import preventDemoSellerModification from "../middlewares/demoSellerMiddleware.js";
 
@@ -71,5 +73,13 @@ router.get(
 //   authorizeSeller,
 //   createCashfreeBeneficiary
 // );
+
+router.post(
+  "/gst-number",
+  authenticateToken,
+  authorizeSeller,
+  fetchUser,
+  updateSellerGST
+);
 
 export default router;

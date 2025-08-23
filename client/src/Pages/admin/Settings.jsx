@@ -38,11 +38,11 @@ const Settings = () => {
         `/api/admin/sellers-demo-status?page=${page}&limit=${limit}`
       );
       if (response.data.success) {
-        setSellers(response.data.sellers);
+        setSellers(response.data.users);
         setPagination({
           current: response.data.page,
           pageSize: response.data.limit,
-          total: response.data.totalSellers,
+          total: response.data.totalUsers,
         });
       }
     } catch (error) {

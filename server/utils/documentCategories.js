@@ -49,6 +49,15 @@ export const documentCategoriesMap = {
   partnershipDeed: ["business"],
   trustDeed: ["business"],
   lastIssuedPassport: ["identity"],
+  addressProof: ["address"],
+  bankProof: ["bank"],
+  birthCertificate: ["identity"],
+  gasConnection: ["address"],
+  incomeTaxOrder: ["identity", "business"],
+  rationCard: ["identity", "address"],
+  governmentIdCard: ["identity"],
+  pensionDocuments: ["identity", "bank"],
+  certificateFromEmployer: ["identity", "business"],
   // other docs add here
 };
 

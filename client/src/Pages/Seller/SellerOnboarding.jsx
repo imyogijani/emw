@@ -25,6 +25,18 @@ const SellerOnboarding = () => {
     brandInputFocused: false,
     shopAddress: "",
     location: "",
+    shopAddresses: [
+      {
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        pincode: "",
+        country: "India",
+        isDefault: true,
+        type: "store",
+      },
+    ],
     shopImages: [],
     shopImagesPreview: [],
 
@@ -39,12 +51,74 @@ const SellerOnboarding = () => {
       sunday: { isOpen: false, open: "09:00", close: "18:00" },
     },
 
-    // Step 3 - Subscription
+    // Step 4 - Subscription
     selectedPlan: null,
 
-    // Step 4 - GST
+    // Step 3 - GST
     gstNumber: "",
   });
+
+  // const [documents, setDocuments] = useState([
+  //   {
+  //     docType: "aadhaar",
+  //     file: null,
+  //     preview: null,
+  //     number: "",
+  //     categories: [],
+  //   },
+  //   { docType: "pan", file: null, preview: null, number: "", categories: [] },
+  //   {
+  //     docType: "addressProof",
+  //     file: null,
+  //     preview: null,
+  //     number: "",
+  //     categories: [],
+  //   },
+  // ]);
+
+  // -------------------- STATE --------------------
+  const [documents, setDocuments] = useState([
+    {
+      docType: "",
+      file: null,
+      preview: null,
+      number: "",
+      categories: [],
+    },
+  ]);
+
+  // Doc types exactly as per backend schema
+  const docOptions = [
+    "aadhaar",
+    "pan",
+    "gst",
+    // "udyam",
+    // "addressProof",
+    // "bankProof",
+    // "drivingLicense",
+    // "voterId",
+    // "electricityBill",
+    // "passport",
+    // "rentAgreement",
+    // "bankPassbook",
+    // "telephoneBill",
+    // "bankAccountStatement",
+    // "birthCertificate",
+    // "gasConnection",
+    // "incomeTaxOrder",
+    // "rationCard",
+    // "governmentIdCard",
+    // "certificateOfIncorporation",
+    // "pensionDocuments",
+    // "memorandumOfAssociation",
+    // "partnershipDeed",
+    // "trustDeed",
+    // "certificateFromEmployer",
+    // "lastIssuedPassport",
+  ];
+
+  // Categories allowed
+  const categoryOptions = ["identity", "address", "business", "bank"];
 
   const navigate = useNavigate();
 
@@ -215,20 +289,20 @@ const SellerOnboarding = () => {
           toast.error("Shop logo is required");
           return false;
         }
-        if (!formData.shopAddress) {
-          toast.error("Shop address is required");
-          return false;
-        }
-        if (!formData.location) {
-          toast.error("Shop location is required");
-          return false;
-        }
+        // if (!formData.shopAddress) {
+        //   toast.error("Shop address is required");
+        //   return false;
+        // }
+        // if (!formData.location) {
+        //   toast.error("Shop location is required");
+        //   return false;
+        // }
         if (formData.shopImages.length === 0) {
           toast.error("Please upload at least one shop image");
           return false;
         }
         break;
-      case 2:
+      case 2: {
         // At least one day should be open
         const hasOpenDay = Object.values(formData.workingHours).some(
           (day) => day.isOpen
@@ -238,18 +312,19 @@ const SellerOnboarding = () => {
           return false;
         }
         break;
+      }
       case 3:
         if (!formData.selectedPlan) {
           toast.error("Please select a subscription plan");
           return false;
         }
         break;
-      case 4:
-        if (!formData.gstNumber) {
-          toast.error("GST number is required");
-          return false;
-        }
-        break;
+      // case 4:
+      // if (!formData.gstNumber) {
+      //   toast.error("GST number is required");
+      //   return false;
+      // }
+      // break;
     }
     return true;
   };
@@ -261,9 +336,10 @@ const SellerOnboarding = () => {
       await submitStep1();
     } else if (step === 2) {
       await submitStep2();
-    } else {
-      setStep(step + 1);
+    } else if (step === 3) {
+      await submitStep3();
     }
+    setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -285,15 +361,17 @@ const SellerOnboarding = () => {
         JSON.stringify(formData.workingHours)
       );
       formDataToSend.append("subscriptionPlan", formData.selectedPlan);
-      formDataToSend.append("shopAddress", formData.shopAddress);
-      formDataToSend.append("location", formData.location);
-      formDataToSend.append("gstNumber", formData.gstNumber);
-      if (formData.shopLogo) {
-        formDataToSend.append("shopLogo", formData.shopLogo);
-      }
-      formData.shopImages.forEach((img, idx) => {
-        formDataToSend.append(`shopImages`, img);
-      });
+      // formDataToSend.append("shopAddress", formData.shopAddress);
+      // formDataToSend.append("location", formData.location);
+      // formDataToSend.append("gstNumber", formData.gstNumber);
+      // if (formData.shopLogo) {
+      //   formDataToSend.append("shopImage", formData.shopLogo);
+      // }
+      // formData.shopImages.forEach((img, idx) => {
+      //   formDataToSend.append(`shopImages`, img);
+      // });
+
+      console.log("Final form data to send:", formDataToSend);
 
       await axios.post("/api/seller/complete-profile", formDataToSend, {
         headers: {
@@ -341,8 +419,9 @@ const SellerOnboarding = () => {
       fd.append("shopName", formData.shopName);
       fd.append("categories", JSON.stringify(formData.categories));
       fd.append("brands", JSON.stringify(formData.brands));
-      fd.append("shopAddress", formData.shopAddress);
-      fd.append("location", formData.location);
+      // fd.append("shopAddress", formData.shopAddress);
+      // fd.append("location", formData.location);
+      fd.append("shopAddresses", JSON.stringify(formData.shopAddresses));
       if (formData.shopLogo) {
         fd.append("shopImage", formData.shopLogo);
       }
@@ -350,8 +429,15 @@ const SellerOnboarding = () => {
         fd.append(`shopImages`, img);
       });
 
-      console.log("form data onboarding step1 passed", fd);
-      const response = await axios.post("/api/seller/onboarding/step1", fd);
+      // console.log("form data Images onboarding", formData.shopImages);
+      // console.log("form data Images onboarding---1", formData.shopLogo);
+
+      // console.log("form data onboarding step1 passed", fd);
+      const response = await axios.post("/api/seller/onboarding/step1", fd, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       toast.success("Step 1 saved successfully");
       setStep(2);
     } catch (error) {
@@ -435,6 +521,98 @@ const SellerOnboarding = () => {
     }
   };
 
+  // GST change
+  const handleGstChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      gstNumber: e.target.value,
+    }));
+  };
+
+  // Document change (single file each type)
+  const handleDocChange = (index, field, value) => {
+    const updated = [...documents];
+    updated[index][field] = value;
+    setDocuments(updated);
+  };
+  const handleFileChange = (index, file) => {
+    const updated = [...documents];
+    updated[index].file = file;
+    updated[index].preview = URL.createObjectURL(file);
+    setDocuments(updated);
+  };
+
+  const addDocumentRow = () => {
+    setDocuments((prev) => [
+      ...prev,
+      { docType: "", file: null, preview: null, number: "", categories: [] },
+    ]);
+  };
+
+  // const handleFileChange = (index, file) => {
+  //   const updated = [...documents];
+  //   updated[index].file = file;
+  //   updated[index].preview = URL.createObjectURL(file);
+  //   setDocuments(updated);
+  // };
+
+  const submitStep3 = async () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      const user = JSON.parse(userStr);
+      const sellerId = user?.sellerId;
+
+      //  GST number update only if entered
+      if (formData.gstNumber && formData.gstNumber.trim() !== "") {
+        try {
+          await axios.post("/api/sellers/gst-number", {
+            gstNumber: formData.gstNumber,
+          });
+          toast.success("GST number updated successfully 🎉");
+        } catch (gstErr) {
+          console.error("GST update error:", gstErr);
+          toast.error("GST number update failed");
+          return; // agar GST invalid ho, process rok do
+        }
+      }
+
+      const fd = new FormData();
+      fd.append("sellerId", sellerId);
+      console.log("sellerId:", sellerId);
+
+      documents.forEach((doc) => {
+        if (!doc.file || !doc.docType) return;
+
+        const docKey = doc.docType.toLowerCase(); // e.g. "aadhaar", "pan"
+
+        // console.log(`---- Document ${docKey} ----`);
+        // console.log("docNumber:", doc.number);
+        // console.log("categories:", doc.categories);
+        // console.log("file:", doc.file?.name);
+
+        // Match Postman style
+        fd.append(docKey, doc.file); // file field
+        fd.append(`${docKey}_number`, doc.number);
+        fd.append(`${docKey}_categories`, doc.categories.join(","));
+      });
+
+      // Debug all formData
+      for (let pair of fd.entries()) {
+        console.log(pair[0] + ":", pair[1]);
+      }
+
+      await axios.post("/api/seller-documents/upload", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success("Documents uploaded successfully 🎉");
+      setStep(4);
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload failed");
+    }
+  };
+
   // Get seller name from localStorage with proper error handling
   const getSellerName = () => {
     try {
@@ -504,7 +682,7 @@ const SellerOnboarding = () => {
         />
       </div>
 
-      <div className="form-group">
+      {/* <div className="form-group">
         <label className="form-label">Shop Address</label>
         <input
           type="text"
@@ -527,6 +705,92 @@ const SellerOnboarding = () => {
             setFormData({ ...formData, location: e.target.value })
           }
           placeholder="Enter your shop location (city, area, etc.)"
+        />
+      </div> */}
+
+      {/* Address Section */}
+      <div className="form-group">
+        <label className="form-label">Shop Address</label>
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddresses[0].addressLine1}
+          onChange={(e) => {
+            const updatedAddresses = [...formData.shopAddresses];
+            updatedAddresses[0].addressLine1 = e.target.value;
+            setFormData({ ...formData, shopAddresses: updatedAddresses });
+          }}
+          placeholder="AddressLine 1 (e.g., Flat / House No / Building)"
+        />
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddresses[0].addressLine2}
+          onChange={(e) => {
+            const updatedAddresses = [...formData.shopAddresses];
+            updatedAddresses[0].addressLine2 = e.target.value;
+            setFormData({ ...formData, shopAddresses: updatedAddresses });
+          }}
+          placeholder="AddressLine 2 (optional)"
+        />
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddresses[0].city}
+          onChange={(e) => {
+            const updatedAddresses = [...formData.shopAddresses];
+            updatedAddresses[0].city = e.target.value;
+            setFormData({ ...formData, shopAddresses: updatedAddresses });
+          }}
+          placeholder="Enter city"
+        />
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddresses[0].state}
+          onChange={(e) => {
+            const updatedAddresses = [...formData.shopAddresses];
+            updatedAddresses[0].state = e.target.value;
+            setFormData({ ...formData, shopAddresses: updatedAddresses });
+          }}
+          placeholder="Enter state"
+        />
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddresses[0].pincode}
+          onChange={(e) => {
+            const updatedAddresses = [...formData.shopAddresses];
+            updatedAddresses[0].pincode = e.target.value;
+            setFormData({ ...formData, shopAddresses: updatedAddresses });
+          }}
+          placeholder="Enter pincode"
+        />
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddresses[0].country}
+          onChange={(e) => {
+            const updatedAddresses = [...formData.shopAddresses];
+            updatedAddresses[0].country = e.target.value;
+            setFormData({ ...formData, shopAddresses: updatedAddresses });
+          }}
+          placeholder="Enter country"
         />
       </div>
 
@@ -837,10 +1101,12 @@ const SellerOnboarding = () => {
 
   const renderGSTForm = () => (
     <div className="form-step">
-      <h2 className="step-title">GST Number</h2>
+      <h2 className="step-title">GST & Documents</h2>
       <p className="step-description">
-        Enter your shop's GST number to complete onboarding.
+        Please provide your GST details and upload the required documents.
       </p>
+
+      {/* GST Number */}
       <div className="form-group">
         <label className="form-label">GST Number</label>
         <input
@@ -852,6 +1118,127 @@ const SellerOnboarding = () => {
           }
           placeholder="Enter GST number"
         />
+      </div>
+
+      {/* Dynamic Document Upload Rows */}
+      {documents.map((doc, idx) => (
+        <div key={idx} className="form-group doc-upload-box">
+          <label className="form-label">Document {idx + 1}</label>
+          <div className="doc-row">
+            {/* Document Type */}
+            <select
+              className="form-input"
+              value={doc.docType}
+              onChange={(e) => handleDocChange(idx, "docType", e.target.value)}
+            >
+              <option value="">Select Document Type</option>
+              {docOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+
+            {/* Document Number */}
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Enter Document Number"
+              value={doc.number}
+              onChange={(e) => handleDocChange(idx, "number", e.target.value)}
+            />
+
+            {/* Categories */}
+            <select
+              className="form-input"
+              multiple
+              value={doc.categories}
+              onChange={(e) =>
+                handleDocChange(
+                  idx,
+                  "categories",
+                  Array.from(e.target.selectedOptions, (o) => o.value)
+                )
+              }
+            >
+              {categoryOptions.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+
+            {/* File Upload */}
+            <div className="file-upload">
+              <input
+                type="file"
+                id={`file-${idx}`}
+                accept="image/*,application/pdf"
+                onChange={(e) => handleFileChange(idx, e.target.files[0])}
+                style={{ display: "none" }}
+              />
+              <label htmlFor={`file-${idx}`} className="logo-upload-btn">
+                Choose File
+              </label>
+              {doc.file && <span className="file-name">{doc.file.name}</span>}
+              {doc.preview && (
+                <img
+                  src={doc.preview}
+                  alt="preview"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    objectFit: "cover",
+                    marginLeft: 8,
+                    borderRadius: 6,
+                    border: "1px solid #ccc",
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Validation Error */}
+      {formData.error && (
+        <p style={{ color: "red", marginTop: 8 }}>{formData.error}</p>
+      )}
+
+      {/* Add More Button */}
+      <div className="form-actions">
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={addDocumentRow}
+        >
+          + Add Document
+        </button>
+      </div>
+
+      {/* Submit */}
+      <div className="form-actions">
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            // Validation: At least one document with a file required
+            const hasFile = documents.some((doc) => doc.file);
+            if (!hasFile) {
+              setFormData({
+                ...formData,
+                error: "Please upload at least one document.",
+              });
+              return;
+            }
+
+            // Clear error and proceed
+            setFormData({ ...formData, error: "" });
+            submitStep3();
+            // setStep(4);
+          }}
+        >
+          Save & Continue
+        </button>
       </div>
     </div>
   );
@@ -878,8 +1265,8 @@ const SellerOnboarding = () => {
 
         {step === 1 && renderBasicDetailsForm()}
         {step === 2 && renderTimingForm()}
-        {step === 3 && renderSubscriptionForm()}
-        {step === 4 && renderGSTForm()}
+        {step === 3 && renderGSTForm()}
+        {step === 4 && renderSubscriptionForm()}
 
         <div className="form-actions">
           {step > 1 && (

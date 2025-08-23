@@ -18,6 +18,7 @@ import {
 } from "../controllers/authController.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
+import { restrictDemoAccess } from "../middlewares/demoAccessMiddleware.js";
 import path from "path";
 
 const router = express.Router();
@@ -44,6 +45,8 @@ router.get("/current-user", authenticateToken, currentUserController);
 router.patch(
   "/update-profile",
   authenticateToken,
+  restrictDemoAccess,
+  fetchUser,
   upload.fields([
     { name: "shopImage", maxCount: 1 },
     { name: "shopImages", maxCount: 5 },
@@ -57,12 +60,20 @@ router.get("/verify-token", authenticateToken, verifyToken);
 router.post(
   "/upload-avatar",
   authenticateToken,
+  restrictDemoAccess,
+  fetchUser,
   upload.single("avatar"),
   uploadAvatarController
 );
 
 // Clear notification || PATCH
-router.patch("/clear-notification", authenticateToken, clearNotification);
+router.patch(
+  "/clear-notification",
+  authenticateToken,
+  restrictDemoAccess,
+  fetchUser,
+  clearNotification
+);
 
 // Seller accepts updated plan
 router.patch(
@@ -87,9 +98,18 @@ router.post("/verify-email", verifyEmailController);
 router.post("/resend-verification", resendVerificationController);
 
 // Update role route
-router.patch("/update-role", authenticateToken, fetchUser, updateRoleController);
+router.patch(
+  "/update-role",
+  authenticateToken,
+  fetchUser,
+  updateRoleController
+);
 
 // Complete onboarding route
-router.patch("/complete-onboarding", authenticateToken, completeOnboardingController);
+router.patch(
+  "/complete-onboarding",
+  authenticateToken,
+  completeOnboardingController
+);
 
 export default router;

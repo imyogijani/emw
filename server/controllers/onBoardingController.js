@@ -10,7 +10,7 @@ import User from "../models/userModel.js";
 
 export const onboardingStep1 = async (req, res) => {
   try {
-    const { categories, brands, shopName, sellerId } = req.body;
+    const { categories, brands, shopName, sellerId, shopAddresses } = req.body;
 
     console.log("Obboarding Body", req.body);
 
@@ -56,11 +56,17 @@ export const onboardingStep1 = async (req, res) => {
 
     // Images from multer
     const files = req.files;
+    // console.log(
+    //   "Uploaded files:",
+    //   files?.shopImage,
+    //   "Shop Images -->",
+    //   files?.shopImages
+    // );
     const shopImage = files?.shopImage?.[0]?.filename
       ? `/uploads/shopowner/${files.shopImage[0].filename}`
       : null;
 
-    const shopImages =
+    let shopImages =
       files?.shopImages?.map((file) => `/uploads/shopowner/${file.filename}`) ||
       [];
 
@@ -110,6 +116,28 @@ export const onboardingStep1 = async (req, res) => {
       }
     }
 
+    let parsedAddresses = [];
+    if (shopAddresses) {
+      parsedAddresses = Array.isArray(shopAddresses)
+        ? shopAddresses
+        : JSON.parse(shopAddresses);
+
+      // Validate each address
+      let validatedAddresses = [];
+      for (let addr of parsedAddresses) {
+        const { valid, errors, sanitized } = validateAddress(addr);
+        if (!valid) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid address: ${errors.join(", ")}`,
+            errors,
+          });
+        }
+        validatedAddresses.push(sanitized);
+      }
+
+      seller.shopAddresses = validatedAddresses;
+    }
     //  update seller document
     seller.shopName = shopName;
     seller.shopImage = shopImage || seller.shopImage;
@@ -118,7 +146,8 @@ export const onboardingStep1 = async (req, res) => {
     seller.brands = parsedBrands || [];
 
     if (seller.onboardingStep) {
-      seller.onboardingStep = seller.onboardingStep + 1;
+      // seller.onboardingStep = seller.onboardingStep + 1;
+      seller.onboardingStep = 2;
     }
 
     const updatedSeller = await seller.save();
@@ -214,4 +243,38 @@ export const completeOnboarding = async (req, res) => {
     console.error("Error completing onboarding:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
+};
+
+export const validateAddress = (address) => {
+  let errors = {};
+
+  if (!address.addressLine1 || address.addressLine1.trim() === "") {
+    errors.addressLine1 = "Address Line 1 is required";
+  }
+  if (!address.city || address.city.trim() === "") {
+    errors.city = "City is required";
+  }
+  if (!address.state || address.state.trim() === "") {
+    errors.state = "State is required";
+  }
+  if (!address.pincode || address.pincode.trim() === "") {
+    errors.pincode = "Pincode is required";
+  }
+
+  const isValid = Object.keys(errors).length === 0;
+
+  return {
+    valid: isValid,
+    errors,
+    sanitized: {
+      addressLine1: address.addressLine1?.trim(),
+      addressLine2: address.addressLine2?.trim() || "",
+      city: address.city?.trim(),
+      state: address.state?.trim(),
+      pincode: address.pincode?.trim(),
+      country: address.country || "India",
+      isDefault: address.isDefault || false,
+      type: address.type || "store",
+    },
+  };
 };

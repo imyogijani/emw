@@ -53,7 +53,8 @@ export const upsertShopTiming = async (req, res) => {
     if (incrementOnboarding) {
       const seller = await Seller.findById(sellerId);
       if (seller) {
-        seller.onboardingStep = (seller.onboardingStep || 0) + 1; // dynamic increment
+        // seller.onboardingStep = (seller.onboardingStep || 0) + 1; // dynamic increment
+        seller.onboardingStep = 3; // dynamic increment
         await seller.save();
       }
     }

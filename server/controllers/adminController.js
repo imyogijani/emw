@@ -26,12 +26,12 @@ export const toggleDemoAccess = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    if (user.role !== "shopowner") {
-      return res.status(400).json({
-        success: false,
-        message: "Demo access can only be set for sellers",
-      });
-    }
+    // if (user.role !== "shopowner") {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Demo access can only be set for sellers",
+    //   });
+    // }
 
     user.demoAccess = !user.demoAccess;
     await user.save();
@@ -56,31 +56,34 @@ export const getSellersWithDemoStatus = async (req, res) => {
     page = parseInt(page);
     limit = parseInt(limit);
 
-    // Calculate skip
     const skip = (page - 1) * limit;
 
-    // Fetch sellers with pagination
-    const sellers = await User.find({ role: "shopowner" })
-      .select("firstName lastName names email demoAccess")
+    // ✅ Fetch ALL users EXCEPT admins
+    const users = await User.find({ role: { $ne: "admin" } })
+      .select("firstName lastName email demoAccess role status createdAt")
       .populate("sellerId", "shopName")
+      .sort({ createdAt: -1 }) // ✅ descending order (latest first)
       .skip(skip)
       .limit(limit);
 
-    // Total count for pagination metadata
-    const totalSellers = await User.countDocuments({ role: "shopowner" });
+    // ✅ Total count (excluding admins)
+    const totalUsers = await User.countDocuments({ role: { $ne: "admin" } });
 
     res.status(200).json({
       success: true,
       page,
       limit,
-      totalPages: Math.ceil(totalSellers / limit),
-      totalSellers,
-      sellers: sellers.map((seller) => ({
-        id: seller._id,
-        name: `${seller.firstName} ${seller.lastName}`,
-        email: seller.email,
-        shopName: seller.sellerId ? seller.sellerId.shopName : "N/A",
-        demoAccess: seller.demoAccess,
+      totalPages: Math.ceil(totalUsers / limit),
+      totalUsers,
+      users: users.map((user) => ({
+        id: user._id,
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email,
+        role: user.role || "N/A",
+        status: user.status, // active / inactive / banned
+        shopName: user.sellerId?.shopName || "N/A",
+        demoAccess: user.demoAccess,
+        createdAt: user.createdAt, // optional: show join date
       })),
     });
   } catch (error) {

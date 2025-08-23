@@ -4,6 +4,7 @@ import {
   getAllOffers,
   updateOffer,
   deleteOffer,
+  toggleOfferActive,
 } from "../controllers/offerController.js";
 import {
   authenticateToken,
@@ -15,5 +16,11 @@ router.post("/create", authenticateToken, authorizeAdmin, createOffer);
 router.get("/all", authenticateToken, getAllOffers);
 router.put("/update/:id", authenticateToken, authorizeAdmin, updateOffer);
 router.delete("/delete/:id", authenticateToken, authorizeAdmin, deleteOffer);
+router.patch(
+  "/toggle/:id",
+  authenticateToken,
+  authorizeAdmin,
+  toggleOfferActive
+);
 
 export default router;

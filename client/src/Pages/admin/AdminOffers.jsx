@@ -1,23 +1,21 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
-import "./AdminDeals.css";
+import "./AdminDeals.css"; // keep your style
+import { FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 
 export default function AdminOffers() {
-  const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
-  const [shops, setShops] = useState([]);
-  const [selectedShop, setSelectedShop] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [offerTitle, setOfferTitle] = useState("");
-  const [offerDescription, setOfferDescription] = useState("");
-  const [offerDiscount, setOfferDiscount] = useState("");
-  const [offerPrice, setOfferPrice] = useState("");
   const [offers, setOffers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [shops, setShops] = useState([]);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingOfferId, setEditingOfferId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -37,74 +35,100 @@ export default function AdminOffers() {
     endDate: "",
   });
 
+  // ✅ Fetch initial data
   useEffect(() => {
-    fetchShops();
-    fetchAllProducts();
     fetchOffers();
-  }, []);
+    fetchCategories();
+    fetchBrands();
+    fetchProducts(page);
+    fetchShops();
+  }, [page]);
 
-  const fetchShops = async () => {
-    try {
-      const res = await axios.get("/api/stores");
-      setShops(res.data.stores || []);
-      console.log("Admin offer page in trore fetch", res);
-    } catch (e) {
-      setShops([]);
-    }
-  };
-
-  // Fetch all products for filtering by shop
-  const fetchAllProducts = async () => {
-    try {
-      const res = await axios.get("/api/products?populateCategory=true");
-      setAllProducts(res.data.products || []);
-      console.log("Admin all products", res.data.products);
-    } catch (e) {
-      setAllProducts([]);
-    }
-  };
+  // ---------------- API Calls ----------------
 
   const fetchOffers = async () => {
-    setLoading(true);
     try {
-      const res = await axios.get("/api/offers/all");
+      setLoading(true);
+      const res = await axios.get("/api/offers/all", {
+        params: { page, limit: 10 },
+      });
+      console.log("Offers fetched:", res.data);
       setOffers(res.data.offers || []);
-      console.log("Admin Offers", res.data.offers);
-    } catch (e) {
-      setOffers([]);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching offers:", err);
+      toast.error("Failed to load offers");
     } finally {
       setLoading(false);
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!selectedShop || !selectedProduct || !offerTitle || !offerDiscount)
-  //     return;
-  //   setLoading(true);
-  //   try {
-  //     await axios.post("/api/admin/offers", {
-  //       shop: selectedShop,
-  //       product: selectedProduct,
-  //       title: offerTitle,
-  //       description: offerDescription,
-  //       discount: offerDiscount,
-  //       price: offerPrice,
-  //     });
-  //     setOfferTitle("");
-  //     setOfferDescription("");
-  //     setOfferDiscount("");
-  //     setOfferPrice("");
-  //     fetchOffers();
-  //     toast.success("Offer added to Today's Deals!");
-  //   } catch (e) {
-  //     toast.error("Failed to add offer");
-  //   }
-  //   setLoading(false);
-  // };
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("/api/category/get-category");
+      console.log("Categories fetched:", res.data.categories);
+      setCategories(res.data.categories || []);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+      setCategories([]);
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const res = await axios.get("/api/brands");
+      console.log("Brands fetched:", res.data.brands);
+      setBrands(res.data.brands || []);
+    } catch (err) {
+      console.error("Error fetching brands:", err);
+      setBrands([]);
+    }
+  };
+
+  const fetchProducts = async (pg) => {
+    try {
+      const res = await axios.get("/api/products", {
+        params: { page: pg, limit: 10, populateCategory: true },
+      });
+      console.log("Products fetched:", res.data);
+      setProducts(res.data.products || []);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setProducts([]);
+    }
+  };
+
+  const fetchShops = async () => {
+    try {
+      const res = await axios.get("/api/stores");
+      console.log("Shops fetched:", res.data.stores);
+      setShops(res.data.stores || []);
+    } catch (err) {
+      console.error("Error fetching shops:", err);
+      setShops([]);
+    }
+  };
+
+  // ---------------- Handlers ----------------
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (e) => {
+    const { name, options } = e.target;
+    const values = Array.from(options)
+      .filter((o) => o.selected)
+      .map((o) => o.value);
+    setFormData((prev) => ({ ...prev, [name]: values }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     const token = localStorage.getItem("token");
 
     const payload = {
@@ -117,25 +141,17 @@ export default function AdminOffers() {
     };
 
     try {
-      if (isEditing && editingOfferId) {
-        await axios.put(`/api/offers/update/${editingOfferId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Offer updated successfully!");
-      } else {
-        await axios.post("/api/offers/create", payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Offer created successfully!");
-      }
-
-      fetchOffers(); // refresh list
-      resetForm(); // reset form
-    } catch (error) {
-      toast.error(
-        isEditing ? "Failed to update offer" : "Failed to create offer"
-      );
-      console.error(error);
+      await axios.post("/api/offers/create", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Offer created successfully!");
+      resetForm();
+      fetchOffers();
+    } catch (err) {
+      console.error("Error creating offer:", err);
+      toast.error("Failed to create offer");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,142 +173,239 @@ export default function AdminOffers() {
       startDate: "",
       endDate: "",
     });
-    setIsEditing(false);
-    setEditingOfferId(null);
   };
 
-  // Remove offer handler
-  const handleRemoveOffer = async (offerId) => {
-    if (!window.confirm("Are you sure you want to remove this offer?")) return;
-    setLoading(true);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure to delete this offer?")) return;
     try {
-      await axios.delete(`/api/offers/delete/${offerId}`);
+      await axios.delete(`/api/offers/delete/${id}`);
+      toast.success("Offer deleted");
       fetchOffers();
-      toast.success("Offer removed successfully");
-    } catch (e) {
-      toast.error("Failed to remove offer");
+    } catch (err) {
+      console.error("Error deleting offer:", err);
+      toast.error("Failed to delete offer");
     }
-    setLoading(false);
   };
 
-  // Filter products by selected shop
-  const filteredProducts = selectedShop
-    ? allProducts.filter(
-        (p) => p.seller === selectedShop || p.seller?._id === selectedShop
-      )
-    : [];
+  const handleToggle = async (id) => {
+    try {
+      await axios.patch(`/api/offers/toggle/${id}`);
+      toast.success("Offer status toggled");
+      fetchOffers();
+    } catch (err) {
+      console.error("Error toggling offer:", err);
+      toast.error("Failed to toggle offer");
+    }
+  };
 
+  // ---------------- JSX ----------------
   return (
     <div className="admin-deals admin-offers-page">
       <div className="admin-header">
-        <h1>Today's Special Offers</h1>
-        <p className="admin-subtitle">
-          Add and manage today's special offers for each shop.
-        </p>
+        <h1>Manage Offers</h1>
+        <p className="admin-subtitle">Create and manage discount offers</p>
       </div>
+
+      {/* Offer Form */}
       <form className="admin-deal-form" onSubmit={handleSubmit}>
-        <select
-          value={selectedShop}
-          onChange={(e) => {
-            setSelectedShop(e.target.value);
-            setSelectedProduct(""); // Reset product when shop changes
-          }}
-          required
-        >
-          <option value="">Select Shop</option>
-          {shops.map((shop) => (
-            <option key={shop._id} value={shop._id}>
-              {shop.shopName || shop.names || shop.email}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedProduct}
-          onChange={(e) => setSelectedProduct(e.target.value)}
-          required
-          disabled={!selectedShop}
-        >
-          <option value="">Select Product</option>
-          {filteredProducts.map((product) => (
-            <option key={product._id} value={product._id}>
-              {product.name}
-            </option>
-          ))}
-        </select>
         <input
           type="text"
+          name="title"
           placeholder="Offer Title"
-          value={offerTitle}
-          onChange={(e) => setOfferTitle(e.target.value)}
+          value={formData.title}
+          onChange={handleInputChange}
           required
         />
         <input
           type="text"
+          name="description"
           placeholder="Description"
-          value={offerDescription}
-          onChange={(e) => setOfferDescription(e.target.value)}
+          value={formData.description}
+          onChange={handleInputChange}
         />
         <input
-          type="number"
-          placeholder="Discount %"
-          value={offerDiscount}
-          onChange={(e) => setOfferDiscount(e.target.value)}
+          type="text"
+          name="code"
+          placeholder="Code (e.g. SAVE10)"
+          value={formData.code}
+          onChange={handleInputChange}
           required
-          min="1"
-          max="100"
+        />
+
+        {/* Type Dropdown */}
+        <select name="type" value={formData.type} onChange={handleInputChange}>
+          <option value="CART">Cart</option>
+          <option value="CATEGORY">Category</option>
+          <option value="BRAND">Brand</option>
+          <option value="PRODUCT">Product</option>
+        </select>
+
+        {/* Dynamic Dropdowns */}
+        {formData.type === "CATEGORY" && (
+          <select
+            name="categories"
+            multiple
+            value={formData.categories}
+            onChange={handleSelectChange}
+          >
+            {categories.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {formData.type === "BRAND" && (
+          <select
+            name="brands"
+            multiple
+            value={formData.brands}
+            onChange={handleSelectChange}
+          >
+            {brands.map((b) => (
+              <option key={b._id} value={b._id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {formData.type === "PRODUCT" && (
+          <select
+            name="products"
+            multiple
+            value={formData.products}
+            onChange={handleSelectChange}
+          >
+            {products.map((p) => (
+              <option key={p._id} value={p._id}>
+                {p.name} - ₹{p.finalPrice || p.price}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Discount Inputs */}
+        <select
+          name="discountType"
+          value={formData.discountType}
+          onChange={handleInputChange}
+        >
+          <option value="PERCENTAGE">Percentage</option>
+          <option value="FLAT">Flat</option>
+        </select>
+        <input
+          type="number"
+          name="discountValue"
+          placeholder="Discount Value"
+          value={formData.discountValue}
+          onChange={handleInputChange}
+          required
         />
         <input
           type="number"
-          placeholder="Special Price (optional)"
-          value={offerPrice}
-          onChange={(e) => setOfferPrice(e.target.value)}
-          min="1"
+          name="maxDiscountAmount"
+          placeholder="Max Discount Amount"
+          value={formData.maxDiscountAmount}
+          onChange={handleInputChange}
         />
+        <input
+          type="number"
+          name="minCartValue"
+          placeholder="Min Cart Value"
+          value={formData.minCartValue}
+          onChange={handleInputChange}
+        />
+
+        {/* Dates */}
+        <input
+          type="date"
+          name="startDate"
+          value={formData.startDate}
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="date"
+          name="endDate"
+          value={formData.endDate}
+          onChange={handleInputChange}
+          required
+        />
+
         <button type="submit" disabled={loading}>
-          {loading ? "Adding..." : "Add Offer"}
+          {loading ? "Saving..." : "Save Offer"}
         </button>
       </form>
+
+      {/* Offer List */}
       <div className="admin-deals-list">
-        <h3>Active Offers</h3>
+        <h3>Offer History</h3>
         {offers.length === 0 ? (
           <p>No offers yet.</p>
         ) : (
-          <ul>
-            {offers.map((offer) => (
-              <li
-                key={offer._id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <span>
-                  <b>{offer.title}</b> - {offer.product?.name} (
-                  {offer.shop?.shopName ||
-                    offer.shop?.names ||
-                    offer.shop?.email}
-                  ) - {offer.discount}% off
-                </span>
-                <button
-                  style={{
-                    marginLeft: 16,
-                    background: "#dc3545",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "4px 10px",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleRemoveOffer(offer._id)}
-                  disabled={loading}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
+          <table className="menu-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Code</th>
+                <th>Type</th>
+                <th>Discount</th>
+                <th>Status</th>
+                <th>Valid</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offers.map((offer) => (
+                <tr key={offer._id}>
+                  <td>{offer.title}</td>
+                  <td>{offer.code}</td>
+                  <td>{offer.type}</td>
+                  <td>
+                    {offer.discountValue} {offer.discountType}
+                  </td>
+                  <td>{offer.isActive ? "Active" : "Inactive"}</td>
+                  <td>
+                    {new Date(offer.startDate).toLocaleDateString()} -{" "}
+                    {new Date(offer.endDate).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDelete(offer._id)}
+                    >
+                      <FaTrash />
+                    </button>
+                    <button
+                      className="toggle-btn"
+                      onClick={() => handleToggle(offer._id)}
+                    >
+                      {offer.isActive ? <FaToggleOn /> : <FaToggleOff />}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="pagination">
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+          Prev
+        </button>
+        <span>
+          Page {page} / {totalPages}
+        </span>
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

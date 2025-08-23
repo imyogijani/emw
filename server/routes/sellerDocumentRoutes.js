@@ -84,18 +84,49 @@ const upload = multer({
 //   { name: "lastIssuedPassport", maxCount: 1 },
 // ]);
 
+const docTypes = [
+  "aadhaar",
+  "pan",
+  "gst",
+  "udyam",
+  "addressProof",
+  "bankProof",
+  "drivingLicense",
+  "voterId",
+  "electricityBill",
+  "passport",
+  "rentAgreement",
+  "bankPassbook",
+  "telephoneBill",
+  "bankAccountStatement",
+  "birthCertificate",
+  "gasConnection",
+  "incomeTaxOrder",
+  "rationCard",
+  "governmentIdCard",
+  "certificateOfIncorporation",
+  "pensionDocuments",
+  "memorandumOfAssociation",
+  "partnershipDeed",
+  "trustDeed",
+  "certificateFromEmployer",
+  "lastIssuedPassport",
+];
+
+// fields array banaye
+const uploadFields = docTypes.map((doc) => ({ name: doc, maxCount: 1 }));
+
 router.post(
   "/upload",
   authenticateToken,
   fetchUser,
   authorizeSeller,
-  upload.fields([
-    { name: "aadhaar", maxCount: 1 },
-    { name: "pan", maxCount: 1 },
-    { name: "passport", maxCount: 1 },
-    { name: "drivingLicense", maxCount: 1 },
-    // aur jitne documents chahiye add karo
-  ]),
+  (req, res, next) => {
+    // Custom middleware logic (if any)
+    console.log("Upload document request received", req.body);
+    next();
+  },
+  upload.fields(uploadFields),
   uploadDocuments
 );
 
