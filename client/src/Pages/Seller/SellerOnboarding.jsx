@@ -23,6 +23,10 @@ const SellerOnboarding = () => {
     brandInput: "",
     categoryInputFocused: false,
     brandInputFocused: false,
+    shopAddress: "",
+    location: "",
+    shopImages: [],
+    shopImagesPreview: [],
 
     // Step 2 - Shop Timing
     workingHours: {
@@ -37,6 +41,9 @@ const SellerOnboarding = () => {
 
     // Step 3 - Subscription
     selectedPlan: null,
+
+    // Step 4 - GST
+    gstNumber: "",
   });
 
   const navigate = useNavigate();
@@ -58,6 +65,17 @@ const SellerOnboarding = () => {
       }
     };
   }, [formData.logoPreview]);
+
+  // Onboarding completion check
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.isOnboardingComplete) {
+        navigate("/seller/dashboard");
+      }
+    }
+  }, [navigate]);
 
   // Fetch categories and brands on component mount
   useEffect(() => {
@@ -117,6 +135,15 @@ const SellerOnboarding = () => {
         logoPreview: URL.createObjectURL(file),
       });
     }
+  };
+
+  const handleShopImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFormData((prev) => ({
+      ...prev,
+      shopImages: files,
+      shopImagesPreview: files.map((file) => URL.createObjectURL(file)),
+    }));
   };
 
   const handleMultiSelect = (e, field) => {
@@ -184,15 +211,22 @@ const SellerOnboarding = () => {
           toast.error("Shop name is required");
           return false;
         }
-        if (formData.categories.length === 0) {
-          toast.error("Please select at least one category");
-          return false;
-        }
         if (!formData.shopLogo) {
           toast.error("Shop logo is required");
           return false;
         }
-        // Brands are now optional - no validation needed
+        if (!formData.shopAddress) {
+          toast.error("Shop address is required");
+          return false;
+        }
+        if (!formData.location) {
+          toast.error("Shop location is required");
+          return false;
+        }
+        if (formData.shopImages.length === 0) {
+          toast.error("Please upload at least one shop image");
+          return false;
+        }
         break;
       case 2:
         // At least one day should be open
@@ -210,15 +244,15 @@ const SellerOnboarding = () => {
           return false;
         }
         break;
+      case 4:
+        if (!formData.gstNumber) {
+          toast.error("GST number is required");
+          return false;
+        }
+        break;
     }
     return true;
   };
-
-  // const handleNext = () => {
-  //   if (validateStep()) {
-  //     setStep(step + 1);
-  //   }
-  // };
 
   const handleNext = async () => {
     if (!validateStep()) return;
@@ -251,9 +285,15 @@ const SellerOnboarding = () => {
         JSON.stringify(formData.workingHours)
       );
       formDataToSend.append("subscriptionPlan", formData.selectedPlan);
+      formDataToSend.append("shopAddress", formData.shopAddress);
+      formDataToSend.append("location", formData.location);
+      formDataToSend.append("gstNumber", formData.gstNumber);
       if (formData.shopLogo) {
         formDataToSend.append("shopLogo", formData.shopLogo);
       }
+      formData.shopImages.forEach((img, idx) => {
+        formDataToSend.append(`shopImages`, img);
+      });
 
       await axios.post("/api/seller/complete-profile", formDataToSend, {
         headers: {
@@ -301,9 +341,14 @@ const SellerOnboarding = () => {
       fd.append("shopName", formData.shopName);
       fd.append("categories", JSON.stringify(formData.categories));
       fd.append("brands", JSON.stringify(formData.brands));
+      fd.append("shopAddress", formData.shopAddress);
+      fd.append("location", formData.location);
       if (formData.shopLogo) {
         fd.append("shopImage", formData.shopLogo);
       }
+      formData.shopImages.forEach((img, idx) => {
+        fd.append(`shopImages`, img);
+      });
 
       console.log("form data onboarding step1 passed", fd);
       const response = await axios.post("/api/seller/onboarding/step1", fd);
@@ -378,15 +423,6 @@ const SellerOnboarding = () => {
       });
     }
   };
-
-  //   const handleCategoryDropdownClick = (catId) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     categories: [...prev.categories, catId], //  push _id, not index/number
-  //     categoryInput: "",
-  //     categoryInputFocused: false,
-  //   }));
-  // };
 
   const handleBrandDropdownClick = (brandId) => {
     if (!formData.brands.includes(brandId)) {
@@ -466,6 +502,57 @@ const SellerOnboarding = () => {
           }
           placeholder="Enter your shop name"
         />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Shop Address</label>
+        <input
+          type="text"
+          className="form-input"
+          value={formData.shopAddress}
+          onChange={(e) =>
+            setFormData({ ...formData, shopAddress: e.target.value })
+          }
+          placeholder="Enter your shop address"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Location</label>
+        <input
+          type="text"
+          className="form-input"
+          value={formData.location}
+          onChange={(e) =>
+            setFormData({ ...formData, location: e.target.value })
+          }
+          placeholder="Enter your shop location (city, area, etc.)"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Shop Images</label>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleShopImagesChange}
+        />
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          {formData.shopImagesPreview.map((src, idx) => (
+            <img
+              key={idx}
+              src={src}
+              alt="Shop"
+              style={{
+                width: 60,
+                height: 60,
+                objectFit: "cover",
+                borderRadius: 8,
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="form-group">
@@ -748,6 +835,27 @@ const SellerOnboarding = () => {
     </div>
   );
 
+  const renderGSTForm = () => (
+    <div className="form-step">
+      <h2 className="step-title">GST Number</h2>
+      <p className="step-description">
+        Enter your shop's GST number to complete onboarding.
+      </p>
+      <div className="form-group">
+        <label className="form-label">GST Number</label>
+        <input
+          type="text"
+          className="form-input"
+          value={formData.gstNumber}
+          onChange={(e) =>
+            setFormData({ ...formData, gstNumber: e.target.value })
+          }
+          placeholder="Enter GST number"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="onboarding-container">
       <div className="onboarding-form">
@@ -764,13 +872,14 @@ const SellerOnboarding = () => {
         <div className="progress-bar">
           <div
             className="progress-fill"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
         {step === 1 && renderBasicDetailsForm()}
         {step === 2 && renderTimingForm()}
         {step === 3 && renderSubscriptionForm()}
+        {step === 4 && renderGSTForm()}
 
         <div className="form-actions">
           {step > 1 && (
@@ -783,7 +892,7 @@ const SellerOnboarding = () => {
               Back
             </button>
           )}
-          {step < 3 ? (
+          {step < 4 ? (
             <button
               type="button"
               className="btn btn-primary"
