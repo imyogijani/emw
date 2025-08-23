@@ -54,3 +54,9 @@ Thumbs.db
 .yarn/
 .pnp.*
 /server/firebase/firebaseKey.json
+/client/firebase/firebaseKey.json
+/client/.env
+/server/.env
+firebase/firebaseKey.json
+
+
