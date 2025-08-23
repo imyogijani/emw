@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 firebase/firebaseKey.json
-backend/firebase/firebaseKey.json
+server/firebase/firebaseKey.json
 .env
-backend/.env
+server/.env
