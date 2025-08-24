@@ -2,16 +2,18 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getApiBaseUrl } from "./apiConfig";
 
+// Get the correct base URL based on environment
+const baseURL = getApiBaseUrl();
+
 const instance = axios.create({
-  // baseURL: import.meta.env.VITE_API_BASE_URL_LOCAL,
-  baseURL: import.meta.env.VITE_API_BASE_URL_PROD,
+  baseURL: baseURL,
   timeout: 15000, // Increased timeout for file uploads
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-console.log("Using API Base URL:", getApiBaseUrl());
+console.log("Using API Base URL:", baseURL);
 
 console.log("Axios Instance Configuration:", {
   baseURL: instance.defaults.baseURL,
