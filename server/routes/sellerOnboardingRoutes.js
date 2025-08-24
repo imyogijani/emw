@@ -12,6 +12,7 @@ import upload from "../middlewares/uploadMiddleware.js";
 import {
   onboardingStep1,
   completeOnboarding,
+  startFreeTrial,
 } from "../controllers/onBoardingController.js";
 
 const router = express.Router();
@@ -96,6 +97,14 @@ router.post(
   authorizeSeller,
   fetchUser,
   completeOnboarding
+);
+
+router.post(
+  "/start-free-trial",
+  authenticateToken,
+  authorizeSeller,
+  fetchUser,
+  startFreeTrial
 );
 
 export default router;

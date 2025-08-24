@@ -3,7 +3,7 @@ import Subscription from "../models/subscriptionModel.js";
 // Create a new subscription plan
 export const createSubscription = async (req, res) => {
   try {
-    const { planName, pricing, includedFeatures, isVisible } = req.body;
+    const { planName, pricing, includedFeatures, isVisible, upiQrCode, upiId } = req.body;
 
     const existingPlan = await Subscription.findOne({ planName });
     if (existingPlan) {
@@ -24,6 +24,8 @@ export const createSubscription = async (req, res) => {
       pricing,
       includedFeatures,
       isVisible: isVisible !== undefined ? isVisible : true,
+      upiQrCode,
+      upiId,
     });
 
     await newSubscription.save();
@@ -89,7 +91,7 @@ export const getSubscriptionByName = async (req, res) => {
 // Update a subscription plan
 export const updateSubscription = async (req, res) => {
   try {
-    const { planName, pricing, includedFeatures, isVisible } = req.body;
+    const { planName, pricing, includedFeatures, isVisible, upiQrCode, upiId } = req.body;
 
     // Basic Validation
     if (
@@ -114,6 +116,10 @@ export const updateSubscription = async (req, res) => {
       includedFeatures,
       isVisible: isVisible !== undefined ? isVisible : true, // 👈 default true
     };
+
+    // Add UPI fields if provided
+    if (upiQrCode !== undefined) updateFields.upiQrCode = upiQrCode;
+    if (upiId !== undefined) updateFields.upiId = upiId;
 
     // Update subscription
     const updatedSubscription = await Subscription.findByIdAndUpdate(

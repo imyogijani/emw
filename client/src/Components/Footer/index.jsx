@@ -156,7 +156,7 @@ export default function Footer() {
               </div>
               <div className="contact-item">
                 <MapPin size={16} />
-                <span>Ahmedabad, India</span>
+                <span>Bhavnagar, India</span>
               </div>
 
               {/* Social Icons */}

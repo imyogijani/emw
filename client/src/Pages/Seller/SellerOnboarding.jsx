@@ -92,33 +92,61 @@ const SellerOnboarding = () => {
     "aadhaar",
     "pan",
     "gst",
-    // "udyam",
-    // "addressProof",
-    // "bankProof",
-    // "drivingLicense",
-    // "voterId",
-    // "electricityBill",
-    // "passport",
-    // "rentAgreement",
-    // "bankPassbook",
-    // "telephoneBill",
-    // "bankAccountStatement",
-    // "birthCertificate",
-    // "gasConnection",
-    // "incomeTaxOrder",
-    // "rationCard",
-    // "governmentIdCard",
-    // "certificateOfIncorporation",
-    // "pensionDocuments",
-    // "memorandumOfAssociation",
-    // "partnershipDeed",
-    // "trustDeed",
-    // "certificateFromEmployer",
-    // "lastIssuedPassport",
+    "udyam",
+    "drivingLicense",
+    "voterId",
+    "electricityBill",
+    "passport",
+    "rentAgreement",
+    "bankPassbook",
+    "telephoneBill",
+    "bankAccountStatement",
+    "birthCertificate",
+    "gasConnection",
+    "incomeTaxOrder",
+    "rationCard",
+    "governmentIdCard",
+    "certificateOfIncorporation",
+    "pensionDocuments",
+    "memorandumOfAssociation",
+    "partnershipDeed",
+    "trustDeed",
+    "certificateFromEmployer",
+    "lastIssuedPassport",
   ];
 
-  // Categories allowed
-  const categoryOptions = ["identity", "address", "business", "bank"];
+  // Document categories mapping as per backend
+  const documentCategoriesMap = {
+    aadhaar: ["identity", "address"],
+    pan: ["identity"],
+    gst: ["business"],
+    udyam: ["business"],
+    drivingLicense: ["identity", "address"],
+    voterId: ["identity", "address"],
+    electricityBill: ["address"],
+    passport: ["identity", "address"],
+    rentAgreement: ["address"],
+    bankPassbook: ["bank", "address"],
+    telephoneBill: ["address"],
+    bankAccountStatement: ["bank", "address"],
+    certificateOfIncorporation: ["business"],
+    memorandumOfAssociation: ["business"],
+    partnershipDeed: ["business"],
+    trustDeed: ["business"],
+    lastIssuedPassport: ["identity"],
+    birthCertificate: ["identity"],
+    gasConnection: ["address"],
+    incomeTaxOrder: ["identity", "business"],
+    rationCard: ["identity", "address"],
+    governmentIdCard: ["identity"],
+    pensionDocuments: ["identity", "bank"],
+    certificateFromEmployer: ["identity", "business"],
+  };
+
+  // Get available categories for selected document type
+  const getAvailableCategories = (docType) => {
+    return documentCategoriesMap[docType] || [];
+  };
 
   const navigate = useNavigate();
 
@@ -361,25 +389,20 @@ const SellerOnboarding = () => {
         JSON.stringify(formData.workingHours)
       );
       formDataToSend.append("subscriptionPlan", formData.selectedPlan);
-      // formDataToSend.append("shopAddress", formData.shopAddress);
-      // formDataToSend.append("location", formData.location);
-      // formDataToSend.append("gstNumber", formData.gstNumber);
-      // if (formData.shopLogo) {
-      //   formDataToSend.append("shopImage", formData.shopLogo);
-      // }
-      // formData.shopImages.forEach((img, idx) => {
-      //   formDataToSend.append(`shopImages`, img);
-      // });
 
       console.log("Final form data to send:", formDataToSend);
 
+      // Complete profile first
       await axios.post("/api/seller/complete-profile", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      toast.success("Profile completed successfully!");
+      // Start free trial
+      await axios.post("/api/seller/start-free-trial");
+
+      toast.success("🎉 Profile completed! Your 7-day free trial has started!");
       // Redirect to seller dashboard
       navigate("/seller/dashboard");
     } catch (error) {
@@ -533,6 +556,12 @@ const SellerOnboarding = () => {
   const handleDocChange = (index, field, value) => {
     const updated = [...documents];
     updated[index][field] = value;
+    
+    // If document type changes, reset categories and auto-select all available categories
+    if (field === 'docType') {
+      updated[index].categories = getAvailableCategories(value);
+    }
+    
     setDocuments(updated);
   };
   const handleFileChange = (index, file) => {
@@ -601,15 +630,28 @@ const SellerOnboarding = () => {
         console.log(pair[0] + ":", pair[1]);
       }
 
-      await axios.post("/api/seller-documents/upload", fd, {
+      const response = await axios.post("/api/seller-documents/upload", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      console.log("Upload response:", response.data);
       toast.success("Documents uploaded successfully 🎉");
       setStep(4);
     } catch (err) {
-      console.error(err);
-      toast.error("Upload failed");
+      console.error("Upload error:", err);
+      
+      // More specific error messages
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else if (err.response?.status === 400) {
+        toast.error("Invalid document data. Please check your inputs.");
+      } else if (err.response?.status === 401) {
+        toast.error("Authentication failed. Please login again.");
+      } else if (err.response?.status === 413) {
+        toast.error("File size too large. Please use smaller files.");
+      } else {
+        toast.error("Upload failed. Please try again.");
+      }
     }
   };
 
@@ -1070,34 +1112,98 @@ const SellerOnboarding = () => {
     </div>
   );
 
-  const renderSubscriptionForm = () => (
-    <div className="form-step">
-      <h2 className="step-title">Choose Subscription Plan</h2>
-      <p className="step-description">
-        Select a plan that suits your business needs
-      </p>
+  const renderSubscriptionForm = () => {
+    const selectedPlan = plans.find(plan => plan._id === formData.selectedPlan);
+    
+    return (
+      <div className="form-step">
+        <h2 className="step-title">Choose Your Plan</h2>
+        <p className="step-description">
+          Start with a 7-day free trial, then select a plan that suits your business needs
+        </p>
 
-      <div className="subscription-plans">
-        {plans.map((plan) => (
-          <div
-            key={plan._id}
-            className={`plan-card ${
-              formData.selectedPlan === plan._id ? "selected" : ""
-            }`}
-            onClick={() => handlePlanSelect(plan._id)}
-          >
-            <h3 className="plan-title">{plan.planName}</h3>
-            <div className="plan-price">{plan.pricing.monthly}</div>
-            <ul className="plan-features">
-              {plan.includedFeatures.map((feature, index) => (
-                <li key={index}>✓ {feature}</li>
-              ))}
-            </ul>
+        {/* Free Trial Banner */}
+        <div className="free-trial-banner">
+          <div className="trial-icon">🎉</div>
+          <div className="trial-content">
+            <h3>7-Day Free Trial</h3>
+            <p>Get full access to all features for 7 days, no payment required!</p>
           </div>
-        ))}
+        </div>
+
+        <div className="subscription-plans">
+          {plans.map((plan) => (
+            <div
+              key={plan._id}
+              className={`plan-card ${
+                formData.selectedPlan === plan._id ? "selected" : ""
+              }`}
+              onClick={() => handlePlanSelect(plan._id)}
+            >
+              <h3 className="plan-title">{plan.planName}</h3>
+              <div className="plan-price">
+                <span className="monthly-price">₹{plan.pricing.monthly}/month</span>
+                {plan.pricing.yearly && (
+                  <span className="yearly-price">₹{plan.pricing.yearly}/year</span>
+                )}
+              </div>
+              <ul className="plan-features">
+                {plan.includedFeatures.map((feature, index) => (
+                  <li key={index}>✓ {feature}</li>
+                ))}
+              </ul>
+              {formData.selectedPlan === plan._id && (
+                <div className="selected-badge">Selected</div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* UPI Payment Section */}
+        {selectedPlan && selectedPlan.upiQrCode && (
+          <div className="payment-section">
+            <h3 className="payment-title">Payment Information</h3>
+            <div className="payment-content">
+              <div className="qr-code-section">
+                <h4>Scan QR Code to Pay</h4>
+                <div className="qr-code-container">
+                  <img 
+                    src={selectedPlan.upiQrCode} 
+                    alt="UPI QR Code" 
+                    className="qr-code-image"
+                  />
+                </div>
+                {selectedPlan.upiId && (
+                  <p className="upi-id">UPI ID: {selectedPlan.upiId}</p>
+                )}
+              </div>
+              <div className="payment-instructions">
+                <h4>Payment Instructions:</h4>
+                <ol>
+                  <li>Scan the QR code with any UPI app</li>
+                  <li>Pay ₹{selectedPlan.pricing.monthly} for monthly plan</li>
+                  <li>Take a screenshot of the payment confirmation</li>
+                  <li>Click "Start Free Trial" to begin your 7-day trial</li>
+                  <li>After trial, your paid subscription will activate</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trial Terms */}
+        <div className="trial-terms">
+          <h4>Free Trial Terms:</h4>
+          <ul>
+            <li>✓ Full access to all features for 7 days</li>
+            <li>✓ No payment required to start</li>
+            <li>✓ Cancel anytime during trial</li>
+            <li>✓ Automatic activation of paid plan after trial (if payment completed)</li>
+          </ul>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderGSTForm = () => (
     <div className="form-step">
@@ -1160,12 +1266,17 @@ const SellerOnboarding = () => {
                   Array.from(e.target.selectedOptions, (o) => o.value)
                 )
               }
+              disabled={!doc.docType}
             >
-              {categoryOptions.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
+              {doc.docType ? (
+                getAvailableCategories(doc.docType).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </option>
+                ))
+              ) : (
+                <option value="">Select document type first</option>
+              )}
             </select>
 
             {/* File Upload */}
@@ -1295,7 +1406,7 @@ const SellerOnboarding = () => {
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? "Completing..." : "Complete Setup"}
+              {loading ? "Starting Trial..." : "Start 7-Day Free Trial"}
             </button>
           )}
         </div>

@@ -491,3 +491,246 @@
   box-shadow: 0 2px 8px rgba(60,72,88,0.06);
   border-left: 5px solid #1a237e;
 }
+
+/* Free Trial Banner */
+.free-trial-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trial-icon {
+  font-size: 2rem;
+}
+
+.trial-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.trial-content p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Enhanced Plan Cards */
+.plan-card {
+  position: relative;
+  border: 2px solid #e3e8ee;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.plan-card:hover {
+  border-color: #1a237e;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(26, 35, 126, 0.15);
+}
+
+.plan-card.selected {
+  border-color: #1a237e;
+  background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(26, 35, 126, 0.02) 100%);
+  box-shadow: 0 8px 16px rgba(26, 35, 126, 0.1);
+}
+
+.selected-badge {
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  background: #1a237e;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.plan-price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 1rem 0;
+}
+
+.monthly-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a237e;
+}
+
+.yearly-price {
+  font-size: 0.9rem;
+  color: #666;
+  text-decoration: line-through;
+}
+
+/* Payment Section */
+.payment-section {
+  background: #f8f9ff;
+  border: 1px solid #e3e8ee;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.payment-title {
+  color: #1a237e;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.payment-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.qr-code-section {
+  text-align: center;
+}
+
+.qr-code-section h4 {
+  color: #1a237e;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.qr-code-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e3e8ee;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.qr-code-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.upi-id {
+  font-family: monospace;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e3e8ee;
+  color: #1a237e;
+  font-weight: 600;
+}
+
+.payment-instructions h4 {
+  color: #1a237e;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.payment-instructions ol {
+  padding-left: 1.5rem;
+}
+
+.payment-instructions li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Trial Terms */
+.trial-terms {
+  background: #f0f7ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.trial-terms h4 {
+  color: #1a237e;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.trial-terms ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.trial-terms li {
+  margin-bottom: 0.5rem;
+  color: #2c5aa0;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .onboarding-container {
+    margin: 20px;
+    padding: 10px;
+  }
+
+  .onboarding-form {
+    padding: 1.5rem;
+  }
+
+  .subscription-plans {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .qr-code-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .free-trial-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .multi-select-tags .selected-tags {
+    flex-wrap: wrap;
+  }
+
+  .timing-form-days {
+    gap: 1rem;
+  }
+
+  .timing-day-card {
+    padding: 1rem;
+  }
+
+  .timing-inputs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .timing-inputs input {
+    width: 100%;
+  }
+}

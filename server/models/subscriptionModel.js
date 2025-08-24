@@ -24,6 +24,14 @@ const subscriptionSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  upiQrCode: {
+    type: String, // Base64 encoded image or file path
+    required: false,
+  },
+  upiId: {
+    type: String, // UPI ID for payments
+    required: false,
+  },
 });
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);
