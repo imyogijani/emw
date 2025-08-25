@@ -7,6 +7,11 @@ import {
   FaUser,
   FaTrash,
   FaSpinner,
+  FaChevronLeft,
+  FaChevronRight,
+  FaUsers,
+  FaEye,
+  FaEyeSlash,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
@@ -23,6 +28,10 @@ const Users = () => {
     role: "",
     status: "",
   });
+
+  // View state - show all users by default
+  const [showAllUsers, setShowAllUsers] = useState(true);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   // New: Shopowner details modal state
   const [shopownerDetails, setShopownerDetails] = useState(null);
@@ -99,6 +108,14 @@ const Users = () => {
     return matchesSearch && matchesRole;
   });
 
+  // Display all filtered users
+  const currentUsers = filteredUsers;
+  const totalUsers = filteredUsers.length;
+
+  const handleToggleViewMode = () => {
+    setViewMode(viewMode === 'grid' ? 'list' : 'grid');
+  };
+
   const getRoleIcon = (role) => {
     switch (role) {
       case "admin":
@@ -165,6 +182,46 @@ const Users = () => {
         <p className="admin-subtitle">Manage all users and their roles</p>
       </div>
 
+      {/* User Metrics */}
+      <div className="user-metrics">
+        <div className="metric-card total">
+          <div className="metric-icon">
+            <FaUsers />
+          </div>
+          <div className="metric-info">
+            <h3>{stats.total}</h3>
+            <p>Total Users</p>
+          </div>
+        </div>
+        <div className="metric-card admin">
+          <div className="metric-icon">
+            <FaUserCog />
+          </div>
+          <div className="metric-info">
+            <h3>{stats.admin}</h3>
+            <p>Admin Users</p>
+          </div>
+        </div>
+        <div className="metric-card sellers">
+          <div className="metric-icon">
+            <FaStore />
+          </div>
+          <div className="metric-info">
+            <h3>{stats.shopowner}</h3>
+            <p>Sellers</p>
+          </div>
+        </div>
+        <div className="metric-card customers">
+          <div className="metric-icon">
+            <FaUser />
+          </div>
+          <div className="metric-info">
+            <h3>{stats.client}</h3>
+            <p>Customers</p>
+          </div>
+        </div>
+      </div>
+
       <div className="users-controls">
         <div className="search-box">
           <FaSearch />
@@ -180,26 +237,38 @@ const Users = () => {
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
           className="role-filter"
-          style={{
-            width: "9vw",
-            height: "7vh",
-            marginTop: "10px",
-            padding: "10px",
-          }}
         >
           <option value="all">All Users</option>
           <option value="admin">Admins</option>
           <option value="shopowner">Shop Owners</option>
           <option value="client">Customers</option>
         </select>
+
+        <button
+          className="view-mode-toggle-btn"
+          onClick={handleToggleViewMode}
+          title={viewMode === 'grid' ? "Switch to list view" : "Switch to grid view"}
+        >
+          {viewMode === 'grid' ? <FaEyeSlash /> : <FaEye />}
+          {viewMode === 'grid' ? "List View" : "Grid View"}
+        </button>
       </div>
 
       <div className="users-table-container">
-        <div className="users-grid">
-          {filteredUsers.length === 0 ? (
+        {totalUsers > 0 && (
+          <div className="users-summary">
+            <p>
+              Showing all {totalUsers} users
+              {filterRole !== "all" && ` (filtered by ${filterRole})`}
+            </p>
+          </div>
+        )}
+        
+        <div className={`users-display ${viewMode === 'list' ? 'users-list' : 'users-grid'}`}>
+          {currentUsers.length === 0 ? (
             <p className="no-users">No users found</p>
           ) : (
-            filteredUsers.map((user) => (
+            currentUsers.map((user) => (
               <div key={user._id} className="user-card">
                 <div className="user-card-header">
                   {getRoleIcon(user.role)}
