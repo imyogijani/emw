@@ -5,6 +5,7 @@ import "./theme-override.css";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import JumpingLoader from "../../Components/JumpingLoader";
 import {
   Star,
   ShoppingCart,
@@ -192,9 +193,28 @@ export default function Menu() {
     }
   };
 
-  // processImageUrl is now imported from utils
+  // Modern ProductCard component with unified design system
   const ProductCard = ({ item, isListView = false }) => {
     const navigate = useNavigate();
+    const [imageError, setImageError] = useState(false);
+    const [imageLoading, setImageLoading] = useState(true);
+
+    const handleImageLoad = () => {
+      setImageLoading(false);
+      setImageError(false);
+    };
+
+    const handleImageError = () => {
+      setImageLoading(false);
+      setImageError(true);
+    };
+
+    const getImageSrc = () => {
+      if (imageError) {
+        return "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
+      }
+      return processImageUrl(item.image) || "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
+    };
 
     const handleProductClick = async () => {
       // Track the click event
@@ -206,56 +226,81 @@ export default function Menu() {
           item.activeDeal && item.activeDeal.dealPrice
             ? item.activeDeal.dealPrice
             : item.finalPrice,
-
         location: window.location.pathname,
       });
 
-      // Then navigate to product detail page
+      // Navigate to product detail page
       navigate(`/product/${item._id}`, { state: { item } });
+    };
+
+    const renderPrice = () => {
+      const currentPrice = item.activeDeal?.dealPrice || item.finalPrice || item.price;
+      const originalPrice = item.originalPrice || item.price;
+      const hasDiscount = item.discount || (item.activeDeal && item.activeDeal.dealPrice < originalPrice);
+
+      return (
+        <div className="pricing-section">
+          <span className="current-price">₹{currentPrice}</span>
+          {hasDiscount && originalPrice > currentPrice && (
+            <>
+              <span className="original-price">₹{originalPrice}</span>
+              <span className="discount-percent">({Math.round(((originalPrice - currentPrice) / originalPrice) * 100)}% off)</span>
+            </>
+          )}
+        </div>
+      );
     };
 
     return (
       <div
-        className={`modern-product-card ${isListView ? "list-view" : ""}`}
+        className={`card-base ${isListView ? 'card-fluid' : 'card-medium'} product-card`}
         onClick={handleProductClick}
+        style={{ cursor: 'pointer' }}
       >
-        <div className="product-image-wrapper">
+        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`}>
           <img
-            src={processImageUrl(item.image)}
-            alt={item.title}
+            src={getImageSrc()}
+            alt={item.name}
+            className="card-image"
             loading="lazy"
+            style={{
+              objectFit: "cover",
+              display: imageLoading ? "none" : "block",
+            }}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
           />
           {item.discount && (
-            <div className="discount-label">-{item.discount}%</div>
+            <div className="card-badge discount pulse">-{item.discount}%</div>
           )}
-          {item.prime && <div className="prime-badge">Prime</div>}
+          {item.prime && <div className="card-badge featured">Prime</div>}
+          {item.activeDeal && <div className="card-badge sale">Deal</div>}
         </div>
 
-        <div className="product-details">
-          <h3 className="product-name">{item.name}</h3>
-          <p className="product-description">{item.description}</p>
-
-          <div className="product-rating-row">
+        <div className="card-content">
+          <h3 className="card-title">{item.name}</h3>
+          
+          <div className="product-rating-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <div className="rating-stars">
               {renderStars(item.averageRating || 0)}
             </div>
-            <span className="rating-value">{item.averageRating || 0}</span>
-            <span className="review-count">({item.totalReviews || 0})</span>
+            <span className="rating-value" style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+              {item.averageRating || 0}
+            </span>
+            <span className="review-count" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              ({item.totalReviews || 0})
+            </span>
           </div>
 
-          <div className="pricing-section">
-            <span className="current-price">{item.price}</span>
-            {item.originalPrice && (
-              <span className="original-price">{item.originalPrice}</span>
-            )}
-            {item.discount && (
-              <span className="discount-percent">({item.discount}% off)</span>
-            )}
-          </div>
+          {renderPrice()}
 
-          <div className="delivery-info">
+          <p className="card-description">
+            {item.description || "Premium quality product with excellent features and reliable performance."}
+          </p>
+
+          <div className="delivery-info" style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
             {item.freeDelivery && (
-              <span className="free-delivery">
+              <span className="free-delivery" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary-color)' }}>
                 <Truck size={14} />
                 FREE Delivery
               </span>
@@ -263,13 +308,19 @@ export default function Menu() {
             <span className="delivery-date">Get it by tomorrow</span>
           </div>
 
-          <button
-            className="btn btn-medium btn-primary add-cart-button"
-            onClick={(e) => handleAddToCart(e, item)}
-          >
-            <span className="sparkle"><ShoppingCart size={16} /></span>
-            <span className="text">Add to Cart</span>
-          </button>
+          <div className="card-actions">
+            <button
+              className="card-action"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(e, item);
+              }}
+              title="Add to Cart"
+            >
+              <ShoppingCart size={16} />
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -278,15 +329,9 @@ export default function Menu() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="loading-grid">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="product-skeleton">
-              <div className="skeleton-image"></div>
-              <div className="skeleton-text"></div>
-              <div className="skeleton-text short"></div>
-              <div className="skeleton-text"></div>
-            </div>
-          ))}
+        <div className="loader-container">
+          <JumpingLoader size="large" />
+          <p>Loading products...</p>
         </div>
       );
     }

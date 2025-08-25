@@ -5,6 +5,7 @@ import "./UserProfile.css";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
 import { processImageUrl } from "../../utils/apiConfig";
+import JumpingLoader from "../JumpingLoader";
 import {
   FaUser,
   FaEnvelope,
@@ -175,7 +176,7 @@ const UserProfile = ({ onClose }) => {
       <div className="profile-modal">
         <div className="profile-content loading">
           <div className="loader">
-            <div className="loading-spinner"></div>
+            <JumpingLoader size="medium" />
             <p>Loading profile...</p>
           </div>
         </div>

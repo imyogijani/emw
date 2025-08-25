@@ -5,6 +5,7 @@ import { processImageUrl } from "../../utils/apiConfig";
 import "./SellerProfile.css";
 import AddressModal from "./AddressModal";
 import { Edit, Trash2 } from "lucide-react";
+import JumpingLoader from "../../Components/JumpingLoader";
 
 const SellerProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -249,7 +250,12 @@ const SellerProfile = () => {
 
   // processImageUrl is now imported from utils
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="loading-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+      <JumpingLoader size="medium" />
+      <p>Loading profile...</p>
+    </div>
+  );
   if (!profile) return <div>No profile data</div>;
 
   return (

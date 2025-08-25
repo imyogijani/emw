@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import axios from "../../utils/axios";
 import { getCurrentUser } from "../../utils/user";
+import JumpingLoader from "../../Components/JumpingLoader";
 import "./Payment.css";
 
 export default function Payment() {
@@ -580,7 +581,7 @@ export default function Payment() {
             >
               {loading ? (
                 <>
-                  <div className="loading-spinner"></div>
+                  <JumpingLoader size="small" />
                   Processing...
                 </>
               ) : (

@@ -6,8 +6,8 @@ import {
   FaTruck,
   FaCheckCircle,
   FaTimesCircle,
-  FaSpinner,
 } from "react-icons/fa";
+import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
 import "./Orders.css";
@@ -96,7 +96,7 @@ const Orders = () => {
   if (loading) {
     return (
       <div className="loading-container">
-        <FaSpinner className="spinner" />
+        <JumpingLoader size="medium" />
         <p>Loading orders...</p>
       </div>
     );

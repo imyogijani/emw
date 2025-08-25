@@ -6,6 +6,7 @@ import "./theme-override.css";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import JumpingLoader from "../../Components/JumpingLoader";
 import {
   Star,
   ShoppingCart,
@@ -334,88 +335,131 @@ export default function Shops() {
     return stars;
   };
 
-  const StoreCard = ({ store }) => (
-    <div className="store-card" onClick={() => handleVisitStore(store)}>
-      <div className="store-image-container">
-        {/* <img src={store.shopImage} alt={store.shopName} loading="lazy" /> */}
-        <img
-          src={processImageUrlSingle(store.shopImage)}
-          alt={store.shopName}
-          loading="lazy"
-        />
-        {store.verified && (
-          <div className="store-verified-badge">
-            <Award size={14} />
-            <span>Verified</span>
+  const StoreCard = ({ store }) => {
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
+
+    const handleImageLoad = () => {
+      setImageLoading(false);
+    };
+
+    const handleImageError = () => {
+      setImageLoading(false);
+      setImageError(true);
+    };
+
+    const formatDate = (dateString) => {
+      try {
+        return new Date(dateString).getFullYear();
+      } catch {
+        return "2020";
+      }
+    };
+
+    return (
+      <div className="card-base card-medium" onClick={() => handleVisitStore(store)}>
+        <div className="card-image-container">
+          {imageLoading && (
+            <div className="card-image-loading">
+              <div className="loading-spinner"></div>
+            </div>
+          )}
+          <img
+            src={imageError ? "/images/default-store.jpg" : processImageUrlSingle(store.shopImage)}
+            alt={store.shopName}
+            loading="lazy"
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            style={{ objectFit: 'cover' }}
+          />
+          {store.verified && (
+            <div className="card-badge verified">
+              <Award size={12} />
+              <span>Verified</span>
+            </div>
+          )}
+        </div>
+
+        <div className="card-content">
+          <div className="card-header">
+            <h3 className="card-title">{store.shopName}</h3>
+            <p className="card-description">{store.description}</p>
           </div>
-        )}
-      </div>
 
-      <div className="store-content">
-        <div className="store-header">
-          <h3 className="store-name">{store.shopName}</h3>
-          <p className="store-description">{store.description}</p>
-        </div>
-
-        <div className="store-rating-section">
-          <div className="store-stars">{renderStars(store.averageRating)}</div>
-          {/* <div className="store-stars">{renderStars(4)}</div> */}
-          <span className="store-rating-text">{store.averageRating}</span>
-          {/* <span className="store-rating-text">{4}</span> */}
-          <span className="store-reviews">
-            ({store.totalReviews.toLocaleString()} reviews)
-          </span>
-
-          {/* <span className="store-reviews">(1234 reviews)</span> */}
-        </div>
-        {/* 
-        <div className="store-badges">
-          {store.badges.map((badge, index) => (
-            <span key={index} className="store-badge">
-              {badge}
+          <div className="card-rating">
+            <div className="rating-stars">{renderStars(store.averageRating)}</div>
+            <span className="rating-value">{store.averageRating}</span>
+            <span className="rating-count">
+              ({store.totalReviews?.toLocaleString() || 0} reviews)
             </span>
-          ))}
-        </div> */}
+          </div>
 
-        <div className="store-stats">
-          <div className="store-stat">
-            <Package size={14} />
-            <span>{store.totalProducts.toLocaleString()} products</span>
-            {/* <span>{234} products</span> */}
+          <div className="card-stats">
+            <div className="stat-item">
+              <Package size={14} />
+              <span>{store.totalProducts?.toLocaleString() || 0} products</span>
+            </div>
+            <div className="stat-item">
+              <MapPin size={14} />
+              <span>{store.location || "Mumbai"}</span>
+            </div>
+            <div className="stat-item">
+              <Clock size={14} />
+              <span>Since {formatDate(store.createdAt)}</span>
+            </div>
           </div>
-          <div className="store-stat">
-            <MapPin size={14} />
-            <span>{store.location || "Mumbai"}</span>
-          </div>
-          <div className="store-stat">
-            <Clock size={14} />
-            {/* <span>Since {store.established}</span> */}
-            <span>Since {store.createdAt}</span>
-            createdAt
-          </div>
+
+          {store.specialist && store.specialist.length > 0 && (
+            <div className="card-specialties">
+              <strong>Specialties:</strong>
+              <div className="specialty-tags">
+                {store.specialist.slice(0, 3).map((specialty, index) => (
+                  <span key={index} className="specialty-tag">
+                    {specialty}
+                  </span>
+                ))}
+                {store.specialist.length > 3 && (
+                  <span className="specialty-tag more">
+                    +{store.specialist.length - 3} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="store-specialties">
-          <strong>Specialties:</strong>
-          <div className="specialty-tags">
-            {store.specialist.map((specialty, index) => (
-              <span key={index} className="specialty-tag">
-                {specialty}
-              </span>
-            ))}
-          </div>
+        <div className="card-actions">
+          <button className="card-action primary">
+            <Store size={16} />
+            Visit Store
+          </button>
         </div>
-
-        <button className="visit-store-btn">
-          <Store size={16} />
-          Visit Store
-        </button>
       </div>
-    </div>
-  );
+    );
+  };
 
+  // Modern ProductCard component with unified design system
   const ProductCard = ({ product }) => {
     const navigate = useNavigate();
+    const [imageError, setImageError] = useState(false);
+    const [imageLoading, setImageLoading] = useState(true);
+
+    const handleImageLoad = () => {
+      setImageLoading(false);
+      setImageError(false);
+    };
+
+    const handleImageError = () => {
+      setImageLoading(false);
+      setImageError(true);
+    };
+
+    const getImageSrc = () => {
+      if (imageError) {
+        return "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
+      }
+      return processImageUrl(product.image) || "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
+    };
 
     const handleProductClick = async () => {
       // Track the click event
@@ -427,34 +471,71 @@ export default function Shops() {
           product.activeDeal && product.activeDeal.dealPrice
             ? product.activeDeal.dealPrice
             : product.finalPrice,
-
         location: window.location.pathname,
       });
 
-      // Then navigate to product detail page
+      // Navigate to product detail page
       navigate(`/product/${product._id}`, { state: { product } });
     };
-    return (
-      <div className="product-card-compact" onClick={handleProductClick}>
-        <div className="product-image-wrapper">
-          <img
-            src={processImageUrl(product.image)}
-            alt={product.name}
-            loading="lazy"
-          />
+
+    const renderPrice = () => {
+      const currentPrice = product.activeDeal?.dealPrice || product.finalPrice || product.price;
+      const originalPrice = product.originalPrice || product.price;
+      const hasDiscount = product.discount || (product.activeDeal && product.activeDeal.dealPrice < originalPrice);
+
+      return (
+        <div className="pricing-section">
+          <span className="current-price">₹{calculateDiscountedPriceFinal(product.price, product.discount)}</span>
+          {hasDiscount && originalPrice > currentPrice && (
+            <>
+              <span className="original-price">₹{originalPrice}</span>
+              <span className="discount-percent">({product.discount}% off)</span>
+            </>
+          )}
         </div>
-        <div className="product-details-compact">
-          <h4>{product.name}</h4>
-          {/* <p className="product-price">₹{product.price}</p> */}
-          <p className="product-price">
-            ₹{calculateDiscountedPriceFinal(product.price, product.discount)}
-          </p>
-          <button
-            className="btn btn-small btn-primary add-to-cart-compact"
-            onClick={(e) => handleAddToCart(e, product)}
-          >
-            <span className="sparkle"><ShoppingCart size={14} /></span>
-          </button>
+      );
+    };
+
+    return (
+      <div
+        className="card-base card-small product-card"
+        onClick={handleProductClick}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`}>
+          <img
+            src={getImageSrc()}
+            alt={product.name}
+            className="card-image"
+            loading="lazy"
+            style={{
+              objectFit: "cover",
+              display: imageLoading ? "none" : "block",
+            }}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+          />
+          {product.discount && (
+            <div className="card-badge discount pulse">-{product.discount}%</div>
+          )}
+          {product.activeDeal && <div className="card-badge sale">Deal</div>}
+        </div>
+
+        <div className="card-content">
+          <h4 className="card-title">{product.name}</h4>
+          {renderPrice()}
+          <div className="card-actions">
+            <button
+              className="card-action secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(e, product);
+              }}
+              title="Add to Cart"
+            >
+              <ShoppingCart size={14} />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -568,7 +649,7 @@ export default function Shops() {
         <div className="stores-grid">
           {loading ? (
             <div className="loading-section">
-              <div className="loading-spinner"></div>
+              <JumpingLoader size="medium" />
               <p>Loading stores...</p>
             </div>
           ) : stores.length === 0 ? (

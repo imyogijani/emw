@@ -8,8 +8,8 @@ import {
   FaBox,
   FaShoppingBag,
   FaChartLine,
-  FaSpinner,
 } from "react-icons/fa";
+import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
 import { processImageUrl } from "../../utils/apiConfig";
@@ -205,7 +205,7 @@ const Products = () => {
   if (loading) {
     return (
       <div className="loading">
-        <FaSpinner className="spinner" />
+        <JumpingLoader size="medium" />
         <p>Loading products...</p>
       </div>
     );

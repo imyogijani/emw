@@ -142,193 +142,71 @@ const SellerDashboard = () => {
         </p>
       </div>
 
-      <div className="seller-grid">
-        <div className="responsive-card seller-card">
+      <div className="cards-grid cards-grid-medium">
+        <div className="card-base card-medium seller-card">
           <div className="card-content">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "12px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  color: "#28a745",
-                  marginRight: "12px",
-                }}
-              >
-                <FaDollarSign />
-              </div>
-              <div>
-                <h3 className="card-title">Today's Sales</h3>
-                <p
-                  className="card-subtitle"
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: "#232f3e",
-                  }}
-                >
-                  ₹{dashboardStats.todaySales}
-                </p>
-                <p
-                  className="card-description"
-                  style={{
-                    color: "#28a745",
-                    fontSize: "11px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <FaArrowUp /> +{dashboardStats.salesGrowth}% from yesterday
-                </p>
-              </div>
+            <div className="card-icon">
+              <FaDollarSign size={24} />
+            </div>
+            <div className="card-info">
+              <h3 className="card-title">Today's Sales</h3>
+              <p className="card-value">
+                ₹{dashboardStats.todaySales}
+              </p>
+              <p className="card-description">
+                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.salesGrowth}%</span> from yesterday
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="responsive-card seller-card">
+        <div className="card-base card-medium seller-card">
           <div className="card-content">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "12px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  color: "#28a745",
-                  marginRight: "12px",
-                }}
-              >
-                <FaShoppingBag />
-              </div>
-              <div>
-                <h3 className="card-title">Total Products</h3>
-                <p
-                  className="card-subtitle"
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: "#232f3e",
-                  }}
-                >
-                  {dashboardStats.totalProducts}
-                </p>
-                <p
-                  className="card-description"
-                  style={{
-                    color: "#28a745",
-                    fontSize: "11px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <FaArrowUp /> +{dashboardStats.newProductsThisWeek} new this
-                  week
-                </p>
-              </div>
+            <div className="card-icon">
+              <FaShoppingBag size={24} />
+            </div>
+            <div className="card-info">
+              <h3 className="card-title">Total Products</h3>
+              <p className="card-value">
+                {dashboardStats.totalProducts}
+              </p>
+              <p className="card-description">
+                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.newProductsThisWeek}</span> new this week
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="responsive-card seller-card">
+        <div className="card-base card-medium seller-card">
           <div className="card-content">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "12px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  color: "#28a745",
-                  marginRight: "12px",
-                }}
-              >
-                <FaChartLine />
-              </div>
-              <div>
-                <h3 className="card-title">Pending Orders</h3>
-                <p
-                  className="card-subtitle"
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: "#232f3e",
-                  }}
-                >
-                  {dashboardStats.totalPendingOrders}
-                </p>
-                <p
-                  className="card-description"
-                  style={{
-                    color: "#28a745",
-                    fontSize: "11px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <FaArrowUp /> +{dashboardStats.pendingOrdersDiffYesterday}{" "}
-                  from yesterday
-                </p>
-              </div>
+            <div className="card-icon">
+              <FaChartLine size={24} />
+            </div>
+            <div className="card-info">
+              <h3 className="card-title">Pending Orders</h3>
+              <p className="card-value">
+                {dashboardStats.totalPendingOrders}
+              </p>
+              <p className="card-description">
+                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.pendingOrdersDiffYesterday}</span> from yesterday
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="responsive-card seller-card">
+        <div className="card-base card-medium seller-card">
           <div className="card-content">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: "12px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  color: "#28a745",
-                  marginRight: "12px",
-                }}
-              >
-                ⭐
-              </div>
-              <div>
-                <h3 className="card-title">Customer Rating</h3>
-                <p
-                  className="card-subtitle"
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "700",
-                    color: "#232f3e",
-                  }}
-                >
-                  {dashboardStats.averageRating}
-                </p>
-                <p
-                  className="card-description"
-                  style={{
-                    color: "#28a745",
-                    fontSize: "11px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <FaArrowUp /> +{dashboardStats.reviewsThisMonth} this month
-                </p>
-              </div>
+            <div className="card-icon">
+              ⭐
+            </div>
+            <div className="card-info">
+              <h3 className="card-title">Customer Rating</h3>
+              <p className="card-value">
+                {dashboardStats.averageRating}
+              </p>
+              <p className="card-description">
+                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.reviewsThisMonth}</span> this month
+              </p>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
+import JumpingLoader from "../../Components/JumpingLoader";
 import "./ManageLocations.css";
 
 const ManageLocations = () => {
@@ -159,8 +160,9 @@ const ManageLocations = () => {
 
   if (loading) {
     return (
-      <div className="manage-locations loading">
-        <div className="loading-spinner"></div>
+      <div className="manage-locations loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+        <JumpingLoader size="medium" />
+        <p>Loading locations...</p>
       </div>
     );
   }

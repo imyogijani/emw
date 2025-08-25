@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
   FaPlus,
-  FaEye,
   FaEdit,
   FaTrash,
+  FaEye,
   FaCalendarAlt,
   FaPercentage,
   FaTag,
-  FaSpinner,
 } from "react-icons/fa";
+import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
 import "./SellerDeals.css";
 import "./SellerDealsForm.css";
@@ -163,7 +163,7 @@ const SellerDeals = () => {
   if (loading) {
     return (
       <div className="loading-container">
-        <FaSpinner className="spinner" />
+        <JumpingLoader size="medium" />
         <p>Loading deals...</p>
       </div>
     );

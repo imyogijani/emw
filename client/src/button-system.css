@@ -9,8 +9,8 @@
   justify-content: center;
   align-items: center;
   gap: 12px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: #fc8a06;
+  border: 1px solid #fc8a06;
   cursor: pointer;
   transition: all 450ms ease-in-out;
   font-family: inherit;
@@ -36,9 +36,8 @@
   background: var(--primary-color);
   border-color: var(--primary-color);
   box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
-              inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
-              0px 0px 0px 4px var(--yellow-hover),
-              0px 0px 180px 0px var(--primary-color);
+    inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
+    0px 0px 0px 4px var(--yellow-hover), 0px 0px 180px 0px var(--primary-color);
   transform: translateY(-2px);
 }
 
@@ -142,9 +141,9 @@
   background: var(--danger-hover);
   border-color: var(--danger-hover);
   box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
-              inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
-              0px 0px 0px 4px rgba(220, 38, 38, 0.2),
-              0px 0px 180px 0px var(--danger-color);
+    inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
+    0px 0px 0px 4px rgba(220, 38, 38, 0.2),
+    0px 0px 180px 0px var(--danger-color);
 }
 
 .btn-success {
@@ -164,9 +163,9 @@
   background: var(--success-hover);
   border-color: var(--success-hover);
   box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
-              inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
-              0px 0px 0px 4px rgba(5, 150, 105, 0.2),
-              0px 0px 180px 0px var(--success-color);
+    inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
+    0px 0px 0px 4px rgba(5, 150, 105, 0.2),
+    0px 0px 180px 0px var(--success-color);
 }
 
 .btn-warning {
@@ -186,9 +185,9 @@
   background: var(--warning-hover);
   border-color: var(--warning-hover);
   box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
-              inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
-              0px 0px 0px 4px rgba(217, 119, 6, 0.2),
-              0px 0px 180px 0px var(--warning-color);
+    inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
+    0px 0px 0px 4px rgba(217, 119, 6, 0.2),
+    0px 0px 180px 0px var(--warning-color);
 }
 
 /* Disabled State */
@@ -229,7 +228,7 @@
 }
 
 .btn-loading::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 20px;
   height: 20px;
@@ -241,8 +240,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Icon-only buttons */
@@ -264,25 +267,25 @@
     height: 4em;
     font-size: 14px;
   }
-  
+
   .btn-small {
     width: 8em;
     height: 3em;
     font-size: 12px;
   }
-  
+
   .btn-medium {
     width: 10em;
     height: 3.5em;
     font-size: 13px;
   }
-  
+
   .btn-large {
     width: 14em;
     height: 5em;
     font-size: 16px;
   }
-  
+
   .btn-icon {
     width: 4em;
     height: 4em;
@@ -296,35 +299,34 @@
     font-size: 13px;
     gap: 8px;
   }
-  
+
   .btn-small {
     width: 7em;
     height: 2.5em;
     font-size: 11px;
   }
-  
+
   .btn-medium {
     width: 8.5em;
     height: 3em;
     font-size: 12px;
   }
-  
+
   .btn-large {
     width: 12em;
     height: 4em;
     font-size: 14px;
   }
-  
+
   .btn-icon {
     width: 3.5em;
     height: 3.5em;
   }
-  
+
   .btn:hover {
     box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
-                inset 0px -2px 0px 0px rgba(0, 0, 0, 0.2),
-                0px 0px 0px 2px rgba(255, 255, 255, 0.2),
-                0px 0px 60px 0px #9917FF;
+      inset 0px -2px 0px 0px rgba(0, 0, 0, 0.2),
+      0px 0px 0px 2px rgba(255, 255, 255, 0.2), 0px 0px 60px 0px #9917ff;
   }
 }
 
@@ -333,7 +335,7 @@
   .btn {
     border: 2px solid currentColor;
   }
-  
+
   .btn:hover {
     border-color: white;
   }
@@ -345,24 +347,28 @@
   .sparkle {
     transition: none;
   }
-  
+
   .btn:hover {
     transform: none;
   }
-  
+
   .btn:hover .sparkle {
     transform: none;
   }
-  
+
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(0deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
   }
 }
 
 /* Focus Visible for Better Accessibility */
 .btn:focus-visible {
-  outline: 3px solid #683FEA;
+  outline: 3px solid #683fea;
   outline-offset: 3px;
 }
 
@@ -375,7 +381,7 @@
     box-shadow: none !important;
     transform: none !important;
   }
-  
+
   .btn .text {
     color: black !important;
   }

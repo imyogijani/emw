@@ -1,7 +1,10 @@
 /* AdminDeals.css */
+/* Import Admin Button System */
+@import url('../../admin-button-system.css');
+
 .admin-deals {
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
 }
 
@@ -33,25 +36,32 @@
 }
 
 .filter-tab {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e9ecef;
-  background: white;
-  color: #6c757d;
-  border-radius: 25px;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid var(--admin-border);
+  background: var(--admin-white);
+  color: var(--admin-text-secondary);
+  border-radius: var(--admin-radius-full);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  transition: var(--admin-transition);
+  font-weight: 600;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .filter-tab:hover {
-  border-color: #007bff;
-  color: #007bff;
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-hover);
 }
 
 .filter-tab.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+  box-shadow: var(--admin-shadow-md);
 }
 
 .loading-container {
@@ -192,53 +202,63 @@
 }
 
 .btn {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--admin-radius-md);
   cursor: pointer;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
+  transition: var(--admin-transition);
   text-decoration: none;
+  min-height: 40px;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .btn-info {
-  background: #17a2b8;
-  color: white;
+  background: linear-gradient(135deg, var(--admin-info) 0%, #46b8da 100%);
+  color: var(--admin-white);
 }
 
 .btn-info:hover {
-  background: #138496;
+  background: linear-gradient(135deg, #269abc 0%, var(--admin-info) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(23, 162, 184, 0.25);
 }
 
 .btn-success {
-  background: #28a745;
-  color: white;
+  background: linear-gradient(135deg, var(--admin-success) 0%, #5cb85c 100%);
+  color: var(--admin-white);
 }
 
 .btn-success:hover {
-  background: #218838;
+  background: linear-gradient(135deg, #218838 0%, var(--admin-success) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(40, 167, 69, 0.25);
 }
 
 .btn-danger {
-  background: #dc3545;
-  color: white;
+  background: linear-gradient(135deg, var(--admin-danger) 0%, #ff6b81 100%);
+  color: var(--admin-white);
 }
 
 .btn-danger:hover {
-  background: #c82333;
+  background: linear-gradient(135deg, #c9302c 0%, var(--admin-danger) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(217, 83, 79, 0.25);
 }
 
 .btn-secondary {
-  background: #6c757d;
-  color: white;
+  background: linear-gradient(135deg, var(--admin-secondary) 0%, #868e96 100%);
+  color: var(--admin-white);
 }
 
 .btn-secondary:hover {
-  background: #5a6268;
+  background: linear-gradient(135deg, #495057 0%, var(--admin-secondary) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(108, 117, 125, 0.25);
 }
 
 /* Modal Styles */
@@ -294,13 +314,22 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #6c757d;
-  padding: 0;
+  color: var(--admin-text-secondary);
+  padding: 8px;
   line-height: 1;
+  border-radius: var(--admin-radius-sm);
+  transition: var(--admin-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .close-btn:hover {
-  color: #dc3545;
+  color: var(--admin-danger);
+  background: rgba(217, 83, 79, 0.1);
+  transform: scale(1.1);
 }
 
 .modal-body {

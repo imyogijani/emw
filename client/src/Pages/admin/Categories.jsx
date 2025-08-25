@@ -649,8 +649,8 @@ const Categories = () => {
         {!loading && categories.length === 0 && <p>No categories found.</p>}
         <div className="category-list enhanced-category-list">
           {categories.map((cat) => (
-            <div key={cat._id} className="category-item enhanced-category-card">
-              <div className="category-image-wrapper">
+            <div key={cat._id} className="card-base card-medium admin-card">
+              <div className="card-image-container">
                 <img
                   src={processCategoryImageUrl(cat.image)}
                   alt={cat.name}
@@ -658,23 +658,26 @@ const Categories = () => {
                     e.target.onerror = null;
                     e.target.src = "/vite.svg";
                   }}
-                  className="category-image"
+                  className="card-image"
+                  style={{ objectFit: 'cover' }}
                 />
               </div>
-              <div className="category-info">
-                <span className="category-title">{cat.name}</span>
-                <div className="category-actions">
+              <div className="card-content">
+                <h3 className="card-title">{cat.name}</h3>
+                <div className="card-actions">
                   <button
-                    className="btn btn-edit"
+                    className="card-action secondary"
                     onClick={() => handleUpdateCategory(cat)}
                   >
                     <FaEdit />
+                    Edit
                   </button>
                   <button
-                    className="btn btn-delete"
+                    className="card-action danger"
                     onClick={() => handleDeleteCategory(cat)}
                   >
                     <FaTrashAlt />
+                    Delete
                   </button>
                 </div>
                 {cat.children?.length > 0 && (

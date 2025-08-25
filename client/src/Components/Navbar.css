@@ -659,6 +659,22 @@
 }
 
 /* Responsive Design */
+/* Desktop: Hide mobile navigation elements */
+@media (min-width: 993px) {
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+
+  .mobile-menu {
+    display: none !important;
+  }
+
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+
+/* Tablet and Mobile: Show mobile navigation */
 @media (max-width: 992px) {
   .nav-center {
     display: none;

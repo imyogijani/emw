@@ -6,13 +6,13 @@ import {
   FaStore,
   FaUser,
   FaTrash,
-  FaSpinner,
   FaChevronLeft,
   FaChevronRight,
   FaUsers,
   FaEye,
   FaEyeSlash,
 } from "react-icons/fa";
+import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
 import "./Users.css";
@@ -186,7 +186,7 @@ const Users = () => {
   if (loading && page === 1) {
     return (
       <div className="loading-container">
-        <FaSpinner className="spinner" />
+        <JumpingLoader size="medium" />
         <p>Loading users...</p>
       </div>
     );
@@ -378,7 +378,7 @@ const Users = () => {
         {hasMore && (
           <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
             <button className="btn btn-primary" onClick={handleLoadMore} disabled={loading}>
-              {loading ? <FaSpinner className="spinner" /> : 'Load More'}
+              {loading ? <JumpingLoader size="small" /> : 'Load More'}
             </button>
           </div>
         )}
@@ -482,7 +482,7 @@ const Users = () => {
             <h3>Shopowner Details</h3>
             {detailsLoading ? (
               <div style={{ textAlign: "center", padding: "2rem" }}>
-                <FaSpinner className="spinner" /> Loading...
+                <JumpingLoader size="small" /> Loading...
               </div>
             ) : (
               <>

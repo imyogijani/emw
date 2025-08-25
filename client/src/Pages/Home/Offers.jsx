@@ -241,66 +241,64 @@ export default function Offers() {
 
     return (
       <div
-        className="deal-card-modern"
-        // onClick={() =>
-        //   navigate(`/product/${deal.product?._id}`, { state: { item: deal } })
-        // }
+        className="card-base card-large deal-card"
         onClick={handleProductClick}
       >
-        <div className="deal-image-container">
+        <div className="card-image-container">
           <img
             src={processImageUrl(deal.product?.image)}
             alt={deal.product?.name || deal.title}
+            className="card-image"
             loading="lazy"
+            onError={(e) => {
+              e.target.src = "https://images.pexels.com/photos/3119215/pexels-photo-3119215.jpeg";
+            }}
           />
 
-          <div className="deal-badge-container">
-            {deal.discountPercentage && (
-              <div className="deal-discount-badge">
-                -{deal.discountPercentage}%
-              </div>
-            )}
-            {deal.badge && (
-              <div className="deal-special-badge">{deal.badge}</div>
-            )}
-          </div>
-
-          <div className="deal-timer">
-            <Clock size={12} />
-            <span>{deal.endDate || "Limited time"}</span>
-          </div>
+          {deal.discountPercentage && (
+            <div className="card-badge discount pulse">
+              -{deal.discountPercentage}%
+            </div>
+          )}
+          {deal.badge && (
+            <div className="card-badge featured">{deal.badge}</div>
+          )}
+          {deal.endDate && (
+            <div className="card-timer">
+              <Clock size={12} />
+              <span>{deal.endDate || "Limited time"}</span>
+            </div>
+          )}
         </div>
 
-        <div className="deal-content">
-          <div className="deal-header">
-            <h3 className="deal-title">{deal.product?.name || deal.title}</h3>
-            <p className="deal-description">
-              {deal.product?.description || deal.description}
-            </p>
-          </div>
+        <div className="card-content">
+          <h3 className="card-title">{deal.product?.name || deal.title}</h3>
+          <p className="card-description">
+            {deal.product?.description || deal.description}
+          </p>
 
-          <div className="deal-rating-section">
-            <div className="deal-stars">
+          <div className="card-rating">
+            <div className="rating-stars">
               {renderStars(deal.product?.averageRating || 0)}
             </div>
-            <span className="deal-rating-text">
+            <span className="rating-value">
               {deal.product?.averageRating || 0}
             </span>
-            <span className="deal-reviews">
+            <span className="rating-count">
               ({deal.product?.totalReviews || 0})
             </span>
           </div>
 
-          <div className="deal-pricing">
-            <div className="deal-price-row">
-              <span className="deal-current-price">₹{deal.dealPrice || 0}</span>
+          <div className="card-pricing">
+            <div className="price-row">
+              <span className="current-price">₹{deal.dealPrice || 0}</span>
               {deal.originalPrice && (
-                <span className="deal-original-price">
+                <span className="original-price">
                   ₹{deal.originalPrice}
                 </span>
               )}
             </div>
-            <div className="deal-savings">
+            <div className="savings-info">
               <span className="savings-text">
                 Save {deal.moneySaved || "₹0"}
               </span>
@@ -312,20 +310,22 @@ export default function Offers() {
             </div>
           </div>
 
-          <div className="deal-store-info">
+          <div className="card-store-info">
             <Tag size={14} />
             <span>
               By {deal.seller?.shopName || deal.seller?.names || "Store"}
             </span>
           </div>
 
-          <button
-            className="btn btn-medium btn-primary deal-add-to-cart"
-            onClick={(e) => handleAddToCart(e, deal)}
-          >
-            <span className="sparkle"><ShoppingCart size={16} /></span>
-            <span className="text">Add to Cart</span>
-          </button>
+          <div className="card-actions">
+            <button
+              className="card-action primary"
+              onClick={(e) => handleAddToCart(e, deal)}
+            >
+              <ShoppingCart size={16} />
+              <span>Add to Cart</span>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -440,89 +440,107 @@ export default function Offers() {
       <div className="deal-categories-section">
         <h2>Shop by Deal Category</h2>
         <div className="deal-categories-grid">
-          <div className="deal-category-card">
-            <Zap size={32} />
-            <h3>Flash Sales</h3>
-            <p>Lightning deals ending soon</p>
-            <span className="category-count">
-              {filteredDeals.filter((d) => d.badge?.includes("FLASH")).length}{" "}
-              active deals
-            </span>
+          <div className="card-base card-medium category-card">
+            <div className="card-content">
+              <div className="card-icon">
+                <Zap size={32} />
+              </div>
+              <h3 className="card-title">Flash Sales</h3>
+              <p className="card-description">Lightning deals ending soon</p>
+              <span className="card-badge primary">
+                {filteredDeals.filter((d) => d.badge?.includes("FLASH")).length}{" "}
+                active deals
+              </span>
+            </div>
           </div>
-          <div className="deal-category-card">
-            <TrendingDown size={32} />
-            <h3>Mega Discounts</h3>
-            <p>Savings up to 70% off</p>
-            <span className="category-count">
-              {filteredDeals.filter((d) => d.discountPercentage >= 40).length}{" "}
-              active deals
-            </span>
+          <div className="card-base card-medium category-card">
+            <div className="card-content">
+              <div className="card-icon">
+                <TrendingDown size={32} />
+              </div>
+              <h3 className="card-title">Mega Discounts</h3>
+              <p className="card-description">Savings up to 70% off</p>
+              <span className="card-badge success">
+                {filteredDeals.filter((d) => d.discountPercentage >= 40).length}{" "}
+                active deals
+              </span>
+            </div>
           </div>
-          <div className="deal-category-card">
-            <Tag size={32} />
-            <h3>Bundle Offers</h3>
-            <p>Buy more, save more</p>
-            <span className="category-count">
-              {filteredDeals.filter((d) => d.badge?.includes("BUNDLE")).length}{" "}
-              active deals
-            </span>
+          <div className="card-base card-medium category-card">
+            <div className="card-content">
+              <div className="card-icon">
+                <Tag size={32} />
+              </div>
+              <h3 className="card-title">Bundle Offers</h3>
+              <p className="card-description">Buy more, save more</p>
+              <span className="card-badge warning">
+                {filteredDeals.filter((d) => d.badge?.includes("BUNDLE")).length}{" "}
+                active deals
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Deal Information */}
       <div className="deal-info-section">
-        <div className="deal-info-cards">
-          <div className="deal-info-card">
-            <h3>🎯 Deal Highlights</h3>
-            <div className="info-list">
-              <div className="info-item">
-                <span className="info-label">Total Active Deals:</span>
-                <span className="info-value">{filteredDeals.length}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Maximum Discount:</span>
-                <span className="info-value">Up to 70% OFF</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Flash Sales:</span>
-                <span className="info-value">Limited Time Only</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="deal-info-card">
-            <h3>📋 Terms & Conditions</h3>
-            <div className="info-list">
-              <div className="info-item">
-                <span className="info-label">Valid For:</span>
-                <span className="info-value">All Customers</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Delivery:</span>
-                <span className="info-value">FREE on eligible orders</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Returns:</span>
-                <span className="info-value">30-day return policy</span>
+        <div className="cards-grid cards-grid-medium">
+          <div className="card-base card-medium info-card">
+            <div className="card-content">
+              <h3 className="card-title">🎯 Deal Highlights</h3>
+              <div className="card-info-list">
+                <div className="card-info-item">
+                  <span className="info-label">Total Active Deals:</span>
+                  <span className="info-value">{filteredDeals.length}</span>
+                </div>
+                <div className="card-info-item">
+                  <span className="info-label">Maximum Discount:</span>
+                  <span className="info-value">Up to 70% OFF</span>
+                </div>
+                <div className="card-info-item">
+                  <span className="info-label">Flash Sales:</span>
+                  <span className="info-value">Limited Time Only</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="deal-info-card">
-            <h3>🚀 Why Choose Our Deals?</h3>
-            <div className="info-list">
-              <div className="info-item">
-                <span className="info-label">Authenticity:</span>
-                <span className="info-value">100% Genuine Products</span>
+          <div className="card-base card-medium info-card">
+            <div className="card-content">
+              <h3 className="card-title">📋 Terms & Conditions</h3>
+              <div className="card-info-list">
+                <div className="card-info-item">
+                  <span className="info-label">Valid For:</span>
+                  <span className="info-value">All Customers</span>
+                </div>
+                <div className="card-info-item">
+                  <span className="info-label">Delivery:</span>
+                  <span className="info-value">FREE on eligible orders</span>
+                </div>
+                <div className="card-info-item">
+                  <span className="info-label">Returns:</span>
+                  <span className="info-value">30-day return policy</span>
+                </div>
               </div>
-              <div className="info-item">
-                <span className="info-label">Customer Support:</span>
-                <span className="info-value">24/7 Available</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Satisfaction:</span>
-                <span className="info-value">98% Happy Customers</span>
+            </div>
+          </div>
+
+          <div className="card-base card-medium info-card">
+            <div className="card-content">
+              <h3 className="card-title">🚀 Why Choose Our Deals?</h3>
+              <div className="card-info-list">
+                <div className="card-info-item">
+                  <span className="info-label">Authenticity:</span>
+                  <span className="info-value">100% Genuine Products</span>
+                </div>
+                <div className="card-info-item">
+                  <span className="info-label">Customer Support:</span>
+                  <span className="info-value">24/7 Available</span>
+                </div>
+                <div className="card-info-item">
+                  <span className="info-label">Satisfaction:</span>
+                  <span className="info-value">98% Happy Customers</span>
+                </div>
               </div>
             </div>
           </div>

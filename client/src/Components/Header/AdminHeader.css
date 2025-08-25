@@ -1,9 +1,13 @@
+/* Import Admin Button System */
+@import url('../../admin-button-system.css');
+
 header {
-  background-color: var(--dark-blue);
-  color: var(--text-color-header);
+  background: linear-gradient(135deg, var(--admin-secondary) 0%, #37475a 100%);
+  color: var(--admin-white);
   padding: 15px 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--admin-shadow-md);
   width: 100%;
+  border-bottom: 3px solid var(--admin-primary);
 }
 
 header nav {
@@ -48,8 +52,10 @@ header nav {
 }
 
 .nav-center ul li a:hover {
-  color: var(--yellow);
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--admin-primary);
+  background-color: rgba(255, 153, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .nav-right {
@@ -60,20 +66,27 @@ header nav {
 }
 
 .logout-btn {
-  background-color: #ff4757;
-  color: white;
+  background: linear-gradient(135deg, var(--admin-danger) 0%, #ff6b81 100%);
+  color: var(--admin-white);
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 18px;
+  border-radius: var(--admin-radius-md);
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-weight: 600;
+  transition: var(--admin-transition);
   margin-left: 15px;
+  box-shadow: var(--admin-shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
 }
 
 .logout-btn:hover {
-  background-color: #ff6b81;
+  background: linear-gradient(135deg, #c9302c 0%, var(--admin-danger) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(217, 83, 79, 0.25);
 }
 
 .theme-toggle-container {

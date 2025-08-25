@@ -3,11 +3,13 @@
 import "./Home.css";
 import "./theme-override.css";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
 import { processImageUrl, processCategoryImageUrl } from "../../utils/apiConfig";
 import { toast } from "react-toastify";
 import BottomCard from "./BottomCard";
 import { useCart } from "../../context/CartContext";
+import JumpingLoader from "../../Components/JumpingLoader";
 import DealsList from "./DealsList";
 import {
   Star,
@@ -270,10 +272,11 @@ export default function Home() {
     return stars;
   };
 
-  // Updated ProductCard component with improved image handling
+  // Modern ProductCard component with unified design system
   const ProductCard = ({ product }) => {
     const [imageError, setImageError] = useState(false);
     const [imageLoading, setImageLoading] = useState(true);
+    const navigate = useNavigate();
 
     const handleImageLoad = () => {
       setImageLoading(false);
@@ -297,8 +300,6 @@ export default function Home() {
       );
     };
 
-    // const navigate = useNavigate();
-
     const handleProductClick = async () => {
       // Track the click event
       await trackEvent("view_product_card_click", {
@@ -309,48 +310,52 @@ export default function Home() {
           product.activeDeal && product.activeDeal.dealPrice
             ? product.activeDeal.dealPrice
             : product.finalPrice,
-
         location: window.location.pathname,
       });
 
-      // Then navigate to product detail page
-      // navigate(`/product/${product._id}`, { state: { product } });
+      // Navigate to product detail page
+      navigate(`/product/${product._id}`, { state: { product } });
     };
 
     return (
-      <div className="card-base card-large product-card">
-        <div className="card-image-container">
-          {imageLoading && (
-            <div className="image-loading-placeholder">
-              <div className="loading-spinner"></div>
-            </div>
-          )}
+      <div 
+        className="card-base card-medium product-card" 
+        onClick={handleProductClick}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`}>
           <img
             src={getImageSrc()}
             alt={product.name}
             className="card-image"
             loading="lazy"
             style={{
-              objectFit: "contain",
+              objectFit: "cover",
               display: imageLoading ? "none" : "block",
             }}
             onLoad={handleImageLoad}
             onError={handleImageError}
           />
+          <ProductBadges product={product} />
         </div>
         <div className="card-content">
           <h3 className="card-title">{product.name}</h3>
           <ProductRating product={product} renderStars={renderStars} />
           <ProductPrice product={product} />
-          <ProductBadges product={product} />
+          <p className="card-description">
+            {product.description || "Premium quality product with excellent features and reliable performance."}
+          </p>
           <div className="card-actions">
             <button
-              className="btn btn-medium btn-primary card-button"
-              onClick={(e) => handleAddToCart(e, product)}
+              className="card-action"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(e, product);
+              }}
               title="Add to Cart"
             >
-              <span className="sparkle"><ShoppingCart size={16} /></span>
-              <span className="text">Add to Cart</span>
+              <ShoppingCart size={16} />
+              Add to Cart
             </button>
           </div>
         </div>
@@ -451,7 +456,10 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
       </div>
 
       {loading ? (
-        <LoadingGrid />
+        <div className="loader-container">
+          <JumpingLoader size="large" />
+          <p>Loading featured products...</p>
+        </div>
       ) : filteredProducts.length === 0 ? (
         <EmptyState />
       ) : (
@@ -670,18 +678,7 @@ const FilterSortBar = ({
   </div>
 );
 
-const LoadingGrid = () => (
-  <div className="loading-grid">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div key={i} className="product-skeleton">
-        <div className="skeleton-image"></div>
-        <div className="skeleton-text"></div>
-        <div className="skeleton-text short"></div>
-        <div className="skeleton-text"></div>
-      </div>
-    ))}
-  </div>
-);
+// LoadingGrid component replaced with JumpingLoader
 
 const EmptyState = () => (
   <div className="under-development">
@@ -732,21 +729,23 @@ const DealCard = ({ deal }) => (
         alt={deal?.title || deal?.name || "Deal image"}
         className="card-image"
       />
-      <div className="card-badge card-badge-discount">
+      <div className="card-badge discount pulse">
         {deal.discountPercentage ? `-${deal.discountPercentage}%` : "DEAL"}
       </div>
       {deal.isOffer && (
-        <div className="card-badge card-badge-offer">TODAY'S OFFER</div>
+        <div className="card-badge featured">TODAY'S OFFER</div>
       )}
     </div>
     <div className="card-content">
       <h4 className="card-title">{deal.title || deal.name}</h4>
       <p className="card-description">{deal.description}</p>
-      <div className="card-subtitle">
-        <span className="deal-price">₹{deal.dealPrice || deal.price}</span>
-        {deal.originalPrice && (
-          <span className="original-price">₹{deal.originalPrice}</span>
-        )}
+      <div className="card-pricing">
+        <div className="price-row">
+          <span className="current-price">₹{deal.dealPrice || deal.price}</span>
+          {deal.originalPrice && (
+            <span className="original-price">₹{deal.originalPrice}</span>
+          )}
+        </div>
       </div>
     </div>
   </div>

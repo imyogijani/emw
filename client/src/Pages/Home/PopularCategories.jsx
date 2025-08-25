@@ -34,10 +34,23 @@ export default function PopularCategories() {
       <h3>E-Mall World Popular Categories 🥳</h3>
       <div className="category-grid">
         {categories.map((cat) => (
-          <div className="category-card" key={cat.id}>
-            <img src={cat.imageUrl} alt={cat.name} />
-            <h4>{cat.name}</h4>
-            <p>{cat.restaurants} Restaurants</p>
+          <div className="card-base card-medium category-card" key={cat.id}>
+            <div className="card-image-container">
+              <img 
+                src={cat.imageUrl} 
+                alt={cat.name} 
+                className="card-image"
+                style={{ objectFit: 'cover' }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.pexels.com/photos/11077404/pexels-photo-11077404.jpeg";
+                }}
+              />
+            </div>
+            <div className="card-content">
+              <h3 className="card-title">{cat.name}</h3>
+              <p className="card-subtitle">{cat.restaurants} Restaurants</p>
+            </div>
           </div>
         ))}
       </div>

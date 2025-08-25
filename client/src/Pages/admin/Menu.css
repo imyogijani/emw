@@ -40,7 +40,7 @@
 }
 
 .btn-primary {
-  background-color: #ff9800;
+  background-color: #fc8a06;
   border: none;
   color: white;
   padding: 10px 16px;
@@ -54,7 +54,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #e68900;
+  background-color: #e37800;
 }
 
 .menu-table {

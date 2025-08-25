@@ -1156,55 +1156,59 @@ export default function ProductDetail() {
           {relatedProducts.map((product) => (
             <div
               key={product._id}
-              className="related-product-card"
+              className="card-base card-small product-card"
               onClick={() => navigate(`/product/${product._id}`)}
+              style={{ cursor: 'pointer' }}
             >
-              <img src={processImageUrl(product.image)} alt={product.name} />
-              <h4>{product.name}</h4>
-              <div className="related-rating">
-                {renderStars(product.averageRating)}
-                <span>({product.averageRating})</span>
-              </div>
-              <div className="related-price">
-                <span className="current">
-                  ₹
-                  {calculateDiscountedPriceFinal(
-                    product.price,
-                    product.discount
-                  )}
-                </span>
-                {product.price && (
-                  <span className="original">₹{product.price}</span>
+              <div className="card-image-container">
+                <img 
+                  src={processImageUrl(product.image)} 
+                  alt={product.name} 
+                  className="card-image"
+                  style={{ objectFit: "cover" }}
+                />
+                {product.discount && (
+                  <div className="card-badge discount pulse">-{product.discount}%</div>
                 )}
               </div>
-              <button
-                className="btn btn-small btn-primary related-add-to-cart"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  // addToCart({
-                  //   ...product,
-                  //   quantity: 1,
-                  //   addedAt: new Date().toISOString(),
-                  // });
-                  const response = await addToCartAPI(
-                    currentUserId,
-                    {
-                      productId: product._id, // Or selectedVariant._id if using variants
-                      quantity: 1,
-                      // productId: deal.product._id,
-                      // quantity: 1,
-                      price: product.finalPrice,
-                      title: product.name,
-                      discount: product.discount,
-                    },
-                    null
-                  );
-                  toast.success(`${product.name} added to cart! 🛒`);
-                }}
-              >
-                <ShoppingCart size={14} />
-                Add to Cart
-              </button>
+              <div className="card-content">
+                <h4 className="card-title">{product.name}</h4>
+                <div className="related-rating" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+                  {renderStars(product.averageRating)}
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>({product.averageRating})</span>
+                </div>
+                <div className="pricing-section">
+                  <span className="current-price">
+                    ₹{calculateDiscountedPriceFinal(product.price, product.discount)}
+                  </span>
+                  {product.price && product.discount && (
+                    <span className="original-price">₹{product.price}</span>
+                  )}
+                </div>
+                <div className="card-actions">
+                  <button
+                    className="card-action secondary"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const response = await addToCartAPI(
+                        currentUserId,
+                        {
+                          productId: product._id,
+                          quantity: 1,
+                          price: product.finalPrice,
+                          title: product.name,
+                          discount: product.discount,
+                        },
+                        null
+                      );
+                      toast.success(`${product.name} added to cart! 🛒`);
+                    }}
+                    title="Add to Cart"
+                  >
+                    <ShoppingCart size={14} />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

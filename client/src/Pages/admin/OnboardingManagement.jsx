@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import JumpingLoader from '../../Components/JumpingLoader';
 import './OnboardingManagement.css';
 
 const OnboardingManagement = () => {
@@ -162,7 +163,7 @@ const OnboardingManagement = () => {
     return (
       <div className="onboarding-management">
         <div className="loading-container">
-          <div className="loading-spinner"></div>
+          <JumpingLoader size="medium" />
           <p>Loading onboarding data...</p>
         </div>
       </div>
@@ -177,47 +178,59 @@ const OnboardingManagement = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon users-icon">👥</div>
-          <div className="stat-content">
-            <h3>{onboardingData.stats.totalUsers}</h3>
-            <p>Total Users</p>
+      <div className="cards-grid cards-grid-small">
+        <div className="card-base card-small admin-card">
+          <div className="card-content">
+            <div className="card-icon">👥</div>
+            <div className="card-info">
+              <h3 className="card-title">Total Users</h3>
+              <p className="card-value">{onboardingData.stats.totalUsers}</p>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon completed-icon">✅</div>
-          <div className="stat-content">
-            <h3>{onboardingData.stats.completedOnboarding}</h3>
-            <p>Completed Onboarding</p>
+        <div className="card-base card-small admin-card">
+          <div className="card-content">
+            <div className="card-icon">✅</div>
+            <div className="card-info">
+              <h3 className="card-title">Completed Onboarding</h3>
+              <p className="card-value">{onboardingData.stats.completedOnboarding}</p>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon pending-icon">⏳</div>
-          <div className="stat-content">
-            <h3>{onboardingData.stats.pendingOnboarding}</h3>
-            <p>Pending Onboarding</p>
+        <div className="card-base card-small admin-card">
+          <div className="card-content">
+            <div className="card-icon">⏳</div>
+            <div className="card-info">
+              <h3 className="card-title">Pending Onboarding</h3>
+              <p className="card-value">{onboardingData.stats.pendingOnboarding}</p>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon sellers-icon">🏪</div>
-          <div className="stat-content">
-            <h3>{onboardingData.stats.totalSellers}</h3>
-            <p>Total Sellers</p>
+        <div className="card-base card-small admin-card">
+          <div className="card-content">
+            <div className="card-icon">🏪</div>
+            <div className="card-info">
+              <h3 className="card-title">Total Sellers</h3>
+              <p className="card-value">{onboardingData.stats.totalSellers}</p>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon active-icon">🟢</div>
-          <div className="stat-content">
-            <h3>{onboardingData.stats.activeSellers}</h3>
-            <p>Active Sellers</p>
+        <div className="card-base card-small admin-card">
+          <div className="card-content">
+            <div className="card-icon">🟢</div>
+            <div className="card-info">
+              <h3 className="card-title">Active Sellers</h3>
+              <p className="card-value">{onboardingData.stats.activeSellers}</p>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon pending-sellers-icon">🟡</div>
-          <div className="stat-content">
-            <h3>{onboardingData.stats.pendingSellers}</h3>
-            <p>Pending Sellers</p>
+        <div className="card-base card-small admin-card">
+          <div className="card-content">
+            <div className="card-icon">🟡</div>
+            <div className="card-info">
+              <h3 className="card-title">Pending Sellers</h3>
+              <p className="card-value">{onboardingData.stats.pendingSellers}</p>
+            </div>
           </div>
         </div>
       </div>

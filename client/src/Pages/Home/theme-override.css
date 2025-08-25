@@ -89,7 +89,7 @@
   position: absolute !important;
   bottom: 8px !important;
   right: 8px !important;
-  background: #ff9900 !important;
+  background: #fc8a06 !important;
   color: white !important;
   border: none !important;
   border-radius: 50% !important;
@@ -105,7 +105,7 @@
 }
 
 .compact-menu-card .add-to-cart-btn:hover {
-  background: #e88700 !important;
+  background: #e37800 !important;
   transform: scale(1.1) !important;
 }
 
@@ -146,7 +146,7 @@
 .add-to-cart-btn,
 .plus-icon,
 button.add-to-cart-btn {
-  background: #ff9900 !important;
+  background: #fc8a06 !important;
   color: white !important;
   border: none !important;
   border-radius: 4px !important;
@@ -160,7 +160,7 @@ button.add-to-cart-btn {
 .add-to-cart-btn:hover,
 .plus-icon:hover,
 button.add-to-cart-btn:hover {
-  background: #e88700 !important;
+  background: #e37800 !important;
 }
 
 /* Theme color consistency */

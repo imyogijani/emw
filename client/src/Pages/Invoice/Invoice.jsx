@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import JumpingLoader from "../../Components/JumpingLoader";
 import {
   CheckCircle,
   Download,
@@ -109,7 +110,7 @@ export default function Invoice() {
   if (loading) {
     return (
       <div className="invoice-loading">
-        <div className="loading-spinner"></div>
+        <JumpingLoader size="medium" />
         <p>Loading your invoice...</p>
       </div>
     );

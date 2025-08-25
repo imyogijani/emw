@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaPlus, FaEdit } from "react-icons/fa";
 import axios from "../../utils/axios";
+import JumpingLoader from "../../Components/JumpingLoader";
 import "../../App.css";
 import "./SellerProducts.css";
 
@@ -122,7 +123,12 @@ const SellerProducts = () => {
         );
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="loading-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+        <JumpingLoader size="medium" />
+        <p>Loading products...</p>
+      </div>
+    );
   }
 
   return (
