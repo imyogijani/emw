@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { FaCheck, FaTimes, FaStop } from "react-icons/fa";
 import { AiOutlineStop } from "react-icons/ai";
@@ -7,7 +8,7 @@ const statusOptions = ["pending", "approved", "rejected"];
 
 function AdminDeals() {
   const [deals, setDeals] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [LOADING, setLoading] = useState(true);
   const [filter, setFilter] = useState("pending");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [dealToReject, setDealToReject] = useState(null);
@@ -25,7 +26,7 @@ function AdminDeals() {
       });
       if (response.data.success) {
         setDeals(response.data.deals);
-        console.log("deal admin", response.data.deals); 
+        console.log("deal admin", response.data.deals);
       }
     } catch (error) {
       // Optionally show error
@@ -114,34 +115,22 @@ function AdminDeals() {
           <button
             key={status}
             onClick={() => setFilter(status)}
-            style={{
-              background: filter === status ? "#fc8a06" : "#eee",
-              color: filter === status ? "#fff" : "#333",
-              border: "none",
-              borderRadius: 8,
-              padding: "8px 20px",
-              fontWeight: 600,
-              fontSize: 15,
-              cursor: "pointer",
-            }}
+            className={`btn btn-small ${
+              filter === status ? "btn-primary" : "btn-secondary"
+            }`}
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            <span className="text">
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </span>
           </button>
         ))}
         <button
           onClick={() => setFilter("all")}
-          style={{
-            background: filter === "all" ? "#fc8a06" : "#eee",
-            color: filter === "all" ? "#fff" : "#333",
-            border: "none",
-            borderRadius: 8,
-            padding: "8px 20px",
-            fontWeight: 600,
-            fontSize: 15,
-            cursor: "pointer",
-          }}
+          className={`btn btn-small ${
+            filter === "all" ? "btn-primary" : "btn-secondary"
+          }`}
         >
-          All
+          <span className="text">All</span>
         </button>
       </div>
       <ul style={{ listStyle: "none", padding: 0 }}>
@@ -202,37 +191,21 @@ function AdminDeals() {
               <div style={{ display: "flex", gap: 10 }}>
                 <button
                   onClick={() => handleApprove(deal._id)}
-                  style={{
-                    background: "#28a745",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "8px 18px",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
+                  className="btn btn-small btn-success"
                 >
-                  <FaCheck style={{ marginRight: 6 }} /> Approve
+                  <span className="sparkle">
+                    <FaCheck />
+                  </span>
+                  <span className="text">Approve</span>
                 </button>
                 <button
                   onClick={() => handleReject(deal)}
-                  style={{
-                    background: "#dc3545",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "8px 18px",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
+                  className="btn btn-small btn-danger"
                 >
-                  <FaTimes style={{ marginRight: 6 }} /> Reject
+                  <span className="sparkle">
+                    <FaTimes />
+                  </span>
+                  <span className="text">Reject</span>
                 </button>
               </div>
             )}
@@ -240,20 +213,12 @@ function AdminDeals() {
               <div style={{ display: "flex", gap: 10 }}>
                 <button
                   onClick={() => handleEndDeal(deal._id)}
-                  style={{
-                    background: "#ffc107",
-                    color: "#212529",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "8px 18px",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
+                  className="btn btn-small btn-warning"
                 >
-                  <AiOutlineStop style={{ marginRight: 6 }} /> End Deal
+                  <span className="sparkle">
+                    <AiOutlineStop />
+                  </span>
+                  <span className="text">End Deal</span>
                 </button>
               </div>
             )}
@@ -301,33 +266,15 @@ function AdminDeals() {
             >
               <button
                 onClick={confirmReject}
-                style={{
-                  background: "#dc3545",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "10px 22px",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontSize: 15,
-                }}
+                className="btn btn-medium btn-danger"
               >
-                Reject
+                <span className="text">Reject</span>
               </button>
               <button
                 onClick={cancelReject}
-                style={{
-                  background: "#eee",
-                  color: "#333",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "10px 22px",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontSize: 15,
-                }}
+                className="btn btn-medium btn-secondary"
               >
-                Cancel
+                <span className="text">Cancel</span>
               </button>
             </div>
           </div>

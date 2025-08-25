@@ -340,18 +340,18 @@ export default function CartModal({ open, onClose }) {
             </div>
             <div className="cart-modal-actions">
               <button
-                className="cart-modal-clear"
+                className="btn btn-medium btn-ghost cart-modal-clear"
                 onClick={handleClearCart}
                 disabled={items.length === 0}
               >
-                Clear Cart
+                <span className="text">Clear Cart</span>
               </button>
               <button
-                className="cart-modal-checkout"
+                className="btn btn-medium btn-primary cart-modal-checkout"
                 onClick={handleCheckout}
                 disabled={items.length === 0}
               >
-                Checkout (₹{total.toFixed(2)})
+                <span className="text">Checkout (₹{total.toFixed(2)})</span>
               </button>
             </div>
           </>

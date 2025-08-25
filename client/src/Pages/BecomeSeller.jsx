@@ -499,19 +499,19 @@ const BecomeSeller = () => {
 
                 <div className="form-navigation">
                   {currentStep > 1 && (
-                    <button type="button" className="prev-btn" onClick={handlePrevStep}>
-                      Previous
+                    <button type="button" className="btn btn-medium btn-secondary prev-btn" onClick={handlePrevStep}>
+                      <span className="text">Previous</span>
                     </button>
                   )}
                   {currentStep < 4 ? (
-                    <button type="button" className="next-btn" onClick={handleNextStep}>
-                      Next Step
-                      <ArrowRight size={20} />
+                    <button type="button" className="btn btn-medium btn-primary next-btn" onClick={handleNextStep}>
+                      <span className="text">Next Step</span>
+                      <span className="sparkle"><ArrowRight size={20} /></span>
                     </button>
                   ) : (
-                    <button type="submit" className="submit-btn">
-                      Submit Application
-                      <CheckCircle size={20} />
+                    <button type="submit" className="btn btn-medium btn-success submit-btn">
+                      <span className="text">Submit Application</span>
+                      <span className="sparkle"><CheckCircle size={20} /></span>
                     </button>
                   )}
                 </div>

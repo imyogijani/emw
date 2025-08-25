@@ -136,9 +136,9 @@ const AdminSidebar = ({ onClose }) => {
             <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
           </button> */}
 
-          <button className="logout-btn" onClick={handleLogout}>
-            <FaSignOutAlt />
-            <span>Logout</span>
+          <button className="btn btn-medium btn-danger logout-btn" onClick={handleLogout}>
+            <span className="sparkle"><FaSignOutAlt /></span>
+            <span className="text">Logout</span>
           </button>
         </div>
       </div>

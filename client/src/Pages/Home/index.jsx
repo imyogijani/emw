@@ -345,12 +345,12 @@ export default function Home() {
           <ProductBadges product={product} />
           <div className="card-actions">
             <button
-              className="card-button"
+              className="btn btn-medium btn-primary card-button"
               onClick={(e) => handleAddToCart(e, product)}
               title="Add to Cart"
             >
-              <ShoppingCart size={16} style={{ marginRight: "8px" }} />
-              Add to Cart
+              <span className="sparkle"><ShoppingCart size={16} /></span>
+              <span className="text">Add to Cart</span>
             </button>
           </div>
         </div>

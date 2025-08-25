@@ -306,10 +306,10 @@ const Register = () => {
                 />
                 <button
                   type="button"
-                  className="password-toggle"
+                  className="btn btn-small btn-secondary password-toggle"
                   onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  <span className="sparkle">{showPassword ? <FaEyeSlash /> : <FaEye />}</span>
                 </button>
               </div>
             </div>
@@ -330,20 +330,20 @@ const Register = () => {
                 />
                 <button
                   type="button"
-                  className="password-toggle"
+                  className="btn btn-small btn-secondary password-toggle"
                   onClick={toggleConfirmPasswordVisibility}
                 >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  <span className="sparkle">{showConfirmPassword ? <FaEyeSlash /> : <FaEye />}</span>
                 </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className={`register-button ${isLoading ? "loading" : ""}`}
+              className={`btn btn-large btn-primary ${isLoading ? "loading" : ""}`}
               disabled={isLoading}
             >
-              {isLoading ? "Creating Account..." : "Create Account"}
+              <span className="text">{isLoading ? "Creating Account..." : "Create Account"}</span>
             </button>
 
             <div className="register-footer">

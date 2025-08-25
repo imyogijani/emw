@@ -225,22 +225,22 @@ const OnboardingManagement = () => {
       {/* Tab Navigation */}
       <div className="tab-navigation">
         <button 
-          className={`tab-btn ${selectedTab === 'overview' ? 'active' : ''}`}
+          className={`btn btn-small ${selectedTab === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setSelectedTab('overview')}
         >
-          Overview
+          <span className="text">Overview</span>
         </button>
         <button 
-          className={`tab-btn ${selectedTab === 'users' ? 'active' : ''}`}
+          className={`btn btn-small ${selectedTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setSelectedTab('users')}
         >
-          Users ({onboardingData.users.length})
+          <span className="text">Users ({onboardingData.users.length})</span>
         </button>
         <button 
-          className={`tab-btn ${selectedTab === 'sellers' ? 'active' : ''}`}
+          className={`btn btn-small ${selectedTab === 'sellers' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setSelectedTab('sellers')}
         >
-          Sellers ({onboardingData.sellers.length})
+          <span className="text">Sellers ({onboardingData.sellers.length})</span>
         </button>
       </div>
 
@@ -351,11 +351,11 @@ const OnboardingManagement = () => {
                       <div className="action-buttons">
                         {!user.isOnboardingComplete && (
                           <button 
-                            className="btn-reset"
+                            className="btn btn-small btn-warning"
                             onClick={() => handleUserOnboardingReset(user._id)}
                             title="Reset Onboarding"
                           >
-                            🔄
+                            <span className="text">🔄</span>
                           </button>
                         )}
                       </div>
@@ -408,37 +408,37 @@ const OnboardingManagement = () => {
                         {seller.status === 'pending' && (
                           <>
                             <button 
-                              className="btn-approve"
+                              className="btn btn-small btn-success"
                               onClick={() => handleSellerStatusUpdate(seller._id, 'active')}
                               title="Approve Seller"
                             >
-                              ✅
+                              <span className="text">✅</span>
                             </button>
                             <button 
-                              className="btn-reject"
+                              className="btn btn-small btn-danger"
                               onClick={() => handleSellerStatusUpdate(seller._id, 'inactive')}
                               title="Reject Seller"
                             >
-                              ❌
+                              <span className="text">❌</span>
                             </button>
                           </>
                         )}
                         {seller.status === 'active' && (
                           <button 
-                            className="btn-deactivate"
+                            className="btn btn-small btn-warning"
                             onClick={() => handleSellerStatusUpdate(seller._id, 'inactive')}
                             title="Deactivate Seller"
                           >
-                            🔒
+                            <span className="text">🔒</span>
                           </button>
                         )}
                         {seller.status === 'inactive' && (
                           <button 
-                            className="btn-activate"
+                            className="btn btn-small btn-success"
                             onClick={() => handleSellerStatusUpdate(seller._id, 'active')}
                             title="Activate Seller"
                           >
-                            🔓
+                            <span className="text">🔓</span>
                           </button>
                         )}
                       </div>

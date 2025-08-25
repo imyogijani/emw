@@ -264,11 +264,11 @@ export default function Menu() {
           </div>
 
           <button
-            className="add-cart-button"
+            className="btn btn-medium btn-primary add-cart-button"
             onClick={(e) => handleAddToCart(e, item)}
           >
-            <ShoppingCart size={16} />
-            Add to Cart
+            <span className="sparkle"><ShoppingCart size={16} /></span>
+            <span className="text">Add to Cart</span>
           </button>
         </div>
       </div>
@@ -415,11 +415,11 @@ export default function Menu() {
 
         <div className="filter-controls">
           <button
-            className="filter-toggle"
+            className="btn btn-medium btn-secondary filter-toggle"
             onClick={() => setFilterOpen(!filterOpen)}
           >
-            <Filter size={16} />
-            Filters
+            <span className="sparkle"><Filter size={16} /></span>
+            <span className="text">Filters</span>
             <ChevronDown size={16} className={filterOpen ? "rotated" : ""} />
           </button>
           <select onChange={handleSortChange} className="sort-dropdown">
@@ -433,17 +433,17 @@ export default function Menu() {
           <div className="view-toggle-switch">
             <div className="switch-toggle-group">
               <button
-                className={`switch-btn ${viewMode === "grid" ? "active" : ""}`}
+                className={`btn btn-small ${viewMode === "grid" ? "btn-primary" : "btn-secondary"} switch-btn`}
                 onClick={() => setViewMode("grid")}
                 style={{ marginRight: "10px" }}
               >
-                <Grid size={26} />
+                <span className="sparkle"><Grid size={26} /></span>
               </button>
               <button
-                className={`switch-btn ${viewMode === "list" ? "active" : ""}`}
+                className={`btn btn-small ${viewMode === "list" ? "btn-primary" : "btn-secondary"} switch-btn`}
                 onClick={() => setViewMode("list")}
               >
-                <List size={26} />
+                <span className="sparkle"><List size={26} /></span>
               </button>
               <span
                 className={`switch-slider ${
@@ -487,10 +487,10 @@ export default function Menu() {
           {[].map((cat) => (
             <button
               key={cat}
-              className={`category-tab ${activeTab === cat ? "active" : ""}`}
+              className={`btn btn-small ${activeTab === cat ? "btn-primary" : "btn-secondary"} category-tab`}
               onClick={() => setActiveTab(cat)}
             >
-              {cat}
+              <span className="text">{cat}</span>
             </button>
           ))}
         </div>
@@ -500,33 +500,33 @@ export default function Menu() {
       {totalPages > 1 && (
         <div className="pagination-container">
           <button
-            className="pagination-btn"
+            className="btn btn-medium btn-secondary pagination-btn"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           >
-            ⬅ Prev
+            <span className="text">⬅ Prev</span>
           </button>
 
           {Array.from({ length: totalPages }).map((_, index) => (
             <button
               key={index}
-              className={`pagination-btn ${
-                currentPage === index + 1 ? "active" : ""
-              }`}
+              className={`btn btn-medium ${
+                currentPage === index + 1 ? "btn-primary" : "btn-secondary"
+              } pagination-btn`}
               onClick={() => setCurrentPage(index + 1)}
             >
-              {index + 1}
+              <span className="text">{index + 1}</span>
             </button>
           ))}
 
           <button
-            className="pagination-btn"
+            className="btn btn-medium btn-secondary pagination-btn"
             disabled={currentPage === totalPages}
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
           >
-            Next ➡
+            <span className="text">Next ➡</span>
           </button>
         </div>
       )}

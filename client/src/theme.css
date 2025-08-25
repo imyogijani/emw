@@ -20,6 +20,14 @@
   --yellow: #fbbf24;
   --yellow-rgb: 251, 191, 36;
   --secondary-color: #64748b;
+  --success-color: #059669;
+  --success-hover: #10B981;
+  --warning-color: #D97706;
+  --warning-hover: #F59E0B;
+  --danger-color: #DC2626;
+  --danger-hover: #EF4444;
+  --disabled-bg: #6B7280;
+  --disabled-text: #9CA3AF;
 }
 
 :root[data-theme="dark"] {
@@ -44,4 +52,12 @@
   --yellow: #fbbf24;
   --yellow-rgb: 251, 191, 36;
   --secondary-color: #64748b;
+  --success-color: #059669;
+  --success-hover: #10B981;
+  --warning-color: #D97706;
+  --warning-hover: #F59E0B;
+  --danger-color: #DC2626;
+  --danger-hover: #EF4444;
+  --disabled-bg: #6B7280;
+  --disabled-text: #9CA3AF;
 }

@@ -182,28 +182,31 @@ const Navbar = () => {
                       </div>
                       <div className="menu-divider"></div>
                       <button
-                        className="menu-item dashboard-dropdown"
+                        className="btn btn-small btn-secondary menu-item dashboard-dropdown"
                         onClick={() => {
                           setShowUserMenu(false);
                           setShowProfile(true);
                         }}
                       >
-                        <FaCog /> My Profile
+                        <span className="sparkle"><FaCog /></span>
+                        <span className="text">My Profile</span>
                       </button>
                       <button
-                        className="menu-item dashboard-dropdown"
+                        className="btn btn-small btn-secondary menu-item dashboard-dropdown"
                         onClick={() => {
                           setShowUserMenu(false);
                           navigate("/profile-edit"); // Assuming a route for editing profile
                         }}
                       >
-                        <FaCog /> Edit Profile
+                        <span className="sparkle"><FaCog /></span>
+                        <span className="text">Edit Profile</span>
                       </button>
                       <button
-                        className="menu-item dashboard-dropdown logout"
+                        className="btn btn-small btn-danger menu-item dashboard-dropdown logout"
                         onClick={handleLogout}
                       >
-                        <FaSignOutAlt /> Logout
+                        <span className="sparkle"><FaSignOutAlt /></span>
+                        <span className="text">Logout</span>
                       </button>
                     </div>
                   )}
@@ -212,15 +215,15 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="login-button"
-                style={{ textDecoration: "none", borderRadius: "20px" }}
+                className="btn btn-medium btn-primary login-button"
+                style={{ textDecoration: "none" }}
               >
-                <FaSignInAlt />
-                <span>Sign In</span>
+                <span className="sparkle"><FaSignInAlt /></span>
+                <span className="text">Sign In</span>
               </Link>
             )}
 
-            <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
+            <button className="btn btn-small btn-secondary mobile-menu-toggle" onClick={toggleMobileMenu}>
               <span></span>
               <span></span>
               <span></span>
@@ -248,8 +251,8 @@ const Navbar = () => {
             <span className="logo-main">E-Mall</span>
             <span className="logo-uk">World</span>
           </Link>
-          <button className="mobile-menu-close" onClick={closeMobileMenu}>
-            ×
+          <button className="btn btn-small btn-secondary mobile-menu-close" onClick={closeMobileMenu}>
+            <span className="text">×</span>
           </button>
         </div>
 
@@ -257,12 +260,12 @@ const Navbar = () => {
           {navLinks.map((link) => (
             <button
               key={link.path}
-              className={`nav-pill-link ${
+              className={`btn btn-medium btn-secondary nav-pill-link ${
                 isActiveLink(link.path) ? "active" : ""
               }`}
               onClick={() => handleMobileNavClick(link.path)}
             >
-              {link.name}
+              <span className="text">{link.name}</span>
             </button>
           ))}
         </div>
@@ -271,26 +274,28 @@ const Navbar = () => {
           {localStorage.getItem("token") && shouldShowUserMenu ? (
             <>
               <button
-                className="nav-pill-link"
+                className="btn btn-medium btn-secondary nav-pill-link"
                 onClick={() => {
                   closeMobileMenu();
                   setShowProfile(true);
                 }}
               >
-                <FaCog /> Profile Settings
+                <span className="sparkle"><FaCog /></span>
+                <span className="text">Profile Settings</span>
               </button>
-              <button className="nav-pill-link logout" onClick={handleLogout}>
-                <FaSignOutAlt /> Logout
+              <button className="btn btn-medium btn-danger nav-pill-link logout" onClick={handleLogout}>
+                <span className="sparkle"><FaSignOutAlt /></span>
+                <span className="text">Logout</span>
               </button>
             </>
           ) : (
             <Link
               to="/login"
-              className="login-button"
+              className="btn btn-medium btn-primary login-button"
               onClick={closeMobileMenu}
             >
-              <FaSignInAlt />
-              <span>Sign In</span>
+              <span className="sparkle"><FaSignInAlt /></span>
+              <span className="text">Sign In</span>
             </Link>
           )}
         </div>

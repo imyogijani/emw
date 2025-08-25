@@ -850,10 +850,10 @@ export default function ProductDetail() {
                 ? item.description
                 : `${item.description?.substring(0, 150)}...`}
               <button
-                className="read-more-btn"
+                className="btn btn-small btn-ghost read-more-btn"
                 onClick={() => setShowFullDescription(!showFullDescription)}
               >
-                {showFullDescription ? "Read less" : "Read more"}
+                <span className="text">{showFullDescription ? "Read less" : "Read more"}</span>
               </button>
             </p>
           </div>
@@ -876,27 +876,27 @@ export default function ProductDetail() {
               <div className="quantity-controls">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="quantity-btn"
+                  className="btn btn-small btn-secondary quantity-btn"
                 >
-                  <Minus size={14} />
+                  <span className="sparkle"><Minus size={14} /></span>
                 </button>
                 <span className="quantity-display">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="quantity-btn"
+                  className="btn btn-small btn-secondary quantity-btn"
                 >
-                  <Plus size={14} />
+                  <span className="sparkle"><Plus size={14} /></span>
                 </button>
               </div>
             </div>
 
             <div className="action-buttons">
-              <button className="add-to-cart-btn" onClick={handleAddToCart}>
-                <ShoppingCart size={18} />
-                Add to Cart
+              <button className="btn btn-large btn-primary add-to-cart-btn" onClick={handleAddToCart}>
+                <span className="sparkle"><ShoppingCart size={18} /></span>
+                <span className="text">Add to Cart</span>
               </button>
-              <button className="buy-now-btn" onClick={handleBuyNow}>
-                Buy Now
+              <button className="btn btn-large btn-secondary buy-now-btn" onClick={handleBuyNow}>
+                <span className="text">Buy Now</span>
               </button>
             </div>
           </div>
@@ -1109,15 +1109,15 @@ export default function ProductDetail() {
                     <p className="review-text">{review.comment}</p>
                     <div className="review-actions">
                       <button
-                        className="helpful-btn"
+                        className="btn btn-small btn-ghost helpful-btn"
                         onClick={() => handleHelpfulClick(review._id)}
                       >
-                        <ThumbsUp size={14} />
-                        Helpful ({review.helpfulBy?.length || 0})
+                        <span className="sparkle"><ThumbsUp size={14} /></span>
+                        <span className="text">Helpful ({review.helpfulBy?.length || 0})</span>
                       </button>
-                      <button className="report-btn">
-                        <Info size={14} />
-                        Report
+                      <button className="btn btn-small btn-ghost report-btn">
+                        <span className="sparkle"><Info size={14} /></span>
+                        <span className="text">Report</span>
                       </button>
                     </div>
                   </div>
@@ -1178,7 +1178,7 @@ export default function ProductDetail() {
                 )}
               </div>
               <button
-                className="related-add-to-cart"
+                className="btn btn-small btn-primary related-add-to-cart"
                 onClick={async (e) => {
                   e.stopPropagation();
                   // addToCart({

@@ -450,10 +450,10 @@ export default function Shops() {
             ₹{calculateDiscountedPriceFinal(product.price, product.discount)}
           </p>
           <button
-            className="add-to-cart-compact"
+            className="btn btn-small btn-primary add-to-cart-compact"
             onClick={(e) => handleAddToCart(e, product)}
           >
-            <ShoppingCart size={14} />
+            <span className="sparkle"><ShoppingCart size={14} /></span>
           </button>
         </div>
       </div>
@@ -545,13 +545,13 @@ export default function Shops() {
           {storeCategories.map((category) => (
             <button
               key={category.name}
-              className={`category-filter-btn ${
-                selectedCategory === category.name ? "active" : ""
-              }`}
+              className={`btn btn-medium ${
+                selectedCategory === category.name ? "btn-primary" : "btn-secondary"
+              } category-filter-btn`}
               onClick={() => setSelectedCategory(category.name)}
             >
-              <category.icon size={18} />
-              <span>{category.name}</span>
+              <span className="sparkle"><category.icon size={18} /></span>
+              <span className="text">{category.name}</span>
               <span className="category-count">({category.count})</span>
             </button>
           ))}

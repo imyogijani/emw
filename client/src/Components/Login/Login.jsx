@@ -341,10 +341,10 @@ const Login = () => {
 
             <button
               type="submit"
-              className={`login-button ${isLoading ? "loading" : ""}`}
+              className={`btn btn-large btn-primary ${isLoading ? "loading" : ""}`}
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              <span className="text">{isLoading ? "Signing in..." : "Sign In"}</span>
             </button>
 
             <div className="login-footer">

@@ -245,12 +245,12 @@ const Users = () => {
         </select>
 
         <button
-          className="view-mode-toggle-btn"
+          className="btn btn-medium btn-secondary"
           onClick={handleToggleViewMode}
           title={viewMode === 'grid' ? "Switch to list view" : "Switch to grid view"}
         >
-          {viewMode === 'grid' ? <FaEyeSlash /> : <FaEye />}
-          {viewMode === 'grid' ? "List View" : "Grid View"}
+          <span className="sparkle">{viewMode === 'grid' ? <FaEyeSlash /> : <FaEye />}</span>
+          <span className="text">{viewMode === 'grid' ? "List View" : "Grid View"}</span>
         </button>
       </div>
 
@@ -317,7 +317,7 @@ const Users = () => {
                 </div>
                 <div className="user-card-actions">
                   <button
-                    className="action-btn edit"
+                    className="btn btn-small btn-primary"
                     onClick={() => {
                       setModal({
                         type: "edit",
@@ -329,10 +329,11 @@ const Users = () => {
                       });
                     }}
                   >
-                    <FaUserCog /> Edit
+                    <span className="sparkle"><FaUserCog /></span>
+                    <span className="text">Edit</span>
                   </button>
                   <button
-                    className="action-btn delete"
+                    className="btn btn-small btn-danger"
                     onClick={() =>
                       setModal({
                         type: "delete",
@@ -340,14 +341,16 @@ const Users = () => {
                       })
                     }
                   >
-                    <FaTrash /> Delete
+                    <span className="sparkle"><FaTrash /></span>
+                    <span className="text">Delete</span>
                   </button>
                   {user.role === "shopowner" && (
                     <button
-                      className="action-btn view-details"
+                      className="btn btn-small btn-secondary"
                       onClick={() => fetchShopownerDetails(user._id)}
                     >
-                      <FaStore /> Details
+                      <span className="sparkle"><FaStore /></span>
+                      <span className="text">Details</span>
                     </button>
                   )}
                 </div>
@@ -402,7 +405,7 @@ const Users = () => {
 
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   <button
-                    className="modal-btn confirm"
+                    className="btn btn-medium btn-success"
                     onClick={() =>
                       handleUpdateUser(
                         modal.user._id,
@@ -411,13 +414,13 @@ const Users = () => {
                       )
                     }
                   >
-                    Save
+                    <span className="text">Save</span>
                   </button>
                   <button
-                    className="modal-btn cancel"
+                    className="btn btn-medium btn-secondary"
                     onClick={() => setModal(null)}
                   >
-                    Cancel
+                    <span className="text">Cancel</span>
                   </button>
                 </div>
               </>
@@ -430,16 +433,16 @@ const Users = () => {
                 </p>
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   <button
-                    className="modal-btn confirm"
+                    className="btn btn-medium btn-danger"
                     onClick={() => handleDeleteUser(modal.user._id)}
                   >
-                    Yes, Delete
+                    <span className="text">Yes, Delete</span>
                   </button>
                   <button
-                    className="modal-btn cancel"
+                    className="btn btn-medium btn-secondary"
                     onClick={() => setModal(null)}
                   >
-                    Cancel
+                    <span className="text">Cancel</span>
                   </button>
                 </div>
               </>
@@ -529,10 +532,10 @@ const Users = () => {
             )}
             <div style={{ marginTop: "1.5rem", textAlign: "right" }}>
               <button
-                className="modal-btn cancel"
+                className="btn btn-medium btn-secondary"
                 onClick={() => setShopownerDetails(null)}
               >
-                Close
+                <span className="text">Close</span>
               </button>
             </div>
           </div>

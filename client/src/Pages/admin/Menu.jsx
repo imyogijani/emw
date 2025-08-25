@@ -387,11 +387,12 @@ const Menu = () => {
               <div className="pagination">
                 <button
                   type="button"
-                  className="page-btn"
+                  className="btn btn-medium btn-secondary page-btn"
                   onClick={() => setProductPage((p) => Math.max(1, p - 1))}
                   disabled={productPage <= 1 || productsLoading}
                 >
-                  <FaChevronLeft /> Prev
+                  <span className="sparkle"><FaChevronLeft /></span>
+                  <span className="text">Prev</span>
                 </button>
 
                 <span className="page-info">
@@ -400,13 +401,14 @@ const Menu = () => {
 
                 <button
                   type="button"
-                  className="page-btn"
+                  className="btn btn-medium btn-secondary page-btn"
                   onClick={() =>
-                    setProductPage((p) => Math.min(productTotalPages, p + 1))
+                    setProductPage((p) => Math.min(totalProductPages, p + 1))
                   }
-                  disabled={productPage >= productTotalPages || productsLoading}
+                  disabled={productPage >= totalProductPages || productsLoading}
                 >
-                  Next <FaChevronRight />
+                  <span className="text">Next</span>
+                  <span className="sparkle"><FaChevronRight /></span>
                 </button>
               </div>
             </>
@@ -468,22 +470,24 @@ const Menu = () => {
                   <td>{item.position}</td>
                   <td>
                     <button
-                      className="toggle-btn"
+                      className="btn btn-small btn-secondary toggle-btn"
                       onClick={() => toggleStatus(item._id, item.status)}
                     >
-                      {item.status === "active" ? (
-                        <FaToggleOn color="green" size={20} />
-                      ) : (
-                        <FaToggleOff color="gray" size={20} />
-                      )}
+                      <span className="sparkle">
+                        {item.status === "active" ? (
+                          <FaToggleOn color="green" size={20} />
+                        ) : (
+                          <FaToggleOff color="gray" size={20} />
+                        )}
+                      </span>
                     </button>
                   </td>
                   <td>
                     <button
-                      className="action-btn delete"
+                      className="btn btn-small btn-danger action-btn delete"
                       onClick={() => handleDelete(item._id)}
                     >
-                      <FaTrash />
+                      <span className="sparkle"><FaTrash /></span>
                     </button>
                   </td>
                 </tr>

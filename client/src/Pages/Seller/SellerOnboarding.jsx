@@ -681,8 +681,9 @@ const SellerOnboarding = () => {
   const renderBasicDetailsForm = () => (
     <div className="form-step">
       {/* Logout button top right */}
-      <button className="logout-btn-onboarding" onClick={handleLogout}>
-        <FaSignOutAlt /> Logout
+      <button className="btn btn-small btn-danger logout-btn-onboarding" onClick={handleLogout}>
+        <span className="sparkle"><FaSignOutAlt /></span>
+        <span className="text">Logout</span>
       </button>
       <h2 className="step-title">Basic Details</h2>
       <p className="step-description">
@@ -706,8 +707,8 @@ const SellerOnboarding = () => {
             onChange={handleLogoChange}
             style={{ display: "none" }}
           />
-          <label htmlFor="logo" className="logo-upload-btn">
-            Choose File
+          <label htmlFor="logo" className="btn btn-medium btn-secondary logo-upload-btn">
+            <span className="text">Choose File</span>
           </label>
         </div>
       </div>
@@ -974,10 +975,10 @@ const SellerOnboarding = () => {
                   {brand.name}
                   <button
                     type="button"
-                    className="remove-tag"
+                    className="btn btn-small btn-danger remove-tag"
                     onClick={() => handleRemoveSelected("brands", brandId)}
                   >
-                    ×
+                    <span className="text">×</span>
                   </button>
                 </span>
               ) : null;

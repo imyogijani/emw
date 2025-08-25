@@ -125,10 +125,10 @@ const SellerDashboard = () => {
               <p>Please complete your seller onboarding process to access all dashboard features.</p>
             </div>
             <button 
-              className="complete-onboarding-btn"
+              className="btn btn-medium btn-primary complete-onboarding-btn"
               onClick={handleCompleteOnboarding}
             >
-              Complete Onboarding
+              <span className="text">Complete Onboarding</span>
             </button>
           </div>
         </div>

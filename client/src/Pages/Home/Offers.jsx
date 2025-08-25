@@ -320,11 +320,11 @@ export default function Offers() {
           </div>
 
           <button
-            className="deal-add-to-cart"
+            className="btn btn-medium btn-primary deal-add-to-cart"
             onClick={(e) => handleAddToCart(e, deal)}
           >
-            <ShoppingCart size={16} />
-            Add to Cart
+            <span className="sparkle"><ShoppingCart size={16} /></span>
+            <span className="text">Add to Cart</span>
           </button>
         </div>
       </div>

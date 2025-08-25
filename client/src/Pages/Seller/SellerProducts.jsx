@@ -203,10 +203,11 @@ const SellerProducts = () => {
                 </div>
                 <div className="product-card-actions">
                   <button
-                    className="edit-product-btn"
+                    className="btn btn-small btn-primary edit-product-btn"
                     onClick={() => handleEdit(product)}
                   >
-                    <FaEdit /> Edit
+                    <span className="sparkle"><FaEdit /></span>
+                    <span className="text">Edit</span>
                   </button>
                 </div>
               </div>
@@ -255,15 +256,15 @@ const SellerProducts = () => {
                 </select>
               </div>
               <div className="modal-actions">
-                <button type="submit" className="save-btn">
-                  Save Changes
+                <button type="submit" className="btn btn-medium btn-primary save-btn">
+                  <span className="text">Save Changes</span>
                 </button>
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="cancel-btn"
+                  className="btn btn-medium btn-secondary cancel-btn"
                 >
-                  Cancel
+                  <span className="text">Cancel</span>
                 </button>
               </div>
             </form>
