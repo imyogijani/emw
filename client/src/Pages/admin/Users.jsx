@@ -37,27 +37,46 @@ const Users = () => {
   const [shopownerDetails, setShopownerDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const [page, setPage] = useState(1);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchUsers = async () => {
+  useEffect(() => {
+    fetchUsers(1, true); // Load first page on mount
+  }, [filterRole, searchTerm]);
+
+  const fetchUsers = async (pageToFetch = 1, reset = false) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      console.log("Fetching users with token:", token); // Debug log
-
+      const params = {
+        page: pageToFetch,
+        limit: 20,
+      };
+      if (filterRole !== "all") params.role = filterRole;
+      if (searchTerm) params.search = searchTerm;
       const response = await axios.get("/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
+        params,
       });
-
-      console.log("Users response:", response.data); // Debug log
-      setUsers(response.data.users || []);
+      if (reset) {
+        setUsers(response.data.users || []);
+      } else {
+        setUsers((prev) => [...prev, ...(response.data.users || [])]);
+      }
+      setTotalUsersCount(response.data.totalUsers || 0);
+      setPage(pageToFetch);
+      setHasMore(pageToFetch < (response.data.totalPages || 1));
     } catch (error) {
-      console.error("Error fetching users:", error); // Debug log
       toast.error(error.response?.data?.message || "Failed to fetch users");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (hasMore && !loading) {
+      fetchUsers(page + 1);
     }
   };
 
@@ -68,7 +87,7 @@ const Users = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("User deleted successfully");
-      fetchUsers();
+      fetchUsers(1, true);
     } catch (error) {
       toast.error("Error deleting user");
     }
@@ -76,7 +95,6 @@ const Users = () => {
   };
 
   const handleUpdateUser = async (userId, newRole, newStatus) => {
-    console.log("Updating user:", userId, newRole, newStatus); // Debug log
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
@@ -85,7 +103,7 @@ const Users = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("User updated successfully");
-      fetchUsers();
+      fetchUsers(1, true);
     } catch (error) {
       toast.error("Error updating user");
     }
@@ -110,7 +128,6 @@ const Users = () => {
 
   // Display all filtered users
   const currentUsers = filteredUsers;
-  const totalUsers = filteredUsers.length;
 
   const handleToggleViewMode = () => {
     setViewMode(viewMode === 'grid' ? 'list' : 'grid');
@@ -166,7 +183,7 @@ const Users = () => {
     }
   };
 
-  if (loading) {
+  if (loading && page === 1) {
     return (
       <div className="loading-container">
         <FaSpinner className="spinner" />
@@ -189,7 +206,7 @@ const Users = () => {
             <FaUsers />
           </div>
           <div className="metric-info">
-            <h3>{stats.total}</h3>
+            <h3>{totalUsersCount}</h3>
             <p>Total Users</p>
           </div>
         </div>
@@ -255,10 +272,10 @@ const Users = () => {
       </div>
 
       <div className="users-table-container">
-        {totalUsers > 0 && (
+        {totalUsersCount > 0 && (
           <div className="users-summary">
             <p>
-              Showing all {totalUsers} users
+              Showing {currentUsers.length} of {totalUsersCount} users
               {filterRole !== "all" && ` (filtered by ${filterRole})`}
             </p>
           </div>
@@ -358,6 +375,13 @@ const Users = () => {
             ))
           )}
         </div>
+        {hasMore && (
+          <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+            <button className="btn btn-primary" onClick={handleLoadMore} disabled={loading}>
+              {loading ? <FaSpinner className="spinner" /> : 'Load More'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal Popups */}
