@@ -4,7 +4,7 @@ import "./Menu.css";
 import "./theme-override.css";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import JumpingLoader from "../../Components/JumpingLoader";
 import {
   Star,
@@ -108,7 +108,7 @@ export default function Menu() {
       const userId = user?._id;
 
       if (!userId) {
-        toast.error("User not logged in");
+        showErrorToast("User not logged in", "Menu - Authentication");
         return;
       }
 
@@ -140,10 +140,10 @@ export default function Menu() {
         location: window.location.pathname,
       });
 
-      toast.success(`${product.name} added to cart!`);
+      showSuccessToast(`${product.name} added to cart!`, "Menu - Add to Cart");
     } catch (err) {
       console.error("Add to cart error:", err);
-      toast.error("Failed to add to cart.");
+      showErrorToast("Failed to add to cart.", "Menu - Add to Cart Error");
     }
   };
 

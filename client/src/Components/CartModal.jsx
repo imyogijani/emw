@@ -38,7 +38,7 @@ export default function CartModal({ open, onClose }) {
 
         if (!response?.success) {
           // Handle cart not found or empty case
-          toast.info(response.message || "Cart is empty");
+          showErrorToast(response.message || "Cart is empty", "Cart - Info");
           setCartData(null);
           setLoading(false);
           return;
@@ -55,7 +55,7 @@ export default function CartModal({ open, onClose }) {
         });
       } catch (err) {
         console.error("Failed to fetch cart:", err);
-        toast.error("Failed to fetch cart");
+        showErrorToast("Failed to fetch cart", "Cart - Fetch Error");
       }
     };
 
@@ -79,7 +79,7 @@ export default function CartModal({ open, onClose }) {
 
     if (!token || !user || user.role !== "client") {
       console.log("Auth failed, redirecting to login");
-      toast.warning("Please login as a customer to checkout.");
+      showErrorToast("Please login as a customer to checkout.", "Cart - Authentication");
       onClose();
       navigate("/login", {
         state: { returnUrl: "/checkout", customerOnly: true },
@@ -209,7 +209,7 @@ export default function CartModal({ open, onClose }) {
         });
       } catch (error) {
         console.error("Failed to remove item:", error);
-        toast.error("Failed to remove item");
+        showErrorToast("Failed to remove item", "Cart - Remove Item");
       }
     },
     [userId]

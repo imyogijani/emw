@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
@@ -31,13 +32,13 @@ export default function Checkout() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      toast.error("Please login to proceed with checkout");
+      showErrorToast("Please login to proceed with checkout", "Checkout - Authentication");
       navigate("/login", { state: { returnUrl: location.pathname } });
       return;
     }
 
     if (cartItems.length === 0) {
-      toast.error("Your cart is empty!");
+      showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
       navigate("/");
       return;
     }
@@ -81,7 +82,7 @@ export default function Checkout() {
   // Redirect if cart is empty
   useEffect(() => {
     if (cartItems.length === 0) {
-      toast.error("Your cart is empty!");
+      showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
       navigate("/");
     }
   }, [cartItems.length, navigate]);
@@ -121,17 +122,18 @@ export default function Checkout() {
       (c) => c.code.toLowerCase() === couponCode.toLowerCase(),
     );
     if (!coupon) {
-      toast.error("Invalid coupon code!");
+      showErrorToast("Invalid coupon code!", "Checkout - Coupon Validation");
       return;
     }
     if (subtotal < coupon.minOrder) {
-      toast.error(
+      showErrorToast(
         `Minimum order amount ₹${coupon.minOrder} required for this coupon!`,
+        "Checkout - Coupon Validation"
       );
       return;
     }
     setAppliedCoupon(coupon);
-    toast.success(`Coupon "${coupon.code}" applied successfully!`);
+    showSuccessToast(`Coupon "${coupon.code}" applied successfully!`, "Checkout - Coupon Applied");
     setShowCouponInput(false);
     setCouponCode("");
   };

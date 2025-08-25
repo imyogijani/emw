@@ -1,7 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import {
   CreditCard,
   Smartphone,
@@ -87,7 +88,7 @@ export default function Payment() {
     // Get order data from session storage
     const checkoutData = sessionStorage.getItem("checkoutData");
     if (!checkoutData) {
-      toast.error("No order data found!");
+      showErrorToast("No order data found!", "Payment - Data Validation");
       navigate("/checkout");
       return;
     }
@@ -142,12 +143,12 @@ export default function Payment() {
     const { cardNumber, expiryDate, cvv, cardholderName } = cardDetails;
 
     if (!cardNumber || cardNumber.replace(/\s/g, "").length < 13) {
-      toast.error("Please enter a valid card number");
+      showErrorToast("Please enter a valid card number", "Payment - Card Validation");
       return false;
     }
 
     if (!expiryDate || expiryDate.length !== 5) {
-      toast.error("Please enter a valid expiry date");
+      showErrorToast("Please enter a valid expiry date", "Payment - Card Validation");
       return false;
     }
 
@@ -157,7 +158,7 @@ export default function Payment() {
     const currentMonth = currentDate.getMonth() + 1;
 
     if (parseInt(month) < 1 || parseInt(month) > 12) {
-      toast.error("Please enter a valid month");
+      showErrorToast("Please enter a valid month", "Payment - Card Validation");
       return false;
     }
 
@@ -165,17 +166,17 @@ export default function Payment() {
       parseInt(year) < currentYear ||
       (parseInt(year) === currentYear && parseInt(month) < currentMonth)
     ) {
-      toast.error("Card has expired");
+      showErrorToast("Card has expired", "Payment - Card Validation");
       return false;
     }
 
     if (!cvv || cvv.length < 3) {
-      toast.error("Please enter a valid CVV");
+      showErrorToast("Please enter a valid CVV", "Payment - Card Validation");
       return false;
     }
 
     if (!cardholderName.trim()) {
-      toast.error("Please enter cardholder name");
+      showErrorToast("Please enter cardholder name", "Payment - Card Validation");
       return false;
     }
 
@@ -185,7 +186,7 @@ export default function Payment() {
   const validateUpiId = () => {
     const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
     if (!upiRegex.test(upiId)) {
-      toast.error("Please enter a valid UPI ID");
+      showErrorToast("Please enter a valid UPI ID", "Payment - UPI Validation");
       return false;
     }
     return true;
@@ -199,7 +200,7 @@ export default function Payment() {
         return validateUpiId();
       case "netbanking":
         if (!selectedBank) {
-          toast.error("Please select a bank");
+          showErrorToast("Please select a bank", "Payment - Bank Selection");
           return false;
         }
         return true;
@@ -271,12 +272,12 @@ export default function Payment() {
       clearCart();
 
       // Show success message
-      toast.success("Payment successful! Order placed.");
+      showSuccessToast("Payment successful! Order placed.", "Payment - Success");
 
       // Redirect to invoice page
       navigate(`/invoice/${orderId}`);
     } catch (error) {
-      toast.error("Payment failed. Please try again.");
+      showErrorToast("Payment failed. Please try again.", "Payment - Error");
       console.error("Payment error:", error);
     } finally {
       setLoading(false);

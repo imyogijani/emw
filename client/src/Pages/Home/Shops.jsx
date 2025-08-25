@@ -5,7 +5,7 @@ import "./shops-modern.css";
 import "./theme-override.css";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import JumpingLoader from "../../Components/JumpingLoader";
 import {
   Star,
@@ -277,7 +277,7 @@ export default function Shops() {
       const userId = user?._id;
 
       if (!userId) {
-        toast.error("User not logged in");
+        showErrorToast("User not logged in", "Shops - Authentication");
         return;
       }
 
@@ -303,10 +303,10 @@ export default function Shops() {
         source_page: sourcePage,
         location: window.location.pathname,
       });
-      toast.success(`${product.name} added to cart!`);
+      showSuccessToast(`${product.name} added to cart!`, "Shops - Add to Cart");
     } catch (err) {
       console.error("Add to cart error:", err);
-      toast.error("Failed to add to cart.");
+      showErrorToast("Failed to add to cart.", "Shops - Add to Cart Error");
     }
   };
 
