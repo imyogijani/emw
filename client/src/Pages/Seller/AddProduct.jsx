@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import axios from "../../utils/axios";
 import "../../App.css";
 import "./SellerProducts.css";
@@ -148,11 +148,11 @@ const AddProduct = () => {
   };
   const validateForm = () => {
     if (!formData.name.trim()) {
-      toast.error("Product name is required");
+      showErrorToast("Product name is required", "Add Product - Form Validation");
       return false;
     }
     if (!formData.category) {
-      toast.error("Please select a category");
+      showErrorToast("Please select a category", "Add Product - Form Validation");
       return false;
     }
     const selectedCategoryObj = categories.find(
@@ -164,30 +164,30 @@ const AddProduct = () => {
       selectedCategoryObj.children.length > 0 &&
       !formData.subcategory
     ) {
-      toast.error("Please select a subcategory");
+      showErrorToast("Please select a subcategory", "Add Product - Form Validation");
       return false;
     }
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      toast.error("Please enter a valid price");
+      showErrorToast("Please enter a valid price", "Add Product - Form Validation");
       return false;
     }
     if (
       formData.discount &&
       (parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100)
     ) {
-      toast.error("Discount must be between 0 and 100");
+      showErrorToast("Discount must be between 0 and 100", "Add Product - Form Validation");
       return false;
     }
     if (!formData.stock || parseInt(formData.stock) < 0) {
-      toast.error("Please enter a valid stock quantity");
+      showErrorToast("Please enter a valid stock quantity", "Add Product - Form Validation");
       return false;
     }
     if (!formData.description.trim()) {
-      toast.error("Product description is required");
+      showErrorToast("Product description is required", "Add Product - Form Validation");
       return false;
     }
     if (!formData.image) {
-      toast.error("Product image is required");
+      showErrorToast("Product image is required", "Add Product - Form Validation");
       return false;
     }
     return true;
@@ -239,7 +239,7 @@ const AddProduct = () => {
       });
 
       if (response.data.success) {
-        toast.success("Product added successfully!");
+        showSuccessToast("Product added successfully!", "Product Creation");
         setFormData({
           name: "",
           description: "",
@@ -259,10 +259,12 @@ const AddProduct = () => {
         }
       }
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Error adding product";
-      toast.error(errorMessage);
-      console.error("Error adding product:", error);
+      showErrorToast(error, "Failed to add product", {
+        operation: "addProduct",
+        productName: formData.name,
+        category: formData.category,
+        hasImages: formData.image.length > 0
+      });
     } finally {
       setLoading(false);
     }

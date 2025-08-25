@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast, showInfoToast, validateForm } from "../../utils/errorHandler";
 import {
   ShoppingCart,
   CreditCard,
@@ -138,53 +138,61 @@ export default function Checkout() {
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
-    toast.info("Coupon removed");
+    showInfoToast("Coupon removed", "Checkout - Coupon Management");
   };
 
-  const validateForm = () => {
-    const required = [
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "address",
-      "city",
-      "state",
-      "pincode",
-    ];
-    for (let field of required) {
-      if (!billingDetails[field].trim()) {
-        toast.error(
-          `Please fill in ${field.replace(/([A-Z])/g, " $1").toLowerCase()}`,
-        );
-        return false;
+  const validateCheckoutForm = () => {
+    const validationRules = {
+      firstName: {
+        required: true,
+        requiredMessage: "First name is required"
+      },
+      lastName: {
+        required: true,
+        requiredMessage: "Last name is required"
+      },
+      email: {
+        required: true,
+        requiredMessage: "Email is required",
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        patternMessage: "Please enter a valid email address"
+      },
+      phone: {
+        required: true,
+        requiredMessage: "Phone number is required",
+        minLength: 10,
+        maxLength: 10,
+        minLengthMessage: "Please enter a valid 10-digit phone number",
+        maxLengthMessage: "Please enter a valid 10-digit phone number"
+      },
+      address: {
+        required: true,
+        requiredMessage: "Address is required"
+      },
+      city: {
+        required: true,
+        requiredMessage: "City is required"
+      },
+      state: {
+        required: true,
+        requiredMessage: "State is required"
+      },
+      pincode: {
+        required: true,
+        requiredMessage: "Pincode is required",
+        minLength: 6,
+        maxLength: 6,
+        minLengthMessage: "Please enter a valid 6-digit pincode",
+        maxLengthMessage: "Please enter a valid 6-digit pincode"
       }
-    }
+    };
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(billingDetails.email)) {
-      toast.error("Please enter a valid email address");
-      return false;
-    }
-
-    // Phone validation
-    if (billingDetails.phone.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number");
-      return false;
-    }
-
-    // Pincode validation
-    if (billingDetails.pincode.length !== 6) {
-      toast.error("Please enter a valid 6-digit pincode");
-      return false;
-    }
-
-    return true;
+    const { isValid } = validateForm(billingDetails, validationRules);
+    return isValid;
   };
 
   const handleProceedToPayment = () => {
-    if (!validateForm()) return;
+    if (!validateCheckoutForm()) return;
 
     const orderData = {
       items: cartItems,

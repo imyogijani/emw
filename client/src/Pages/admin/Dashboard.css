@@ -133,9 +133,9 @@
 /* Responsive Grid System */
 .admin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-  gap: clamp(15px, 3vw, 30px);
-  margin-bottom: clamp(30px, 5vw, 50px);
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: clamp(12px, 2.5vw, 20px);
+  margin-bottom: clamp(25px, 4vw, 40px);
   width: 100%;
 }
 
@@ -149,7 +149,7 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 .responsive-card::before {
@@ -181,7 +181,7 @@
 
 /* Card Content Styling */
 .card-content {
-  padding: clamp(20px, 4vw, 30px);
+  padding: clamp(15px, 3vw, 20px);
   position: relative;
   z-index: 2;
   height: 100%;
@@ -190,31 +190,31 @@
 }
 
 .card-title {
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-size: clamp(0.8rem, 1.8vw, 1rem);
   font-weight: 600;
   color: var(--secondary-color);
-  margin-bottom: clamp(8px, 1.5vw, 12px);
+  margin-bottom: clamp(6px, 1.2vw, 8px);
   letter-spacing: 0.5px;
   text-transform: uppercase;
   line-height: 1.3;
 }
 
 .card-subtitle {
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-size: clamp(1.3rem, 3.5vw, 1.8rem);
   font-weight: 800;
   color: var(--secondary-color);
-  margin-bottom: clamp(5px, 1vw, 8px);
+  margin-bottom: clamp(4px, 0.8vw, 6px);
   line-height: 1.1;
 }
 
 .card-description {
-  font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+  font-size: clamp(0.7rem, 1.5vw, 0.8rem);
   color: var(--success-color);
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   line-height: 1.4;
 }
 

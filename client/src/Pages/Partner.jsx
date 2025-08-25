@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Partner.css';
+import { showErrorToast, showSuccessToast, validateForm } from '../utils/errorHandler';
 import { 
   Handshake, 
   TrendingUp, 
@@ -143,8 +144,69 @@ const Partner = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Partnership application submitted:', formData);
+    
+    // Validate form data
+    const validationRules = {
+      companyName: {
+        required: true,
+        requiredMessage: "Company name is required"
+      },
+      contactPerson: {
+        required: true,
+        requiredMessage: "Contact person name is required"
+      },
+      email: {
+        required: true,
+        requiredMessage: "Email is required",
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        patternMessage: "Please enter a valid email address"
+      },
+      phone: {
+        required: true,
+        requiredMessage: "Phone number is required",
+        minLength: 10,
+        minLengthMessage: "Phone number must be at least 10 digits"
+      },
+      partnershipType: {
+        required: true,
+        requiredMessage: "Please select a partnership type"
+      },
+      businessDescription: {
+        required: true,
+        requiredMessage: "Business description is required",
+        minLength: 50,
+        minLengthMessage: "Please provide a detailed business description (at least 50 characters)"
+      }
+    };
+
+    const { isValid } = validateForm(formData, validationRules);
+    
+    if (!isValid) {
+      return;
+    }
+
+    try {
+      // Handle form submission
+      console.log('Partnership application submitted:', formData);
+      showSuccessToast('Partnership application submitted successfully! We will contact you soon.', 'Partnership Application');
+      
+      // Reset form
+      setFormData({
+        companyName: '',
+        contactPerson: '',
+        email: '',
+        phone: '',
+        website: '',
+        address: '',
+        partnershipType: '',
+        businessDescription: '',
+        expectedRevenue: '',
+        message: ''
+      });
+      setPartnershipType('');
+    } catch (error) {
+      showErrorToast('Failed to submit partnership application. Please try again.', 'Partnership Application', { error });
+    }
   };
 
   return (

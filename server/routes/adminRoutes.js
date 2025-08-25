@@ -23,6 +23,7 @@ import {
   deleteCity,
   getAdminOrdersController,
   getSettings,
+  updateSettings,
   getIncompleteOnboardingUsers,
   forceCompleteOnboarding,
   resetOnboarding,
@@ -51,7 +52,7 @@ import {
   adminUpdateDocumentStatus,
 } from "../controllers/sellerDocumentController.js";
 
-import { updateSettings } from "../controllers/settingsController.js";
+// Settings controller import removed - using updateSettings from adminController instead
 
 const router = express.Router();
 

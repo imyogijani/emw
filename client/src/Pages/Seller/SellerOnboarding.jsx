@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/axios";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import { useNavigate } from "react-router-dom";
 import "./OnboardingForms.css";
 import { FaSignOutAlt, FaRegClock } from "react-icons/fa";
@@ -24,7 +24,7 @@ const SellerOnboarding = () => {
           console.log("Onboarding step fetched:", response.data);
         }
       } catch (error) {
-        toast.error("Failed to fetch onboarding progress");
+        showErrorToast("Failed to fetch onboarding progress", "Seller Onboarding - Data Fetch");
       } finally {
         setLoading(false);
       }
@@ -213,11 +213,11 @@ const SellerOnboarding = () => {
         if (res.data.success) {
           setPlans(res.data.subscriptions);
         } else {
-          toast.error(res.data.message || "Failed to load plans");
+          showErrorToast(res.data.message || "Failed to load plans", "Seller Onboarding - Plans");
         }
       } catch (err) {
         console.error("Error fetching subscription plans:", err);
-        toast.error("Failed to fetch subscription plans.");
+        showErrorToast("Failed to fetch subscription plans", "Seller Onboarding - Plans");
       } finally {
         setLoading(false);
       }
@@ -231,7 +231,7 @@ const SellerOnboarding = () => {
       setCategories(response.data.categories || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      toast.error("Failed to fetch categories");
+      showErrorToast("Failed to fetch categories", "Seller Onboarding - Categories");
     }
   };
 
@@ -241,7 +241,7 @@ const SellerOnboarding = () => {
       setBrands(response.data.brands || []);
     } catch (error) {
       console.error("Error fetching brands:", error);
-      toast.error("Failed to fetch brands");
+      showErrorToast("Failed to fetch brands", "Seller Onboarding - Brands");
     }
   };
 
@@ -331,23 +331,23 @@ const SellerOnboarding = () => {
     switch (step) {
       case 1:
         if (!formData.shopName) {
-          toast.error("Shop name is required");
+          showErrorToast("Shop name is required", "Seller Onboarding - Step 1 Validation");
           return false;
         }
         if (!formData.shopLogo) {
-          toast.error("Shop logo is required");
+          showErrorToast("Shop logo is required", "Seller Onboarding - Step 1 Validation");
           return false;
         }
         // if (!formData.shopAddress) {
-        //   toast.error("Shop address is required");
+        //   showErrorToast("Shop address is required", "Seller Onboarding - Step 1 Validation");
         //   return false;
         // }
         // if (!formData.location) {
-        //   toast.error("Shop location is required");
+        //   showErrorToast("Shop location is required", "Seller Onboarding - Step 1 Validation");
         //   return false;
         // }
         if (formData.shopImages.length === 0) {
-          toast.error("Please upload at least one shop image");
+          showErrorToast("Please upload at least one shop image", "Seller Onboarding - Step 1 Validation");
           return false;
         }
         break;
@@ -357,14 +357,14 @@ const SellerOnboarding = () => {
           (day) => day.isOpen
         );
         if (!hasOpenDay) {
-          toast.error("Please select at least one working day");
+          showErrorToast("Please select at least one working day", "Seller Onboarding - Step 2 Validation");
           return false;
         }
         break;
       }
       case 3:
         if (!formData.selectedPlan) {
-          toast.error("Please select a subscription plan");
+          showErrorToast("Please select a subscription plan", "Seller Onboarding - Step 3 Validation");
           return false;
         }
         break;
@@ -403,7 +403,7 @@ const SellerOnboarding = () => {
 
       setStep(nextStep);
     } catch (error) {
-      toast.error("Failed to save progress");
+      showErrorToast("Failed to save progress", "Seller Onboarding - Progress Update");
     }
   };
 
@@ -439,12 +439,12 @@ const SellerOnboarding = () => {
       // Start free trial
       await axios.post("/api/seller/start-free-trial");
 
-      toast.success("🎉 Profile completed! Your 7-day free trial has started!");
+      showSuccessToast("🎉 Profile completed! Your 7-day free trial has started!", "Seller Onboarding - Trial Started");
       // Redirect to seller dashboard
       navigate("/seller/dashboard");
     } catch (error) {
       console.error("Profile completion error:", error);
-      toast.error(
+      showErrorToast(
         error.response?.data?.message || "Failed to complete profile"
       );
     } finally {
@@ -460,7 +460,7 @@ const SellerOnboarding = () => {
       // Safe localStorage access
       const userStr = localStorage.getItem("user");
       if (!userStr) {
-        toast.error("User session not found. Please login again.");
+        showErrorToast("User session not found. Please login again.", "Seller Onboarding - Authentication");
         navigate("/login");
         return;
       }
@@ -470,7 +470,7 @@ const SellerOnboarding = () => {
       // console.log("User details:", sellerId);
 
       if (!sellerId) {
-        toast.error("Seller ID not found. Please contact support.");
+        showErrorToast("Seller ID not found. Please contact support.", "Seller Onboarding - Authentication");
         return;
       }
 
@@ -498,11 +498,11 @@ const SellerOnboarding = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      toast.success("Step 1 saved successfully");
+      showSuccessToast("Step 1 saved successfully", "Seller Onboarding - Step 1");
       setStep(2);
     } catch (error) {
       console.error("Step 1 submission error:", error);
-      toast.error(error.response?.data?.message || "Failed to save Step 1");
+      showErrorToast(error.response?.data?.message || "Failed to save Step 1", "Seller Onboarding - Step 1");
     } finally {
       setLoading(false);
     }
@@ -516,7 +516,7 @@ const SellerOnboarding = () => {
       // Safe localStorage access
       const userStr = localStorage.getItem("user");
       if (!userStr) {
-        toast.error("User session not found. Please login again.");
+        showErrorToast("User session not found. Please login again.", "Seller Onboarding - Authentication");
         navigate("/login");
         return;
       }
@@ -525,7 +525,7 @@ const SellerOnboarding = () => {
       const sellerId = user?.sellerId;
 
       if (!sellerId) {
-        toast.error("Seller ID not found. Please contact support.");
+        showErrorToast("Seller ID not found. Please contact support.", "Seller Onboarding - Authentication");
         return;
       }
 
@@ -548,11 +548,11 @@ const SellerOnboarding = () => {
       };
 
       const response = await axios.post(`/api/shop-timing/${sellerId}`, data);
-      toast.success("Shop timings saved successfully");
+      showSuccessToast("Shop timings saved successfully", "Seller Onboarding - Step 2");
       setStep(3);
     } catch (error) {
       console.error("Step 2 submission error:", error);
-      toast.error(error.response?.data?.message || "Failed to save timings");
+      showErrorToast(error.response?.data?.message || "Failed to save timings", "Seller Onboarding - Step 2");
     } finally {
       setLoading(false);
     }
@@ -627,10 +627,10 @@ const SellerOnboarding = () => {
           await axios.post("/api/sellers/gst-number", {
             gstNumber: formData.gstNumber,
           });
-          toast.success("GST number updated successfully 🎉");
+          showSuccessToast("GST number updated successfully 🎉", "Seller Onboarding - GST Update");
         } catch (gstErr) {
           console.error("GST update error:", gstErr);
-          toast.error("GST number update failed");
+          showErrorToast("GST number update failed", "Seller Onboarding - GST Update");
           return; // agar GST invalid ho, process rok do
         }
       }
@@ -666,22 +666,22 @@ const SellerOnboarding = () => {
       });
 
       console.log("Upload response:", response.data);
-      toast.success("Documents uploaded successfully 🎉");
+      showSuccessToast("Documents uploaded successfully 🎉", "Seller Onboarding - Documents");
       setStep(4);
     } catch (err) {
       console.error("Upload error:", err);
 
       // More specific error messages
       if (err.response?.data?.message) {
-        toast.error(err.response.data.message);
+        showErrorToast(err.response.data.message, "Seller Onboarding - Documents");
       } else if (err.response?.status === 400) {
-        toast.error("Invalid document data. Please check your inputs.");
+        showErrorToast("Invalid document data. Please check your inputs.", "Seller Onboarding - Documents");
       } else if (err.response?.status === 401) {
-        toast.error("Authentication failed. Please login again.");
+        showErrorToast("Authentication failed. Please login again.", "Seller Onboarding - Authentication");
       } else if (err.response?.status === 413) {
-        toast.error("File size too large. Please use smaller files.");
+        showErrorToast("File size too large. Please use smaller files.", "Seller Onboarding - Documents");
       } else {
-        toast.error("Upload failed. Please try again.");
+        showErrorToast("Upload failed. Please try again.", "Seller Onboarding - Documents");
       }
     }
   };

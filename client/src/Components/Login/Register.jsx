@@ -1,6 +1,7 @@
+/* eslint-disable no-undef */
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast } from "../../utils/errorHandler";
 import axios from "../../utils/axios";
 import {
   FaEnvelope,
@@ -195,11 +196,22 @@ const Register = () => {
         location: window.location.pathname,
       });
 
-      const errorCode = err.code;
-      if (errorCode === "auth/email-already-in-use") {
-        toast.error("This email is already registered. Try logging in.");
+      const ERROR_CODE = err.code;
+      if (err.code === "auth/email-already-in-use") {
+        showErrorToast(
+          "This email is already registered. Try logging in.",
+          "Registration Error",
+          {
+            errorCode: err.code,
+            email: formData.email,
+          }
+        );
       } else {
-        toast.error(err.message || "Registration failed. Try again later.");
+        showErrorToast(err, "Registration failed", {
+          errorCode: err.code,
+          operation: "createUserWithEmailAndPassword",
+          email: formData.email,
+        });
       }
     } finally {
       setIsLoading(false);

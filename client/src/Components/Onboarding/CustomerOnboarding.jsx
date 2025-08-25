@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast, validateForm } from "../../utils/errorHandler";
 import "./CustomerOnboarding.css";
 
 const CustomerOnboarding = () => {
@@ -61,29 +61,37 @@ const CustomerOnboarding = () => {
     }));
   };
 
-  const validateForm = () => {
-    const errors = [];
+  const validateOnboardingForm = () => {
+    const validationRules = {
+      preferences: {
+        required: true,
+        requiredMessage: "Please select at least one preference",
+        custom: (value) => value.length > 0 || "Please select at least one preference"
+      },
+      'location.city': {
+        required: true,
+        requiredMessage: "City is required"
+      },
+      'location.state': {
+        required: true,
+        requiredMessage: "State is required"
+      }
+    };
 
-    if (formData.preferences.length === 0) {
-      errors.push("Please select at least one preference.");
-    }
+    const flatFormData = {
+      preferences: formData.preferences,
+      'location.city': formData.location.city,
+      'location.state': formData.location.state
+    };
 
-    if (!formData.location.city || !formData.location.state) {
-      errors.push("Please provide your city and state.");
-    }
-
-    if (errors.length > 0) {
-      errors.forEach((error) => toast.error(error));
-      return false;
-    }
-
-    return true;
+    const { isValid } = validateForm(flatFormData, validationRules);
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateOnboardingForm()) {
       return;
     }
 

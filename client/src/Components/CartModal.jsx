@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../utils/errorHandler";
 import "./CartModal.css";
 import {
   getCartByUserAPI,
@@ -136,11 +136,11 @@ export default function CartModal({ open, onClose }) {
         if (freshCart?.success) {
           setCartData(freshCart); //  Update with accurate backend state
         } else {
-          toast.error("Failed to refresh cart from server.");
+          showErrorToast("Failed to refresh cart from server.", "Cart Update", { operation: "updateQuantity", productId, variantId, newQuantity });
         }
       } catch (err) {
         console.error("Failed to update cart:", err);
-        toast.error("Failed to update quantity");
+        showErrorToast(err, "Failed to update quantity", { operation: "updateCartItem", productId, variantId, newQuantity });
       }
     },
     [userId]
@@ -154,7 +154,7 @@ export default function CartModal({ open, onClose }) {
       });
 
       await clearCartAPI(userId);
-      toast.success("Cart cleared!");
+      showSuccessToast("Cart cleared!", "Cart Management");
       setCartData((prev) => ({
         ...prev,
         cart: { ...prev.cart, items: [] },
@@ -162,7 +162,7 @@ export default function CartModal({ open, onClose }) {
       }));
     } catch (err) {
       console.error("Failed to clear cart:", err);
-      toast.error("Failed to clear cart");
+      showErrorToast(err, "Failed to clear cart", { operation: "clearCart", userId });
     }
   }, [userId]);
 
@@ -177,7 +177,7 @@ export default function CartModal({ open, onClose }) {
         });
 
         await removeCartItemAPI(userId, productId, variantId);
-        toast.success("Item removed from cart");
+        showSuccessToast("Item removed from cart", "Cart Management");
 
         setCartData((prevCartData) => {
           if (!prevCartData?.cart?.items) return prevCartData;

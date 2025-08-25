@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../utils/axios";
-import { toast } from "react-toastify";
+import { showErrorToast } from "../utils/errorHandler";
 
 const SellerNotification = () => {
   const [notification, setNotification] = useState(null);
@@ -34,7 +34,10 @@ const SellerNotification = () => {
       });
       setNotification(null);
     } catch (error) {
-      toast.error("Failed to dismiss notification");
+      showErrorToast(error, "Failed to dismiss notification", {
+        operation: "dismissNotification",
+        notificationId: notification._id
+      });
     }
   };
 

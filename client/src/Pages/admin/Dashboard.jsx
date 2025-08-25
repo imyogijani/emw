@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import "./Dashboard.css";
 import {
@@ -37,7 +38,7 @@ const Dashboard = () => {
     shopStats: [],
   });
 
-  const [trends, setTrends] = useState({
+  const [TRENDS, setTrends] = useState({
     success: false,
     period: "daily",
     lastDays: 7,
@@ -159,14 +160,14 @@ const Dashboard = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginBottom: "12px",
+                marginBottom: "8px",
               }}
             >
               <div
                 style={{
-                  fontSize: "24px",
+                  fontSize: "20px",
                   color: "#ff9900",
-                  marginRight: "12px",
+                  marginRight: "10px",
                 }}
               >
                 <FaUsers />
@@ -176,7 +177,7 @@ const Dashboard = () => {
                 <p
                   className="card-subtitle"
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "700",
                     color: "#232f3e",
                   }}
@@ -200,14 +201,14 @@ const Dashboard = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginBottom: "12px",
+                marginBottom: "8px",
               }}
             >
               <div
                 style={{
-                  fontSize: "24px",
+                  fontSize: "20px",
                   color: "#ff9900",
-                  marginRight: "12px",
+                  marginRight: "10px",
                 }}
               >
                 <FaStore />
@@ -217,7 +218,7 @@ const Dashboard = () => {
                 <p
                   className="card-subtitle"
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "700",
                     color: "#232f3e",
                   }}
@@ -241,14 +242,14 @@ const Dashboard = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginBottom: "12px",
+                marginBottom: "8px",
               }}
             >
               <div
                 style={{
-                  fontSize: "24px",
+                  fontSize: "20px",
                   color: "#ff9900",
-                  marginRight: "12px",
+                  marginRight: "10px",
                 }}
               >
                 <FaShoppingBag />
@@ -258,7 +259,7 @@ const Dashboard = () => {
                 <p
                   className="card-subtitle"
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "700",
                     color: "#232f3e",
                   }}
@@ -276,14 +277,14 @@ const Dashboard = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginBottom: "12px",
+                marginBottom: "8px",
               }}
             >
               <div
                 style={{
-                  fontSize: "24px",
+                  fontSize: "20px",
                   color: "#ff9900",
-                  marginRight: "12px",
+                  marginRight: "10px",
                 }}
               >
                 <FaMoneyBillWave />
@@ -293,7 +294,7 @@ const Dashboard = () => {
                 <p
                   className="card-subtitle"
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "700",
                     color: "#232f3e",
                   }}

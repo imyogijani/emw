@@ -1,6 +1,6 @@
 import axios from "axios";
-import { toast } from "react-toastify";
 import { getApiBaseUrl } from "./apiConfig";
+import { handleApiError, ERROR_TYPES } from "./errorHandler";
 
 // Get the correct base URL based on environment
 const baseURL = getApiBaseUrl();
@@ -39,51 +39,19 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response) {
-      const { message, errors } = error.response.data || {};
+    // Use the centralized error handler
+    const context = error.config?.url
+      ? `API Request to ${error.config.url}`
+      : "API Request";
+    const metadata = {
+      method: error.config?.method?.toUpperCase(),
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      timeout: error.config?.timeout,
+    };
 
-      // Show main error message
-      if (message) {
-        toast.error(message); // Changed to toast instead of console.error
-      }
-
-      // If there are field errors, show them as toasts
-      if (errors && typeof errors === "object") {
-        Object.values(errors).forEach((errMsg) => {
-          if (errMsg) toast.error(errMsg); // Changed to toast
-        });
-      }
-
-      // Handle 401 logout logic
-      if (error.response.status === 401) {
-        const publicPaths = [
-          "/",
-          "/menu",
-          "/offer",
-          "/shops",
-          "/product",
-          "/login",
-          "/register",
-          "/pricing",
-        ];
-        const currentPath = window.location.pathname;
-        const isPublicPath = publicPaths.some((path) =>
-          currentPath.startsWith(path)
-        );
-
-        if (!isPublicPath) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          window.location.href = "/login";
-        }
-      }
-    } else if (error.request) {
-      // Request was made but no response received
-      toast.error("No response from server. Please check your connection.");
-    } else {
-      // Something happened in setting up the request
-      toast.error("Network error. Please try again.");
-    }
+    // Handle the error with our centralized system
+    handleApiError(error, context, null, { metadata });
 
     return Promise.reject(error);
   }

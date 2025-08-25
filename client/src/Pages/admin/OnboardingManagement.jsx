@@ -172,9 +172,9 @@ const OnboardingManagement = () => {
 
   return (
     <div className="onboarding-management">
-      <div className="onboarding-header">
+      <div className="admin-header">
         <h1>Onboarding Management</h1>
-        <p>Monitor and manage user and seller onboarding processes</p>
+        <p className="admin-subtitle">Monitor and manage user and seller onboarding processes</p>
       </div>
 
       {/* Stats Overview */}
@@ -332,57 +332,141 @@ const OnboardingManagement = () => {
 
       {selectedTab === 'users' && (
         <div className="users-content">
-          <div className="table-container">
-            <table className="onboarding-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Onboarding Status</th>
-                  <th>Joined Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map(user => (
-                  <tr key={user._id}>
-                    <td>{user.names || 'N/A'}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className={`role-badge ${user.role}`}>
-                        {user.role}
+          <div className="users-grid">
+            {filteredUsers.map(user => (
+              <div key={user._id} className="user-card">
+                <div className="user-card-header">
+                  <div className="user-avatar">
+                    <div className="avatar-circle">
+                      {(user.names || user.email || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                  <div className="user-basic-info">
+                    <h3 className="user-name">{user.names || 'Unknown User'}</h3>
+                    <p className="user-email">{user.email}</p>
+                  </div>
+                  <div className="user-status-badges">
+                    <span className={`role-badge ${user.role}`}>
+                      {user.role}
+                    </span>
+                    <span className={`status-badge ${user.isOnboardingComplete ? 'completed' : 'pending'}`}>
+                      {user.isOnboardingComplete ? '✅ Completed' : '⏳ Pending'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="user-card-body">
+                  <div className="user-details-grid">
+                    <div className="detail-item">
+                      <span className="detail-label">User ID</span>
+                      <span className="detail-value">{user._id?.slice(-8) || 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Joined Date</span>
+                      <span className="detail-value">{new Date(user.createdAt).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Last Updated</span>
+                      <span className="detail-value">{user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      }) : 'N/A'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Account Status</span>
+                      <span className={`detail-value status-indicator ${user.isActive !== false ? 'active' : 'inactive'}`}>
+                        {user.isActive !== false ? '🟢 Active' : '🔴 Inactive'}
                       </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${user.isOnboardingComplete ? 'completed' : 'pending'}`}>
-                        {user.isOnboardingComplete ? 'Completed' : 'Pending'}
-                      </span>
-                    </td>
-                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <div className="action-buttons">
-                        {!user.isOnboardingComplete && (
-                          <button 
-                            className="btn btn-small btn-warning"
-                            onClick={() => handleUserOnboardingReset(user._id)}
-                            title="Reset Onboarding"
-                          >
-                            <span className="text">🔄</span>
-                          </button>
+                    </div>
+                  </div>
+                  
+                  {user.profile && (
+                    <div className="user-profile-section">
+                      <h4 className="section-title">Profile Information</h4>
+                      <div className="profile-details">
+                        {user.profile.phone && (
+                          <div className="profile-item">
+                            <span className="profile-icon">📱</span>
+                            <span className="profile-text">{user.profile.phone}</span>
+                          </div>
+                        )}
+                        {user.profile.address && (
+                          <div className="profile-item">
+                            <span className="profile-icon">📍</span>
+                            <span className="profile-text">{user.profile.address}</span>
+                          </div>
+                        )}
+                        {user.profile.dateOfBirth && (
+                          <div className="profile-item">
+                            <span className="profile-icon">🎂</span>
+                            <span className="profile-text">{new Date(user.profile.dateOfBirth).toLocaleDateString()}</span>
+                          </div>
                         )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredUsers.length === 0 && (
-              <div className="no-data">
-                <p>No users found matching your criteria.</p>
+                    </div>
+                  )}
+                  
+                  <div className="onboarding-progress-section">
+                    <h4 className="section-title">Onboarding Progress</h4>
+                    <div className="progress-container">
+                      <div className="progress-bar-container">
+                        <div className="progress-bar">
+                          <div 
+                            className={`progress-fill ${user.isOnboardingComplete ? 'completed' : 'pending'}`}
+                            style={{ width: user.isOnboardingComplete ? '100%' : '60%' }}
+                          ></div>
+                        </div>
+                        <span className="progress-text">
+                          {user.isOnboardingComplete ? '100% Complete' : '60% In Progress'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="user-card-footer">
+                  <div className="card-actions">
+                    {!user.isOnboardingComplete && (
+                      <button 
+                        className="btn btn-small btn-warning"
+                        onClick={() => handleUserOnboardingReset(user._id)}
+                        title="Reset Onboarding"
+                      >
+                        <span className="text">🔄 Reset Onboarding</span>
+                      </button>
+                    )}
+                    <button 
+                      className="btn btn-small btn-secondary"
+                      title="View Details"
+                    >
+                      <span className="text">👁️ View Details</span>
+                    </button>
+                    {user.role === 'user' && (
+                      <button 
+                        className="btn btn-small btn-info"
+                        title="Send Message"
+                      >
+                        <span className="text">💬 Message</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
+            ))}
           </div>
+          
+          {filteredUsers.length === 0 && (
+            <div className="no-data">
+              <div className="no-data-icon">👥</div>
+              <h3>No Users Found</h3>
+              <p>No users found matching your search criteria. Try adjusting your filters or search terms.</p>
+            </div>
+          )}
         </div>
       )}
 

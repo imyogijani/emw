@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './BulkOrders.css';
+import { showErrorToast, showSuccessToast, validateForm } from '../utils/errorHandler';
 import { 
   Package, 
   Users, 
@@ -115,8 +116,69 @@ const BulkOrders = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Bulk order inquiry:', formData);
-    alert('Thank you for your inquiry! Our team will contact you within 24 hours.');
+    
+    // Validate form data
+    const validationRules = {
+      companyName: {
+        required: true,
+        requiredMessage: "Company name is required"
+      },
+      contactPerson: {
+        required: true,
+        requiredMessage: "Contact person name is required"
+      },
+      email: {
+        required: true,
+        requiredMessage: "Email is required",
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        patternMessage: "Please enter a valid email address"
+      },
+      phone: {
+        required: true,
+        requiredMessage: "Phone number is required",
+        minLength: 10,
+        minLengthMessage: "Phone number must be at least 10 digits"
+      },
+      businessType: {
+        required: true,
+        requiredMessage: "Please select your business type"
+      },
+      orderVolume: {
+        required: true,
+        requiredMessage: "Please specify your expected order volume"
+      },
+      productCategories: {
+        required: true,
+        requiredMessage: "Please select at least one product category",
+        custom: (value) => value.length > 0 || "Please select at least one product category"
+      }
+    };
+
+    const { isValid } = validateForm(formData, validationRules);
+    
+    if (!isValid) {
+      return;
+    }
+
+    try {
+      console.log('Bulk order inquiry:', formData);
+      showSuccessToast('Thank you for your inquiry! Our team will contact you within 24 hours.', 'Bulk Order Inquiry');
+      
+      // Reset form
+      setFormData({
+        companyName: '',
+        contactPerson: '',
+        email: '',
+        phone: '',
+        address: '',
+        businessType: '',
+        orderVolume: '',
+        productCategories: [],
+        requirements: ''
+      });
+    } catch (error) {
+      showErrorToast('Failed to submit bulk order inquiry. Please try again.', 'Bulk Order Inquiry', { error });
+    }
   };
 
   return (

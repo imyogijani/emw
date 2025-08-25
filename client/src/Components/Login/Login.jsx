@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import axios from "../../utils/axios";
 import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";
@@ -154,10 +154,12 @@ const Login = () => {
 
   const validateForm = () => {
     if (!formData.email || !formData.password) {
+      showErrorToast("Please fill in all fields", "Login - Form Validation");
       setError("Please fill in all fields");
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      showErrorToast("Please enter a valid email address", "Login - Form Validation");
       setError("Please enter a valid email address");
       return false;
     }

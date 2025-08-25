@@ -7,7 +7,7 @@ import {
   FaSave,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/errorHandler";
 import { Table, Switch } from "antd";
 import "./Settings.css";
 
@@ -46,7 +46,7 @@ const Settings = () => {
         });
       }
     } catch (error) {
-      toast.error("Failed to fetch sellers");
+      showErrorToast(error, "Failed to fetch sellers", { operation: "fetchSellers" });
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ const Settings = () => {
         `api/admin/toggle-demo-access/${userId}`
       );
       if (response.data.success) {
-        toast.success(response.data.message);
+        showSuccessToast(response.data.message, "Demo Access Update");
         setSellers((prevSellers) =>
           prevSellers.map((seller) =>
             seller.id === userId
@@ -71,7 +71,7 @@ const Settings = () => {
         );
       }
     } catch (error) {
-      toast.error("Failed to update demo access");
+      showErrorToast(error, "Failed to update demo access", { operation: "toggleDemoAccess", userId });
     }
   };
 
@@ -89,9 +89,9 @@ const Settings = () => {
         setSettings(response.data.settings);
       }
     } catch (error) {
-      console.error("Error fetching settings:", error);
+      showErrorToast(error, "Failed to load settings", { operation: "fetchSettings" });
       // Use default settings if API fails
-      toast.info("Using default settings");
+      showInfoToast("Using default settings", "Settings Load");
     } finally {
       setLoading(false);
     }
@@ -122,7 +122,7 @@ const Settings = () => {
 
       // Agar role-based toggle ho aur master ON hai → ignore
       if (prev.emailVerificationEnabled) {
-        toast.info("Master toggle ON → role-based settings locked");
+        showInfoToast("Master toggle ON → role-based settings locked", "Settings Lock");
         return prev;
       }
 
@@ -143,12 +143,15 @@ const Settings = () => {
       });
 
       if (response.data.success) {
-        toast.success("Settings saved successfully!");
+        showSuccessToast("Settings saved successfully!", "Settings Update");
         setSettings(response.data.settings); // refresh after save
       }
     } catch (error) {
-      console.error("Error saving settings:", error);
-      toast.error("Failed to save settings");
+      showErrorToast(error, "Failed to save settings", { 
+        operation: "saveSettings",
+        settings: settings,
+        timestamp: new Date().toISOString()
+      });
     } finally {
       setSaving(false);
     }
