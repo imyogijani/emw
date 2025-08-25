@@ -173,7 +173,8 @@ const SellerOnboarding = () => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
       const user = JSON.parse(userStr);
-      if (user.isOnboardingComplete) {
+      // Skip onboarding if user has demo access or onboarding is complete
+      if (user.demoAccess || user.isOnboardingComplete) {
         navigate("/seller/dashboard");
       }
     }

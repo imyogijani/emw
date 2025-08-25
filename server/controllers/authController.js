@@ -313,9 +313,10 @@ const loginController = async (req, res) => {
       responseData.redirectToAdminDashboard = true;
       responseData.message =
         "Admin login successful! Redirecting to dashboard.";
-    } else if (user.email === "demo@seller.com") {
+    } else if (user.demoAccess) {
       // Demo seller always skips onboarding
       responseData.isOnboardingComplete = true;
+      responseData.demoAccess = true;
       responseData.message =
         "Demo seller login successful! Redirecting to dashboard.";
     } else {

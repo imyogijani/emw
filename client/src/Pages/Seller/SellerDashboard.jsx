@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import "./SellerDashboard.css";
 import { requestPushPermission } from "../../utils/pushNotification";
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -17,17 +18,40 @@ import {
   FaChartLine,
   FaShoppingBag,
   FaDollarSign,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import SellerNotification from "../../Components/SellerNotification";
 
 import axios from "../../utils/axios";
 
 const SellerDashboard = () => {
+  const navigate = useNavigate();
   const [salesData, setSalesData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showOnboardingAlert, setShowOnboardingAlert] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
+
+  // Check onboarding status on component mount
+  useEffect(() => {
+    const checkOnboardingStatus = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        
+        // If user doesn't have demo access and onboarding is not complete
+        if (!user.demoAccess && !user.isOnboardingComplete) {
+          setShowOnboardingAlert(true);
+          setIsReadOnly(true);
+        }
+      }
+    };
+
+    checkOnboardingStatus();
+  }, []);
+
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -83,13 +107,38 @@ const SellerDashboard = () => {
       requestPushPermission(userId._id);
     }
   }, [userId]);
+  const handleCompleteOnboarding = () => {
+    navigate("/seller/onboarding");
+  };
+
   return (
     <div className="seller-dashboard">
       <SellerNotification />
+      
+      {/* Onboarding Alert */}
+      {showOnboardingAlert && (
+        <div className="onboarding-alert">
+          <div className="alert-content">
+            <FaExclamationTriangle className="alert-icon" />
+            <div className="alert-text">
+              <h3>Complete Your Onboarding</h3>
+              <p>Please complete your seller onboarding process to access all dashboard features.</p>
+            </div>
+            <button 
+              className="complete-onboarding-btn"
+              onClick={handleCompleteOnboarding}
+            >
+              Complete Onboarding
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="seller-header">
         <h1>Seller Dashboard</h1>
         <p className="seller-subtitle">
           Monitor your store's performance and orders
+          {isReadOnly && <span className="read-only-badge"> (Read-Only Mode)</span>}
         </p>
       </div>
 

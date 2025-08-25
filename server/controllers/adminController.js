@@ -33,7 +33,25 @@ export const toggleDemoAccess = async (req, res) => {
     //   });
     // }
 
+    const previousDemoAccess = user.demoAccess;
     user.demoAccess = !user.demoAccess;
+    
+    // If demo access is being revoked and user hasn't completed onboarding
+    // Reset their onboarding status to require completion
+    if (previousDemoAccess && !user.demoAccess && user.role === "shopowner") {
+      // Check if seller has actually completed onboarding steps
+      const seller = await Seller.findById(user.sellerId);
+      if (!seller || !seller.shopName || !seller.categories || seller.categories.length === 0) {
+        user.isOnboardingComplete = false;
+        // Also reset seller onboarding step if seller exists
+        if (seller) {
+          seller.isOnboardingComplete = false;
+          seller.onboardingStep = 1;
+          await seller.save();
+        }
+      }
+    }
+    
     await user.save();
 
     res.status(200).json({

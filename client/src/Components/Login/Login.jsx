@@ -63,10 +63,16 @@ const Login = () => {
     });
   }, [customerOnly, returnUrl, navigate]);
 
-  const redirectBasedOnRole = (role, userObj) => {
+  const redirectBasedOnRole = (role, userObj, loginResponse) => {
     if (role === "admin") {
       navigate("/admin/dashboard");
     } else if (role === "shopowner") {
+      // Check if user has demo access - skip onboarding
+      if (loginResponse?.demoAccess || userObj?.demoAccess) {
+        navigate("/seller/dashboard");
+        return;
+      }
+      
       // Check if seller profile is completed (e.g., sellerId exists and has required fields)
       if (
         !userObj?.sellerId ||
@@ -166,7 +172,7 @@ const Login = () => {
         }
 
         // Skip onboarding for demo seller
-        if (response.data.user.email === "demo@seller.com") {
+        if (response.data.demoAccess || response.data.user.demoAccess) {
           navigate("/seller/dashboard");
           return;
         }
@@ -189,7 +195,7 @@ const Login = () => {
           }
         } else {
           if (response.data.user.role) {
-            redirectBasedOnRole(response.data.user.role, response.data.user);
+            redirectBasedOnRole(response.data.user.role, response.data.user, response.data);
           } else {
             navigate("/onboarding");
           }
