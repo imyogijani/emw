@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import JumpingLoader from '../../Components/JumpingLoader';
