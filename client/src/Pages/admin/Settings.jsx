@@ -83,6 +83,8 @@ const Settings = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      console.log("Settings response:", response.data);
+
       if (response.data.success) {
         setSettings(response.data.settings);
       }
@@ -96,22 +98,53 @@ const Settings = () => {
   };
 
   const handleToggle = (settingKey) => {
-    setSettings((prev) => ({
-      ...prev,
-      [settingKey]: !prev[settingKey],
-    }));
+    setSettings((prev) => {
+      // Agar master toggle toggle ho raha hai
+      if (settingKey === "emailVerificationEnabled") {
+        if (!prev.emailVerificationEnabled) {
+          // Turning ON master → dono child true & disabled
+          return {
+            ...prev,
+            emailVerificationEnabled: true,
+            customerEmailVerification: true,
+            sellerEmailVerification: true,
+          };
+        } else {
+          // Turning OFF master → dono child optional
+          return {
+            ...prev,
+            emailVerificationEnabled: false,
+            customerEmailVerification: false,
+            sellerEmailVerification: false,
+          };
+        }
+      }
+
+      // Agar role-based toggle ho aur master ON hai → ignore
+      if (prev.emailVerificationEnabled) {
+        toast.info("Master toggle ON → role-based settings locked");
+        return prev;
+      }
+
+      // Agar master OFF hai → allow role toggle
+      return {
+        ...prev,
+        [settingKey]: !prev[settingKey],
+      };
+    });
   };
 
   const saveSettings = async () => {
     try {
       setSaving(true);
       const token = localStorage.getItem("token");
-      const response = await axios.post("/api/admin/settings", settings, {
+      const response = await axios.put("/api/admin/settings", settings, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.data.success) {
         toast.success("Settings saved successfully!");
+        setSettings(response.data.settings); // refresh after save
       }
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -203,6 +236,7 @@ const Settings = () => {
           </div>
 
           <div className="settings-card-body">
+            {/* Master toggle */}
             <div className="setting-item">
               <div className="setting-info">
                 <h4>Master Email Verification</h4>
@@ -227,6 +261,7 @@ const Settings = () => {
               </div>
             </div>
 
+            {/* Customer toggle */}
             <div className="setting-item">
               <div className="setting-info">
                 <h4>Customer Email Verification</h4>
@@ -238,7 +273,7 @@ const Settings = () => {
                     settings.customerEmailVerification ? "active" : ""
                   }`}
                   onClick={() => handleToggle("customerEmailVerification")}
-                  disabled={!settings.emailVerificationEnabled}
+                  disabled={settings.emailVerificationEnabled} // 🔥 disable if master ON
                 >
                   {settings.customerEmailVerification ? (
                     <FaToggleOn className="toggle-icon active" />
@@ -254,6 +289,7 @@ const Settings = () => {
               </div>
             </div>
 
+            {/* Seller toggle */}
             <div className="setting-item">
               <div className="setting-info">
                 <h4>Seller Email Verification</h4>
@@ -265,7 +301,7 @@ const Settings = () => {
                     settings.sellerEmailVerification ? "active" : ""
                   }`}
                   onClick={() => handleToggle("sellerEmailVerification")}
-                  disabled={!settings.emailVerificationEnabled}
+                  disabled={settings.emailVerificationEnabled} // 🔥 disable if master ON
                 >
                   {settings.sellerEmailVerification ? (
                     <FaToggleOn className="toggle-icon active" />

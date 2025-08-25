@@ -43,6 +43,22 @@ const Register = () => {
     });
   }, []);
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await axios.get("/api/settings");
+        localStorage.setItem(
+          "systemSettings",
+          JSON.stringify(res.data.settings)
+        );
+        console.log("⚙️ Loaded system settings:", res.data.settings);
+      } catch (err) {
+        console.error("❌ Failed to fetch system settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const handleChange = (e) => {
     setError("");
     const { name, value } = e.target;
@@ -107,19 +123,58 @@ const Register = () => {
         return;
       }
 
-      // STEP 2: Only now create Firebase user
-      const userCred = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
+      // // STEP 2: Only now create Firebase user
+      // const userCred = await createUserWithEmailAndPassword(
+      //   auth,
+      //   formData.email,
+      //   formData.password
+      // );
 
-      // Send verification email (only for non-admin)
-      if (submitData.role !== "admin") {
-        await sendEmailVerification(userCred.user);
-        toast.success("Email verification sent. Please check your inbox.");
+      // //  NEW: Check settings before sending email
+      // const systemSettings = JSON.parse(localStorage.getItem("systemSettings"));
+      // console.log("⚙️ System settings in frontend:", systemSettings);
+
+      // // Send verification email (only for non-admin)
+      // if (submitData.role !== "admin") {
+      //   await sendEmailVerification(userCred.user);
+      //   toast.success("Email verification sent. Please check your inbox.");
+      // }
+
+      const systemSettings = JSON.parse(localStorage.getItem("systemSettings"));
+      console.log("⚙️ System settings:", systemSettings);
+
+      let requiresVerification = false;
+
+      // --- Logic match backend ---
+      if (submitData.role === "admin") {
+        requiresVerification = false;
+      } else if (systemSettings?.emailVerificationEnabled) {
+        // master ON → sab roles verify honge
+        requiresVerification = true;
+      } else {
+        // master OFF → role-wise check
+        if (submitData.role === "client") {
+          requiresVerification = systemSettings.customerEmailVerification;
+        } else if (submitData.role === "shopowner") {
+          requiresVerification = systemSettings.sellerEmailVerification;
+        }
       }
 
+      // STEP 3: Firebase user create only if verification required
+      if (requiresVerification) {
+        console.log("📩 Email verification required → Firebase auth create");
+
+        const userCred = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+
+        await sendEmailVerification(userCred.user);
+        toast.success("📩 Verification email sent! Please check your inbox.");
+      } else {
+        console.log("✅ Email verification not required → skipping Firebase");
+      }
       const user = response.data.user;
       await requestPushPermission(user._id);
 
@@ -309,7 +364,9 @@ const Register = () => {
                   className="btn btn-small btn-secondary password-toggle"
                   onClick={togglePasswordVisibility}
                 >
-                  <span className="sparkle">{showPassword ? <FaEyeSlash /> : <FaEye />}</span>
+                  <span className="sparkle">
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
                 </button>
               </div>
             </div>
@@ -333,17 +390,23 @@ const Register = () => {
                   className="btn btn-small btn-secondary password-toggle"
                   onClick={toggleConfirmPasswordVisibility}
                 >
-                  <span className="sparkle">{showConfirmPassword ? <FaEyeSlash /> : <FaEye />}</span>
+                  <span className="sparkle">
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
                 </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className={`btn btn-large btn-primary ${isLoading ? "loading" : ""}`}
+              className={`btn btn-large btn-primary ${
+                isLoading ? "loading" : ""
+              }`}
               disabled={isLoading}
             >
-              <span className="text">{isLoading ? "Creating Account..." : "Create Account"}</span>
+              <span className="text">
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </span>
             </button>
 
             <div className="register-footer">

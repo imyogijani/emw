@@ -6,11 +6,12 @@ import axios from "../../utils/axios";
 import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";
 import { CloudCog } from "lucide-react";
-import { auth } from "../../firebase/firebase"; // Make sure Firebase is set up
+// import { auth } from "../../firebase/firebase"; // Make sure Firebase is set up
 import {
   signInWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
+import { auth, createUserWithEmailAndPassword } from "../../firebase/firebase";
 import { trackEvent } from "../../analytics/trackEvent";
 import Mall1Logo from "../../images/Mall1.png";
 
@@ -27,6 +28,44 @@ const Login = () => {
   // Check if login is for customer-only checkout
   const customerOnly = location.state?.customerOnly;
   const returnUrl = location.state?.returnUrl || "/";
+
+  const firebaseLoginOrCreate = async (email, password) => {
+    try {
+      // Pehle login try kar
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      await userCred.user.reload();
+
+      if (!userCred.user.emailVerified) {
+        // Agar verified nahi hai toh verification bhej
+        await sendEmailVerification(userCred.user);
+        throw new Error("Please verify your email. Verification link resent.");
+      }
+
+      return userCred.user; // verified user return kar
+    } catch (error) {
+      console.log("Firebase Error:", error.code);
+
+      // Yahan dono case handle kar le
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/invalid-credential"
+      ) {
+        // User exist nahi karta → create kar
+        const newUserCred = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        await sendEmailVerification(newUserCred.user);
+        throw new Error(
+          "Account created in Firebase. Verification email sent to your inbox."
+        );
+      } else {
+        // koi aur error toh wahi throw kar
+        throw error;
+      }
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -62,6 +101,22 @@ const Login = () => {
       page_location: window.location.pathname,
     });
   }, [customerOnly, returnUrl, navigate]);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await axios.get("/api/settings");
+        localStorage.setItem(
+          "systemSettings",
+          JSON.stringify(res.data.settings)
+        );
+        console.log("⚙️ Loaded system settings:", res.data.settings);
+      } catch (err) {
+        console.error("❌ Failed to fetch system settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const redirectBasedOnRole = (role, userObj, loginResponse) => {
     if (role === "admin") {
@@ -125,6 +180,10 @@ const Login = () => {
     try {
       let response;
 
+      // --- Step 1: Load system settings ---
+      const systemSettings = JSON.parse(localStorage.getItem("systemSettings"));
+      console.log("⚙️ System settings at login:", systemSettings);
+
       // --- Admin skip ---
       if (formData.email === "yogij@mail.com") {
         // Call backend API directly for admin
@@ -137,26 +196,63 @@ const Login = () => {
         response = await axios.post("/api/auth/login", formData);
       } else {
         // --- Normal users ---
-        // Step 1: Firebase sign in
-        // const userCred = await signInWithEmailAndPassword(
-        //   auth,
-        //   formData.email,
-        //   formData.password
-        // );
 
-        // // Step 2: Check email verification
-        // await userCred.user.reload();
-        // const refreshedUser = auth.currentUser;
+        let requiresVerification = false;
 
-        // if (!refreshedUser.emailVerified) {
-        //   await sendEmailVerification(refreshedUser); // Resend email
-        //   toast.error("Please verify your email. Verification email resent.");
-        //   setIsLoading(false);
-        //   return;
-        // }
+        if (systemSettings?.emailVerificationEnabled) {
+          // Master ON → sab non-admin users verify honge
+          requiresVerification = true;
+        } else {
+          // Master OFF → role-based logic
+          if (formData.role === "client") {
+            requiresVerification = systemSettings.customerEmailVerification;
+          } else if (formData.role === "shopowner") {
+            requiresVerification = systemSettings.sellerEmailVerification;
+          }
+        }
+        if (requiresVerification) {
+          console.log("📩 Email verification required → Firebase login");
 
-        // Step 3: Call backend API
-        response = await axios.post("/api/auth/login", formData);
+          // // Firebase login
+          // const userCred = await signInWithEmailAndPassword(
+          //   auth,
+          //   formData.email,
+          //   formData.password
+          // );
+
+          // // Reload user
+          // await userCred.user.reload();
+          // const refreshedUser = auth.currentUser;
+
+          // // Email check
+          // if (!refreshedUser.emailVerified) {
+          //   await sendEmailVerification(refreshedUser);
+          //   toast.error("Please verify your email. Verification email resent.");
+          //   setIsLoading(false);
+          //   return;
+          // }
+
+          // // Backend login after Firebase verified
+          // response = await axios.post("/api/auth/login", formData);
+
+          try {
+            const fbUser = await firebaseLoginOrCreate(
+              formData.email,
+              formData.password
+            );
+
+            // Agar yahan tak aaya to matlab verified hai
+            response = await axios.post("/api/auth/login", formData);
+          } catch (fbErr) {
+            toast.error(fbErr.message);
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          console.log("✅ Email verification not required → skipping Firebase");
+          // Direct backend login
+          response = await axios.post("/api/auth/login", formData);
+        }
       }
 
       if (response.data.success) {
@@ -366,10 +462,14 @@ const Login = () => {
 
             <button
               type="submit"
-              className={`btn btn-large btn-primary ${isLoading ? "loading" : ""}`}
+              className={`btn btn-large btn-primary ${
+                isLoading ? "loading" : ""
+              }`}
               disabled={isLoading}
             >
-              <span className="text">{isLoading ? "Signing in..." : "Sign In"}</span>
+              <span className="text">
+                {isLoading ? "Signing in..." : "Sign In"}
+              </span>
             </button>
 
             <div className="login-footer">

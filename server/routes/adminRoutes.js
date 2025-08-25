@@ -23,7 +23,6 @@ import {
   deleteCity,
   getAdminOrdersController,
   getSettings,
-  updateSettings,
   getIncompleteOnboardingUsers,
   forceCompleteOnboarding,
   resetOnboarding,
@@ -51,6 +50,8 @@ import {
   adminGetDocuments,
   adminUpdateDocumentStatus,
 } from "../controllers/sellerDocumentController.js";
+
+import { updateSettings } from "../controllers/settingsController.js";
 
 const router = express.Router();
 
@@ -122,7 +123,7 @@ router.patch("/documents/:docId/status", adminUpdateDocumentStatus);
 
 // Settings management
 router.get("/settings", getSettings);
-router.post("/settings", updateSettings);
+router.put("/settings", updateSettings);
 
 // Onboarding management
 router.get("/onboarding/incomplete", getIncompleteOnboardingUsers);

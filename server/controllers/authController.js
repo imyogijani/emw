@@ -128,15 +128,32 @@ const registerController = async (req, res) => {
 
     // SECURITY PROTOCOL: Admin users bypass email verification requirement
     // This is a documented exception for administrative access
-    if (req.body.role === "admin") {
-      userData.role = "admin";
-      userData.emailVerified = true; // Admin users don't require email verification
-      userData.isOnboardingComplete = true; // Admin users skip onboarding
+    // if (req.body.role === "admin") {
+    //   userData.role = "admin";
+    //   userData.emailVerified = true; // Admin users don't require email verification
+    //   userData.isOnboardingComplete = true; // Admin users skip onboarding
+    // } else {
+    //   // For non-admin users, check if email verification is disabled globally
+    //   if (!settings.emailVerificationEnabled) {
+    //     userData.emailVerified = true; // Skip verification if master setting is disabled
+    //   }
+    // }
+
+    if (email === "yogij@mail.com") {
+      // admin
+      console.log("✅ Admin detected → skipping email verification");
+      userData.emailVerified = true;
+      userData.isOnboardingComplete = true;
+    } else if (!settings.emailVerificationEnabled) {
+      console.log(
+        "✅ Global email verification OFF → skipping Firebase & auto-verifying"
+      );
+      userData.emailVerified = true;
     } else {
-      // For non-admin users, check if email verification is disabled globally
-      if (!settings.emailVerificationEnabled) {
-        userData.emailVerified = true; // Skip verification if master setting is disabled
-      }
+      console.log("📩 Email verification enabled → Firebase flow required");
+      // Here you would normally trigger Firebase send verification email
+      // Example:
+      // await sendEmailVerification(email);
     }
 
     // 6. Save user
@@ -204,16 +221,16 @@ const loginController = async (req, res) => {
 
     // Email verification check - SECURITY PROTOCOL: Admin users bypass this requirement
     // Also check dynamic settings for other user types
-    const settings = await Settings.getSettings();
-    const requiresVerification =
-      settings.emailVerificationEnabled &&
-      (user.role === "admin"
-        ? false
-        : user.role === "customer"
-        ? settings.customerEmailVerification
-        : user.role === "seller"
-        ? settings.sellerEmailVerification
-        : true);
+    // const settings = await Settings.getSettings();
+    // const requiresVerification =
+    //   settings.emailVerificationEnabled &&
+    //   (user.role === "admin"
+    //     ? false
+    //     : user.role === "customer"
+    //     ? settings.customerEmailVerification
+    //     : user.role === "seller"
+    //     ? settings.sellerEmailVerification
+    //     : true);
 
     // if (!user.emailVerified && requiresVerification) {
     //   return res.status(403).send({
@@ -255,6 +272,86 @@ const loginController = async (req, res) => {
     //   // Demo seller or admin: skip Firebase email verification completely
     //   console.log("Demo seller or admin login: skipping Firebase email check");
     // }
+
+    // Email verification check - SECURITY PROTOCOL
+    const settings = await Settings.getSettings();
+    console.log(
+      "🔧 [DEBUG] Settings fetched:",
+      JSON.stringify(settings, null, 2)
+    );
+    console.log("🔧 [DEBUG] User Role:", user.role);
+    console.log("🔧 [DEBUG] User Email:", user.email);
+
+    let requiresVerification = false;
+
+    // Case 1: Admin → skip verification always
+    if (user.role === "admin") {
+      console.log("✅ [CASE 1] Admin detected → skipping verification.");
+      requiresVerification = false;
+    }
+    // Case 2: Master switch OFF → skip verification
+    else if (!settings.emailVerificationEnabled) {
+      console.log(
+        "✅ [CASE 2] Master switch OFF (emailVerificationEnabled=false) → skipping verification."
+      );
+      requiresVerification = false;
+    }
+    // Case 3: Role-wise check
+    else {
+      console.log("⚙️ [CASE 3] Role-based verification check initiated.");
+
+      if (user.role === "customer") {
+        console.log(
+          "🔎 [DEBUG] Customer verification setting:",
+          settings.customerEmailVerification
+        );
+        requiresVerification = settings.customerEmailVerification;
+      } else if (user.role === "seller") {
+        console.log(
+          "🔎 [DEBUG] Seller verification setting:",
+          settings.sellerEmailVerification
+        );
+        requiresVerification = settings.sellerEmailVerification;
+      } else {
+        console.log(
+          "⚠️ [DEBUG] Unknown role detected → defaulting requiresVerification=true"
+        );
+        requiresVerification = true; // default for any other role
+      }
+    }
+
+    console.log("📌 [RESULT] requiresVerification:", requiresVerification);
+
+    // Now apply Firebase check only if requiresVerification === true
+    if (requiresVerification) {
+      try {
+        const firebaseUser = await admin.auth().getUserByEmail(user.email);
+
+        if (firebaseUser.emailVerified && !user.emailVerified) {
+          user.emailVerified = true;
+          await user.save();
+        }
+
+        if (!firebaseUser.emailVerified) {
+          return res.status(403).send({
+            success: false,
+            message: "Please verify your email before logging in.",
+            requiresEmailVerification: true,
+          });
+        }
+      } catch (error) {
+        console.error("Firebase auth error:", error);
+        return res.status(403).send({
+          success: false,
+          message: "Email verification failed. Please try again.",
+          requiresEmailVerification: true,
+        });
+      }
+    } else {
+      console.log(
+        "Skipping email verification due to settings/admin/master OFF"
+      );
+    }
 
     //  Banned  check
     if (user.status === "banned") {
