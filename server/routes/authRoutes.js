@@ -20,6 +20,7 @@ import upload from "../middlewares/uploadMiddleware.js";
 import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 import { restrictDemoAccess } from "../middlewares/demoAccessMiddleware.js";
 import path from "path";
+import { checkSystemSettings } from "../middlewares/checkSystemSettings.js";
 
 const router = express.Router();
 

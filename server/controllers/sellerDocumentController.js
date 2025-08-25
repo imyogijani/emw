@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import SellerDocument from "../models/sellerDocument.js";
+import Seller from "../models/sellerModel.js";
 import { encryptFile, decryptFile } from "../utils/encryption.js";
 import { processFile } from "../utils/fileProcessing.js";
 import {
@@ -24,6 +25,7 @@ export const uploadDocuments = async (req, res) => {
 
     // STEP 1: Validation phase
     for (const fieldName in files) {
+      console.log("Got fieldName:", fieldName);
       const fileArray = files[fieldName];
 
       for (const file of fileArray) {
@@ -99,6 +101,15 @@ export const uploadDocuments = async (req, res) => {
 
         uploadedDocs.push(doc);
         deleteFile(file.path); // temp delete after save
+      }
+    }
+
+    if (req.body.incrementOnboarding) {
+      const seller = await Seller.findById(sellerId);
+      if (seller) {
+        // seller.onboardingStep = (seller.onboardingStep || 0) + 1; // dynamic increment
+        seller.onboardingStep = 4; // dynamic increment
+        await seller.save();
       }
     }
 

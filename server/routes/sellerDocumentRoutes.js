@@ -52,38 +52,6 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
 });
 
-// const upload = multer({
-//   storage,
-//   fileFilter,
-//   limits: { fileSize: 10 * 1024 * 1024 },
-// }).fields([
-//   { name: "aadhaar", maxCount: 1 },
-//   { name: "pan", maxCount: 1 },
-//   { name: "passport", maxCount: 1 },
-//   { name: "drivingLicense", maxCount: 1 },
-//   { name: "gst", maxCount: 1 },
-//   { name: "udyam", maxCount: 1 },
-//   { name: "addressProof", maxCount: 1 },
-//   { name: "bankProof", maxCount: 1 },
-//   { name: "voterId", maxCount: 1 },
-//   { name: "electricityBill", maxCount: 1 },
-//   { name: "rentAgreement", maxCount: 1 },
-//   { name: "bankPassbook", maxCount: 1 },
-//   { name: "telephoneBill", maxCount: 1 },
-//   { name: "bankAccountStatement", maxCount: 1 },
-//   { name: "birthCertificate", maxCount: 1 },
-//   { name: "gasConnection", maxCount: 1 },
-//   { name: "incomeTaxOrder", maxCount: 1 },
-//   { name: "governmentIdCard", maxCount: 1 },
-//   { name: "certificateOfIncorporation", maxCount: 1 },
-//   { name: "pensionDocuments", maxCount: 1 },
-//   { name: "memorandumOfAssociation", maxCount: 1 },
-//   { name: "partnershipDeed", maxCount: 1 },
-//   { name: "trustDeed", maxCount: 1 },
-//   { name: "certificateFromEmployer", maxCount: 1 },
-//   { name: "lastIssuedPassport", maxCount: 1 },
-// ]);
-
 const docTypes = [
   "aadhaar",
   "pan",

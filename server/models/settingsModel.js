@@ -2,60 +2,30 @@ import mongoose from "mongoose";
 
 const settingsSchema = new mongoose.Schema(
   {
-    emailVerificationEnabled: {
-      type: Boolean,
-      default: true,
-      required: true,
-    },
-    customerEmailVerification: {
-      type: Boolean,
-      default: true,
-      required: true,
-    },
-    sellerEmailVerification: {
-      type: Boolean,
-      default: true,
-      required: true,
-    },
-    // Add more settings as needed in the future
-    maintenanceMode: {
-      type: Boolean,
-      default: false,
-    },
-    allowRegistration: {
-      type: Boolean,
-      default: true,
-    },
+    emailVerificationEnabled: { type: Boolean, default: true, required: true },
+    customerEmailVerification: { type: Boolean, default: true, required: true },
+    sellerEmailVerification: { type: Boolean, default: true, required: true },
+    maintenanceMode: { type: Boolean, default: false },
+    allowRegistration: { type: Boolean, default: true },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Ensure only one settings document exists
+// Single document policy
 settingsSchema.statics.getSettings = async function () {
-  let settings = await this.findOne();
-  if (!settings) {
-    settings = await this.create({
-      emailVerificationEnabled: true,
-      customerEmailVerification: true,
-      sellerEmailVerification: true,
-    });
+  let doc = await this.findOne();
+  if (!doc) {
+    doc = await this.create({});
   }
-  return settings;
+  return doc;
 };
 
 settingsSchema.statics.updateSettings = async function (updates) {
-  let settings = await this.findOne();
-  if (!settings) {
-    settings = await this.create(updates);
-  } else {
-    Object.assign(settings, updates);
-    await settings.save();
-  }
-  return settings;
+  const current = await this.getSettings();
+  Object.assign(current, updates);
+  await current.save();
+  return current;
 };
 
 const Settings = mongoose.model("Settings", settingsSchema);
-
 export default Settings;

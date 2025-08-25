@@ -1022,3 +1022,24 @@ export const updateSellerGST = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+export const getOnboardingStep = async (req, res) => {
+  try {
+    const seller = await Seller.findOne({ user: req.user._id }); // user id from token
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+    let user = await User.findById(req.user._id);
+    res.json({
+      success: true,
+      step: seller.onboardingStep,
+      isComplete: user.isOnboardingComplete,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
+  }
+};
