@@ -300,13 +300,13 @@ const loginController = async (req, res) => {
     else {
       console.log("⚙️ [CASE 3] Role-based verification check initiated.");
 
-      if (user.role === "customer") {
+      if (user.role === "client") {
         console.log(
           "🔎 [DEBUG] Customer verification setting:",
           settings.customerEmailVerification
         );
         requiresVerification = settings.customerEmailVerification;
-      } else if (user.role === "seller") {
+      } else if (user.role === "shopowner") {
         console.log(
           "🔎 [DEBUG] Seller verification setting:",
           settings.sellerEmailVerification

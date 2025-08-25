@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import axios from "../utils/axios";
-import { toast } from "react-toastify";
+import { showErrorToast } from "../utils/errorHandler";
+import LoadingTransition from "./LoadingTransition/LoadingTransition";
+import { setReturnUrl } from "../utils/navigationUtils";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -35,7 +38,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
         document.cookie =
           "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         setIsAuthenticated(false);
-        toast.error("Session expired. Please login again.");
+        showErrorToast("Session expired. Please login again.", "ProtectedRoute - Authentication");
       } finally {
         setIsLoading(false);
       }
@@ -45,16 +48,24 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }, []);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <LoadingTransition 
+        isLoading={true} 
+        message="Verifying authentication..." 
+        overlay={true}
+      />
+    );
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    // Store current path for post-login redirect
+    setReturnUrl(location.pathname + location.search);
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-    toast.error("You do not have permission to access this page");
-    return <Navigate to="/" />;
+    showErrorToast("You do not have permission to access this page", "ProtectedRoute - Authorization");
+    return <Navigate to="/" replace />;
   }
 
   return children;

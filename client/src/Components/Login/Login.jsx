@@ -6,7 +6,8 @@ import axios from "../../utils/axios";
 import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";
 import { CloudCog } from "lucide-react";
-// import { auth } from "../../firebase/firebase"; // Make sure Firebase is set up
+import LoadingTransition from "../LoadingTransition/LoadingTransition";
+import { navigateByRole, navigateWithTransition, getReturnUrl, clearReturnUrl } from "../../utils/navigationUtils";
 import {
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -119,29 +120,7 @@ const Login = () => {
   }, []);
 
   const redirectBasedOnRole = (role, userObj, loginResponse) => {
-    if (role === "admin") {
-      navigate("/admin/dashboard");
-    } else if (role === "shopowner") {
-      // Check if user has demo access - skip onboarding
-      if (loginResponse?.demoAccess || userObj?.demoAccess) {
-        navigate("/seller/dashboard");
-        return;
-      }
-
-      // Check if seller profile is completed (e.g., sellerId exists and has required fields)
-      if (
-        !userObj?.sellerId ||
-        !userObj.sellerId.shopName ||
-        !userObj.sellerId.categories ||
-        userObj.sellerId.categories.length === 0
-      ) {
-        navigate("/seller/onboarding");
-      } else {
-        navigate("/seller/dashboard");
-      }
-    } else {
-      navigate("/");
-    }
+    navigateByRole(navigate, role, userObj, loginResponse);
   };
 
   const handleChange = (e) => {
@@ -246,7 +225,7 @@ const Login = () => {
             // Agar yahan tak aaya to matlab verified hai
             response = await axios.post("/api/auth/login", formData);
           } catch (fbErr) {
-            toast.error(fbErr.message);
+            showErrorToast(fbErr.message, "Login - Firebase Authentication");
             setIsLoading(false);
             return;
           }
@@ -261,7 +240,7 @@ const Login = () => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         document.cookie = `token=${response.data.token}; path=/; max-age=86400; secure; samesite=strict`;
-        toast.success(response.data.message || "Welcome back! 👋");
+        showSuccessToast(response.data.message || "Welcome back! 👋", "Login - Success");
 
         // Admin redirect
         if (response.data.redirectToAdminDashboard) {
@@ -298,13 +277,14 @@ const Login = () => {
         // }
         // Onboarding redirect for non-demo users
         if (response.data.requiresOnboarding) {
-          navigate("/onboarding");
+          navigateWithTransition(navigate, "/onboarding", { replace: true });
           return;
         }
 
         if (customerOnly) {
           if (response.data.user.role === "client") {
-            navigate(returnUrl);
+            navigateWithTransition(navigate, returnUrl, { replace: true });
+            clearReturnUrl();
           } else {
             setError(
               "Only customers can checkout. Please login/register as a customer."
@@ -320,7 +300,7 @@ const Login = () => {
               response.data
             );
           } else {
-            navigate("/onboarding");
+            navigateWithTransition(navigate, "/onboarding", { replace: true });
           }
         }
 
@@ -331,7 +311,7 @@ const Login = () => {
         });
       } else {
         const errorMsg = response.data.message || "Login failed";
-        toast.error(errorMsg);
+        showErrorToast(errorMsg, "Login - Backend Error");
         setError(errorMsg);
       }
     } catch (err) {
@@ -351,7 +331,7 @@ const Login = () => {
         errorMsg = err.message;
       }
 
-      toast.error(errorMsg);
+      showErrorToast(errorMsg, "Login - Authentication Error");
       setError(errorMsg);
       setFormData((prev) => ({ ...prev, password: "" }));
 
@@ -485,6 +465,13 @@ const Login = () => {
           </form>
         </div>
       </div>
+      
+      {/* Loading Overlay */}
+      <LoadingTransition 
+        isLoading={isLoading} 
+        message="Signing you in..." 
+        overlay={true}
+      />
     </div>
   );
 };
