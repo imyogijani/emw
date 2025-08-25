@@ -177,7 +177,7 @@ export const startFreeTrial = async (req, res) => {
       user: userId,
       billingCycle: "free",
     });
-    
+
     if (usedTrial) {
       return res.status(400).json({
         success: false,
@@ -190,13 +190,13 @@ export const startFreeTrial = async (req, res) => {
     if (!freeTrialPlan) {
       freeTrialPlan = await Subscription.create({
         planName: "Free Trial",
-        pricing: { monthly: "Free", yearly: "Free" },
+        pricing: { monthly: "free", yearly: "free" },
         includedFeatures: [
-          "Product Listing: Up to 50 products",
+          "Product Listing:50",
           "Basic Analytics",
           "Customer Support",
           "Order Management",
-          "Inventory Tracking"
+          "Inventory Tracking",
         ],
         isVisible: false, // Don't show in regular subscription list
       });
@@ -224,6 +224,11 @@ export const startFreeTrial = async (req, res) => {
       subscription: freeTrialPlan._id,
       subscriptionStartDate: new Date(),
     });
+
+    await Seller.findOneAndUpdate(
+      { user: userId }, // seller linked to this user
+      { isOnboardingComplete: true }
+    );
 
     res.status(200).json({
       success: true,
@@ -307,6 +312,11 @@ export const completeOnboarding = async (req, res) => {
 
     seller.status = "active";
     await seller.save();
+
+    await Seller.findOneAndUpdate(
+      { user: userId }, // seller linked to this user
+      { isOnboardingComplete: true }
+    );
 
     return res.status(201).json({
       success: true,

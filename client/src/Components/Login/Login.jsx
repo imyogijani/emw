@@ -72,7 +72,7 @@ const Login = () => {
         navigate("/seller/dashboard");
         return;
       }
-      
+
       // Check if seller profile is completed (e.g., sellerId exists and has required fields)
       if (
         !userObj?.sellerId ||
@@ -171,12 +171,33 @@ const Login = () => {
           return;
         }
 
-        // Skip onboarding for demo seller
+        // Skip onboarding for demo sellers
+        // if (response.data.demoAccess || response.data.user.demoAccess) {
+        //   navigate("/seller/dashboard");
+        //   return;
+        // }
+
+        // //  Skip onboarding if demoAccess is true
         if (response.data.demoAccess || response.data.user.demoAccess) {
-          navigate("/seller/dashboard");
+          if (response.data.user.role === "shopowner") {
+            navigate("/seller/dashboard");
+          } else {
+            navigate("/");
+          }
           return;
         }
 
+        // if (response.data.demoAccess || response.data.user.demoAccess) {
+        //   if (!response.data.user.role) {
+        //     // if role null is empty hai
+        //     navigate("/onboarding");
+        //   } else if (response.data.user.role === "shopowner") {
+        //     navigate("/seller/dashboard");
+        //   } else {
+        //     navigate("/");
+        //   }
+        //   return;
+        // }
         // Onboarding redirect for non-demo users
         if (response.data.requiresOnboarding) {
           navigate("/onboarding");
@@ -195,7 +216,11 @@ const Login = () => {
           }
         } else {
           if (response.data.user.role) {
-            redirectBasedOnRole(response.data.user.role, response.data.user, response.data);
+            redirectBasedOnRole(
+              response.data.user.role,
+              response.data.user,
+              response.data
+            );
           } else {
             navigate("/onboarding");
           }

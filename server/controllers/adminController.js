@@ -1364,7 +1364,6 @@ export const isEmailVerificationRequired = async (userType = "customer") => {
     if (!settings.emailVerificationEnabled) {
       return false;
     }
-
     if (userType === "customer" || userType === "client") {
       return settings.customerEmailVerification;
     }

@@ -9,6 +9,7 @@ import {
   getSellerSalesOverview,
   getSellerOrdersAnalytics,
   updateSellerGST,
+  getOnboardingStep,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -80,6 +81,14 @@ router.post(
   authorizeSeller,
   fetchUser,
   updateSellerGST
+);
+
+router.get(
+  "/onboarding-status",
+  authenticateToken,
+  authorizeSeller,
+  fetchUser,
+  getOnboardingStep
 );
 
 export default router;

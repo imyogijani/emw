@@ -62,7 +62,6 @@ import Invoice from "./Pages/Invoice/Invoice";
 import SellerOnboarding from "./Pages/Seller/SellerOnboarding";
 import Onboarding from "./Components/Onboarding/Onboarding";
 
-
 function LayoutWrapper() {
   const [showProfile, setShowProfile] = useState(false);
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
@@ -135,8 +134,22 @@ function LayoutWrapper() {
         <Route path="subscription/review" element={<SubscriptionReview />} />
         <Route path="shops" element={<Shops />} />
         <Route path="product/:id" element={<ProductDetail />} />
-        <Route path="login" element={<AuthTransition><Login /></AuthTransition>} />
-        <Route path="register" element={<AuthTransition><Register /></AuthTransition>} />
+        <Route
+          path="login"
+          element={
+            <AuthTransition>
+              <Login />
+            </AuthTransition>
+          }
+        />
+        <Route
+          path="register"
+          element={
+            <AuthTransition>
+              <Register />
+            </AuthTransition>
+          }
+        />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/onboarding/*" element={<Onboarding />} />
 
@@ -156,11 +169,14 @@ function LayoutWrapper() {
         <Route path="/create-business" element={<CreateBusinessAccount />} />
         <Route path="/email-policy" element={<EmailPolicy />} />
         <Route path="/do-not-sell" element={<DoNotSell />} />
-        <Route path="/seller/onboarding" element={
-          <ProtectedRoute allowedRoles={["shopowner"]}>
-            <SellerOnboarding />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/seller/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["shopowner"]}>
+              <SellerOnboarding />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="admin"
           element={

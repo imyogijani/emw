@@ -8,10 +8,30 @@ import { FaSignOutAlt, FaRegClock } from "react-icons/fa";
 
 const SellerOnboarding = () => {
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [plans, setPlans] = useState([]);
+
+  // Fetch the current onboarding step when component mounts
+  useEffect(() => {
+    const fetchOnboardingStep = async () => {
+      try {
+        const response = await axios.get("/api/sellers/onboarding-status");
+        if (response.data.success) {
+          // Set step to the saved onboarding step from server
+          setStep(response.data.step);
+          console.log("Onboarding step fetched:", response.data);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch onboarding progress");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOnboardingStep();
+  }, []);
   const [formData, setFormData] = useState({
     // Step 1 - Basic Details
     shopName: "",
@@ -358,17 +378,33 @@ const SellerOnboarding = () => {
     return true;
   };
 
+  // const updateOnboardingStep = async (newStep) => {
+  //   try {
+  //     await axios.post("/api/seller/update-onboarding-step", { step: newStep });
+  //   } catch (error) {
+  //     console.error("Failed to update onboarding step:", error);
+  //   }
+  // };
+
   const handleNext = async () => {
     if (!validateStep()) return;
 
-    if (step === 1) {
-      await submitStep1();
-    } else if (step === 2) {
-      await submitStep2();
-    } else if (step === 3) {
-      await submitStep3();
+    try {
+      if (step === 1) {
+        await submitStep1();
+      } else if (step === 2) {
+        await submitStep2();
+      } else if (step === 3) {
+        await submitStep3();
+      }
+
+      // Update the onboarding step on the server
+      const nextStep = step + 1;
+
+      setStep(nextStep);
+    } catch (error) {
+      toast.error("Failed to save progress");
     }
-    setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -376,29 +412,29 @@ const SellerOnboarding = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep()) return;
+    // if (!validateStep()) return;
 
     try {
       setLoading(true);
 
-      const formDataToSend = new FormData();
-      formDataToSend.append("shopName", formData.shopName);
-      formDataToSend.append("categories", JSON.stringify(formData.categories));
-      formDataToSend.append("brands", JSON.stringify(formData.brands));
-      formDataToSend.append(
-        "workingHours",
-        JSON.stringify(formData.workingHours)
-      );
-      formDataToSend.append("subscriptionPlan", formData.selectedPlan);
+      // const formDataToSend = new FormData();
+      // formDataToSend.append("shopName", formData.shopName);
+      // formDataToSend.append("categories", JSON.stringify(formData.categories));
+      // formDataToSend.append("brands", JSON.stringify(formData.brands));
+      // formDataToSend.append(
+      //   "workingHours",
+      //   JSON.stringify(formData.workingHours)
+      // );
+      // formDataToSend.append("subscriptionPlan", formData.selectedPlan);
 
-      console.log("Final form data to send:", formDataToSend);
+      // console.log("Final form data to send:", formDataToSend);
 
-      // Complete profile first
-      await axios.post("/api/seller/complete-profile", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // // Complete profile first
+      // await axios.post("/api/seller/complete-profile", formDataToSend, {
+      //   headers: {
+      //     "Content-Type": "multipart/form-data",
+      //   },
+      // });
 
       // Start free trial
       await axios.post("/api/seller/start-free-trial");
@@ -557,12 +593,12 @@ const SellerOnboarding = () => {
   const handleDocChange = (index, field, value) => {
     const updated = [...documents];
     updated[index][field] = value;
-    
+
     // If document type changes, reset categories and auto-select all available categories
-    if (field === 'docType') {
+    if (field === "docType") {
       updated[index].categories = getAvailableCategories(value);
     }
-    
+
     setDocuments(updated);
   };
   const handleFileChange = (index, file) => {
@@ -578,13 +614,6 @@ const SellerOnboarding = () => {
       { docType: "", file: null, preview: null, number: "", categories: [] },
     ]);
   };
-
-  // const handleFileChange = (index, file) => {
-  //   const updated = [...documents];
-  //   updated[index].file = file;
-  //   updated[index].preview = URL.createObjectURL(file);
-  //   setDocuments(updated);
-  // };
 
   const submitStep3 = async () => {
     try {
@@ -613,7 +642,7 @@ const SellerOnboarding = () => {
       documents.forEach((doc) => {
         if (!doc.file || !doc.docType) return;
 
-        const docKey = doc.docType.toLowerCase(); // e.g. "aadhaar", "pan"
+        const docKey = doc.docType; // e.g. "aadhaar", "pan"
 
         // console.log(`---- Document ${docKey} ----`);
         // console.log("docNumber:", doc.number);
@@ -624,6 +653,7 @@ const SellerOnboarding = () => {
         fd.append(docKey, doc.file); // file field
         fd.append(`${docKey}_number`, doc.number);
         fd.append(`${docKey}_categories`, doc.categories.join(","));
+        fd.append("incrementOnboarding", true);
       });
 
       // Debug all formData
@@ -640,7 +670,7 @@ const SellerOnboarding = () => {
       setStep(4);
     } catch (err) {
       console.error("Upload error:", err);
-      
+
       // More specific error messages
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
@@ -1115,13 +1145,16 @@ const SellerOnboarding = () => {
   );
 
   const renderSubscriptionForm = () => {
-    const selectedPlan = plans.find(plan => plan._id === formData.selectedPlan);
-    
+    const selectedPlan = plans.find(
+      (plan) => plan._id === formData.selectedPlan
+    );
+
     return (
       <div className="form-step">
         <h2 className="step-title">Choose Your Plan</h2>
         <p className="step-description">
-          Start with a 7-day free trial, then select a plan that suits your business needs
+          Start with a 7-day free trial, then select a plan that suits your
+          business needs
         </p>
 
         {/* Free Trial Banner */}
@@ -1129,7 +1162,9 @@ const SellerOnboarding = () => {
           <div className="trial-icon">🎉</div>
           <div className="trial-content">
             <h3>7-Day Free Trial</h3>
-            <p>Get full access to all features for 7 days, no payment required!</p>
+            <p>
+              Get full access to all features for 7 days, no payment required!
+            </p>
           </div>
         </div>
 
@@ -1144,9 +1179,13 @@ const SellerOnboarding = () => {
             >
               <h3 className="plan-title">{plan.planName}</h3>
               <div className="plan-price">
-                <span className="monthly-price">₹{plan.pricing.monthly}/month</span>
+                <span className="monthly-price">
+                  ₹{plan.pricing.monthly}/month
+                </span>
                 {plan.pricing.yearly && (
-                  <span className="yearly-price">₹{plan.pricing.yearly}/year</span>
+                  <span className="yearly-price">
+                    ₹{plan.pricing.yearly}/year
+                  </span>
                 )}
               </div>
               <ul className="plan-features">
@@ -1169,9 +1208,9 @@ const SellerOnboarding = () => {
               <div className="qr-code-section">
                 <h4>Scan QR Code to Pay</h4>
                 <div className="qr-code-container">
-                  <img 
-                    src={selectedPlan.upiQrCode} 
-                    alt="UPI QR Code" 
+                  <img
+                    src={selectedPlan.upiQrCode}
+                    alt="UPI QR Code"
                     className="qr-code-image"
                   />
                 </div>
@@ -1200,7 +1239,10 @@ const SellerOnboarding = () => {
             <li>✓ Full access to all features for 7 days</li>
             <li>✓ No payment required to start</li>
             <li>✓ Cancel anytime during trial</li>
-            <li>✓ Automatic activation of paid plan after trial (if payment completed)</li>
+            <li>
+              ✓ Automatic activation of paid plan after trial (if payment
+              completed)
+            </li>
           </ul>
         </div>
       </div>
@@ -1355,6 +1397,14 @@ const SellerOnboarding = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="onboarding-container">
+        <div className="loading-spinner">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="onboarding-container">
