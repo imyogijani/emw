@@ -398,12 +398,11 @@ const SellerOnboarding = () => {
         await submitStep3();
       }
 
-      // Update the onboarding step on the server
-      const nextStep = step + 1;
-
-      setStep(nextStep);
+      // Only advance if no error thrown
+      setStep(step + 1);
     } catch (error) {
-      showErrorToast("Failed to save progress", "Seller Onboarding - Progress Update");
+      // Do not advance step if error
+      // Error already shown by submitStep3
     }
   };
 
@@ -621,7 +620,7 @@ const SellerOnboarding = () => {
       const user = JSON.parse(userStr);
       const sellerId = user?.sellerId;
 
-      //  GST number update only if entered
+      // GST number update only if entered
       if (formData.gstNumber && formData.gstNumber.trim() !== "") {
         try {
           await axios.post("/api/sellers/gst-number", {
@@ -630,8 +629,12 @@ const SellerOnboarding = () => {
           showSuccessToast("GST number updated successfully 🎉", "Seller Onboarding - GST Update");
         } catch (gstErr) {
           console.error("GST update error:", gstErr);
-          showErrorToast("GST number update failed", "Seller Onboarding - GST Update");
-          return; // agar GST invalid ho, process rok do
+          // Show backend error message if available
+          showErrorToast(
+            gstErr.response?.data?.message || "GST number update failed",
+            "Seller Onboarding - GST Update"
+          );
+          throw new Error(gstErr.response?.data?.message || "GST number update failed");
         }
       }
 
@@ -669,17 +672,9 @@ const SellerOnboarding = () => {
       showSuccessToast("Documents uploaded successfully 🎉", "Seller Onboarding - Documents");
       setStep(4);
     } catch (err) {
-      console.error("Upload error:", err);
-
-      // More specific error messages
-      if (err.response?.data?.message) {
-        showErrorToast(err.response.data.message, "Seller Onboarding - Documents");
-      } else if (err.response?.status === 400) {
-        showErrorToast("Invalid document data. Please check your inputs.", "Seller Onboarding - Documents");
-      } else if (err.response?.status === 401) {
-        showErrorToast("Authentication failed. Please login again.", "Seller Onboarding - Authentication");
-      } else if (err.response?.status === 413) {
-        showErrorToast("File size too large. Please use smaller files.", "Seller Onboarding - Documents");
+      // Only show error, do not advance step
+      if (err instanceof Error && err.message) {
+        showErrorToast(err.message, "Seller Onboarding - GST/Documents");
       } else {
         showErrorToast("Upload failed. Please try again.", "Seller Onboarding - Documents");
       }
