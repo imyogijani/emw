@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   FaPlus,
   FaTrash,
-  FaEdit,
-  FaMapMarkerAlt,
   FaCity,
+  FaMapMarkerAlt,
   FaGlobe,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
@@ -13,186 +12,248 @@ import JumpingLoader from "../../Components/JumpingLoader";
 import "./ManageLocations.css";
 
 const ManageLocations = () => {
-  const [locations, setLocations] = useState({});
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState({});
+  const [pincodes, setPincodes] = useState({});
+
+  const [loading, setLoading] = useState(false);
+
   const [stats, setStats] = useState({
+    totalCountries: 0,
     totalStates: 0,
     totalCities: 0,
     totalPincodes: 0,
   });
-  const [loading, setLoading] = useState(true);
-  const [showAddStateModal, setShowAddStateModal] = useState(false);
-  const [showAddCityModal, setShowAddCityModal] = useState(false);
-  const [newStateName, setNewStateName] = useState("");
-  const [newCityName, setNewCityName] = useState("");
-  const [selectedState, setSelectedState] = useState("");
-  const [expandedStates, setExpandedStates] = useState(new Set());
+
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Modals
+  const [showAddStateModal, setShowAddStateModal] = useState(false);
+  const [showAddCityModal, setShowAddCityModal] = useState(false);
+  const [showAddPincodeModal, setShowAddPincodeModal] = useState(false);
+
+  // Inputs
+  const [newStateName, setNewStateName] = useState("");
+  const [newCityName, setNewCityName] = useState("");
+  const [newAreaName, setNewAreaName] = useState("");
+  const [newPincode, setNewPincode] = useState("");
+
+  // Selections
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState("");
+
+  // Expand UI
+  const [expandedStates, setExpandedStates] = useState(new Set());
+  const [expandedCities, setExpandedCities] = useState(new Set());
+
   useEffect(() => {
-    fetchLocations();
+    fetchStates();
+    fetchStats();
   }, []);
 
-  const fetchLocations = async () => {
+  const fetchStates = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/admin/locations");
-      if (response.data.success) {
-        setLocations(response.data.data);
-        setStats(response.data.stats);
-      }
-      console.log("Fetched locations:", response.data.data);
-      console.log("Fetched locations:", response.data.stats);
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-      toast.error("Failed to fetch locations");
+      const res = await axios.get("/api/location/states");
+      if (res.data.success) setStates(res.data.data);
+      console.log(res.data.data);
+    } catch (err) {
+      toast.error("Failed to fetch states");
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchCities = async (stateId) => {
+    if (cities[stateId]) return; // already loaded
+    try {
+      const res = await axios.get(`/api/location/cities/${stateId}`);
+      if (res.data.success) {
+        setCities((prev) => ({ ...prev, [stateId]: res.data.data }));
+      }
+    } catch {
+      toast.error("Failed to fetch cities");
+    }
+  };
+
+  const fetchPincodes = async (stateId, cityId) => {
+    const key = `${stateId}-${cityId}`;
+    if (pincodes[key]) return;
+    try {
+      const res = await axios.get(`/api/location/pincode/${stateId}/${cityId}`);
+      if (res.data.success) {
+        setPincodes((prev) => ({ ...prev, [key]: res.data.data }));
+      }
+    } catch {
+      toast.error("Failed to fetch pincodes");
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get("/api/location/stats");
+      if (res.data.success) {
+        setStats(res.data.data);
+      }
+    } catch {
+      toast.error("Failed to fetch states");
+    }
+  };
+
+  // ========= CRUD =========
   const handleAddState = async (e) => {
     e.preventDefault();
-    if (!newStateName.trim()) {
-      toast.error("State name is required");
-      return;
-    }
-
+    if (!newStateName.trim()) return toast.error("State name required");
     try {
-      const response = await axios.post("/api/admin/locations/state", {
-        stateName: newStateName.trim(),
+      const res = await axios.post("/api/location/state", {
+        name: newStateName.trim(),
+        country: "68ad34991048ec5580634565", // India
       });
-
-      if (response.data.success) {
-        toast.success("State added successfully");
+      if (res.data.success) {
+        toast.success("State added");
         setNewStateName("");
         setShowAddStateModal(false);
-        fetchLocations();
+        fetchStates();
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add state");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add state");
+    }
+  };
+
+  const handleDeleteState = async (id) => {
+    if (!window.confirm("Delete state and all its cities?")) return;
+    try {
+      await axios.delete(`/api/location/state/${id}`);
+      toast.success("State deleted");
+      fetchStates();
+    } catch {
+      toast.error("Failed to delete state");
     }
   };
 
   const handleAddCity = async (e) => {
     e.preventDefault();
-    if (!selectedState || !newCityName.trim()) {
-      toast.error("State and city name are required");
-      return;
-    }
-
+    if (!selectedStateId || !newCityName.trim())
+      return toast.error("Select state & enter city");
     try {
-      const response = await axios.post("/api/admin/locations/city", {
-        stateName: selectedState,
-        cityName: newCityName.trim(),
+      const res = await axios.post("/api/location/city", {
+        state: selectedStateId,
+        name: newCityName.trim(),
       });
-
-      if (response.data.success) {
-        toast.success("City added successfully");
+      if (res.data.success) {
+        toast.success("City added");
         setNewCityName("");
-        setSelectedState("");
         setShowAddCityModal(false);
-        fetchLocations();
+        setCities({});
+        fetchCities(selectedStateId);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add city");
+    } catch {
+      toast.error("Failed to add city");
     }
   };
 
-  const handleDeleteState = async (stateName) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete the state "${stateName}" and all its cities?`
-      )
-    ) {
-      return;
+  const handleDeleteCity = async (id, stateId) => {
+    if (!window.confirm("Delete city?")) return;
+    try {
+      await axios.delete(`/api/location/city/${id}`);
+      toast.success("City deleted");
+      setCities((prev) => {
+        const updated = { ...prev };
+        delete updated[stateId];
+        return updated;
+      });
+      fetchCities(stateId);
+    } catch {
+      toast.error("Failed to delete city");
     }
+  };
+
+  const handleAddPincode = async (e) => {
+    e.preventDefault();
+    if (!selectedStateId || !selectedCityId || !newAreaName || !newPincode)
+      return toast.error("All fields required");
 
     try {
-      const response = await axios.delete(
-        `/api/admin/locations/state/${encodeURIComponent(stateName)}`
-      );
-
-      if (response.data.success) {
-        toast.success("State deleted successfully");
-        fetchLocations();
+      const res = await axios.post("/api/location/pincode", {
+        // stateId: selectedStateId,
+        city: selectedCityId,
+        areaName: newAreaName.trim(),
+        pincode: newPincode.trim(),
+      });
+      if (res.data.success) {
+        toast.success("Pincode added");
+        setNewAreaName("");
+        setNewPincode("");
+        setShowAddPincodeModal(false);
+        setPincodes({});
+        fetchPincodes(selectedStateId, selectedCityId);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete state");
+    } catch {
+      toast.error("Failed to add pincode");
     }
   };
 
-  const handleDeleteCity = async (stateName, cityName) => {
-    if (
-      !window.confirm(`Are you sure you want to delete the city "${cityName}"?`)
-    ) {
-      return;
-    }
-
-    try {
-      const response = await axios.delete(
-        `/api/admin/locations/city/${encodeURIComponent(
-          stateName
-        )}/${encodeURIComponent(cityName)}`
-      );
-
-      if (response.data.success) {
-        toast.success("City deleted successfully");
-        fetchLocations();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete city");
-    }
-  };
-
-  const toggleStateExpansion = (stateName) => {
-    const newExpanded = new Set(expandedStates);
-    if (newExpanded.has(stateName)) {
-      newExpanded.delete(stateName);
-    } else {
-      newExpanded.add(stateName);
-    }
-    setExpandedStates(newExpanded);
-  };
-
-  const filteredStates = Object.keys(locations).filter((state) =>
-    state.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div className="manage-locations loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
-        <JumpingLoader size="medium" />
-        <p>Loading locations...</p>
-      </div>
+  const handleDeletePincode = async (id, stateId, cityId) => {
+    if (!window.confirm("Delete pincode?")) return;
+    console.log(
+      `Deleting pincode ${id} for state ${stateId} and city ${cityId}`
     );
-  }
+    try {
+      await axios.delete(`/api/location/pincode/${id}`);
+      toast.success("Pincode deleted");
+      setPincodes((prev) => {
+        const key = `${stateId}-${cityId}`;
+        const updated = { ...prev };
+        delete updated[key];
+        return updated;
+      });
+      fetchPincodes(stateId, cityId);
+    } catch {
+      toast.error("Failed to delete pincode");
+    }
+  };
+
+  // Expand toggle
+  const toggleStateExpansion = (stateId) => {
+    const newSet = new Set(expandedStates);
+    newSet.has(stateId) ? newSet.delete(stateId) : newSet.add(stateId);
+    setExpandedStates(newSet);
+    if (!cities[stateId]) fetchCities(stateId);
+  };
+
+  const toggleCityExpansion = (stateId, cityId) => {
+    const key = `${stateId}-${cityId}`;
+    const newSet = new Set(expandedCities);
+    newSet.has(key) ? newSet.delete(key) : newSet.add(key);
+    setExpandedCities(newSet);
+    if (!pincodes[key]) fetchPincodes(stateId, cityId);
+  };
+
+  if (loading) return <div className="loading">Loading...</div>;
 
   return (
     <div className="manage-locations">
+      {/* Header */}
       <div className="admin-header">
         <div>
           <h1>Manage Locations</h1>
           <p className="admin-subtitle">
-            Manage states and cities for Indian addresses
+            Manage states, cities & pincodes dynamically
           </p>
         </div>
         <div className="header-actions">
-          <button
-            className="add-btn add-state-btn"
-            onClick={() => setShowAddStateModal(true)}
-          >
+          <button onClick={() => setShowAddStateModal(true)}>
             <FaPlus /> Add State
           </button>
-          <button
-            className="add-btn add-city-btn"
-            onClick={() => setShowAddCityModal(true)}
-          >
+          <button onClick={() => setShowAddCityModal(true)}>
             <FaPlus /> Add City
+          </button>
+          <button onClick={() => setShowAddPincodeModal(true)}>
+            <FaPlus /> Add Pincode
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="stats-container">
         <div className="stat-card">
           <div className="stat-icon state-icon">
@@ -234,89 +295,85 @@ const ManageLocations = () => {
         />
       </div>
 
-      {/* Locations List */}
-      <div className="locations-container">
-        <div className="locations-list">
-          {filteredStates.map((stateName) => (
-            <div key={stateName} className="state-item">
-              <div className="state-header">
-                <div
-                  className="state-info"
-                  onClick={() => toggleStateExpansion(stateName)}
-                >
-                  <FaGlobe className="state-icon-small" />
-                  <span className="state-name">{stateName}</span>
-                  <span className="city-count">
-                    ({Object.keys(locations[stateName]).length} cities)
-                  </span>
-                </div>
-                <div className="state-actions">
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDeleteState(stateName)}
-                    title="Delete State"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
-
-              {expandedStates.has(stateName) && (
-                <div className="cities-list">
-                  {Object.keys(locations[stateName]).map((cityName) => (
-                    <div key={cityName} className="city-item">
-                      <div className="city-info">
-                        <FaCity className="city-icon-small" />
-                        <span className="city-name">{cityName}</span>
-                        <span className="pincode-count">
-                          ({locations[stateName][cityName].length} pincodes)
-                        </span>
-                      </div>
-                      <div className="city-actions">
-                        <button
-                          className="delete-btn"
-                          onClick={() => handleDeleteCity(stateName, cityName)}
-                          title="Delete City"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+      {/* States List */}
+      <div className="locations-list">
+        {states.map((state) => (
+          <div key={state._id} className="state-item">
+            <div
+              className="state-header"
+              onClick={() => toggleStateExpansion(state._id)}
+            >
+              <FaGlobe /> <span>{state.stateName}</span>
             </div>
-          ))}
-        </div>
+            <button
+              className="delete-btn"
+              onClick={() => handleDeleteState(state._id)}
+            >
+              <FaTrash />
+            </button>
+
+            {expandedStates.has(state._id) &&
+              (cities[state._id] || []).map((city) => {
+                const cityKey = `${state._id}-${city._id}`;
+                return (
+                  <div key={city._id} className="city-item">
+                    <div
+                      className="city-header"
+                      onClick={() => toggleCityExpansion(state._id, city._id)}
+                    >
+                      <FaCity /> <span>{city.cityName}</span>
+                    </div>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDeleteCity(city._id, state._id)}
+                    >
+                      <FaTrash />
+                    </button>
+
+                    {expandedCities.has(cityKey) && (
+                      <div className="pincode-list">
+                        {(pincodes[cityKey] || []).map((p) => (
+                          <div key={p._id} className="pincode-item">
+                            <FaMapMarkerAlt />
+                            <span>
+                              {p.areaName} - {p.pincode}
+                            </span>
+                            <button
+                              className="delete-btn"
+                              onClick={() =>
+                                handleDeletePincode(p._id, state._id, city._id)
+                              }
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        ))}
       </div>
 
       {/* Add State Modal */}
       {showAddStateModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Add New State</h3>
+            <h3>Add State</h3>
             <form onSubmit={handleAddState}>
-              <div className="form-group">
-                <label>State Name</label>
-                <input
-                  type="text"
-                  value={newStateName}
-                  onChange={(e) => setNewStateName(e.target.value)}
-                  placeholder="Enter state name"
-                  required
-                />
-              </div>
+              <input
+                value={newStateName}
+                onChange={(e) => setNewStateName(e.target.value)}
+                placeholder="State name"
+                required
+              />
               <div className="modal-actions">
-                <button type="submit" className="submit-btn">
-                  Add State
-                </button>
+                <button type="submit">Add</button>
                 <button
                   type="button"
-                  className="cancel-btn"
-                  onClick={() => {
-                    setShowAddStateModal(false);
-                    setNewStateName("");
-                  }}
+                  onClick={() => setShowAddStateModal(false)}
                 >
                   Cancel
                 </button>
@@ -330,45 +387,91 @@ const ManageLocations = () => {
       {showAddCityModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Add New City</h3>
+            <h3>Add City</h3>
             <form onSubmit={handleAddCity}>
-              <div className="form-group">
-                <label>Select State</label>
+              <select
+                value={selectedStateId}
+                onChange={(e) => setSelectedStateId(e.target.value)}
+                required
+              >
+                <option value="">Select state</option>
+                {states.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.stateName}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={newCityName}
+                onChange={(e) => setNewCityName(e.target.value)}
+                placeholder="City name"
+                required
+              />
+              <div className="modal-actions">
+                <button type="submit">Add</button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCityModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Pincode Modal */}
+      {showAddPincodeModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Add Pincode</h3>
+            <form onSubmit={handleAddPincode}>
+              <select
+                value={selectedStateId}
+                onChange={(e) => setSelectedStateId(e.target.value)}
+                required
+              >
+                <option value="">Select state</option>
+                {states.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.stateName}
+                  </option>
+                ))}
+              </select>
+
+              {selectedStateId && (
                 <select
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
+                  value={selectedCityId}
+                  onChange={(e) => setSelectedCityId(e.target.value)}
                   required
                 >
-                  <option value="">Choose a state</option>
-                  {Object.keys(locations).map((stateName) => (
-                    <option key={stateName} value={stateName}>
-                      {stateName}
+                  <option value="">Select city</option>
+                  {(cities[selectedStateId] || []).map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.cityName}
                     </option>
                   ))}
                 </select>
-              </div>
-              <div className="form-group">
-                <label>City Name</label>
-                <input
-                  type="text"
-                  value={newCityName}
-                  onChange={(e) => setNewCityName(e.target.value)}
-                  placeholder="Enter city name"
-                  required
-                />
-              </div>
+              )}
+
+              <input
+                value={newAreaName}
+                onChange={(e) => setNewAreaName(e.target.value)}
+                placeholder="Area name"
+                required
+              />
+              <input
+                value={newPincode}
+                onChange={(e) => setNewPincode(e.target.value)}
+                placeholder="Pincode"
+                required
+              />
               <div className="modal-actions">
-                <button type="submit" className="submit-btn">
-                  Add City
-                </button>
+                <button type="submit">Add</button>
                 <button
                   type="button"
-                  className="cancel-btn"
-                  onClick={() => {
-                    setShowAddCityModal(false);
-                    setNewCityName("");
-                    setSelectedState("");
-                  }}
+                  onClick={() => setShowAddPincodeModal(false)}
                 >
                   Cancel
                 </button>

@@ -5,8 +5,8 @@ import axios from "./axios";
 export const requestPushPermission = async (userId) => {
   try {
     // Check if notifications are supported
-    if (!('Notification' in window)) {
-      console.warn('🚫 This browser does not support notifications');
+    if (!("Notification" in window)) {
+      console.warn("🚫 This browser does not support notifications");
       return;
     }
 
@@ -59,19 +59,19 @@ export const requestPushPermission = async (userId) => {
     // Set up foreground message listener
     onMessage(messaging, (payload) => {
       console.log("📲 Foreground notification received:", payload);
-      
+
       // Create a more user-friendly notification display
       if (payload?.notification) {
         const { title, body } = payload.notification;
-        
+
         // Use browser notification if available, fallback to alert
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(title || 'New Notification', {
-            body: body || '',
-            icon: '/favicon.png'
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(title || "New Notification", {
+            body: body || "",
+            icon: "/favicon.png",
           });
         } else {
-          alert(`${title || 'New Notification'}${body ? '\n' + body : ''}`);
+          alert(`${title || "New Notification"}${body ? "\n" + body : ""}`);
         }
       }
     });

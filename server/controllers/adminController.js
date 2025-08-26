@@ -10,6 +10,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { State, City } from "../models/locationModel.js";
+import admin from "../config/firebaseAdmin.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -759,6 +760,16 @@ export const deleteUser = async (req, res) => {
         success: false,
         message: "User not found",
       });
+    }
+
+    // Step : if shopowner  → Seller details  delete 
+    if (user.role === "shopowner" && user.sellerId) {
+      await Seller.findByIdAndDelete(user.sellerId);
+    }
+
+    const firebaseUser = await admin.auth().getUserByEmail(user.email);
+    if (firebaseUser) {
+      await admin.auth().deleteUser(firebaseUser.uid);
     }
 
     res.json({

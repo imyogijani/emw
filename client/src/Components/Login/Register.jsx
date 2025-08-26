@@ -52,7 +52,7 @@ const Register = () => {
           "systemSettings",
           JSON.stringify(res.data.settings)
         );
-        console.log("⚙️ Loaded system settings:", res.data.settings);
+        // console.log("⚙️ Loaded system settings:", res.data.settings);
       } catch (err) {
         console.error("❌ Failed to fetch system settings:", err);
       }
@@ -142,7 +142,7 @@ const Register = () => {
       // }
 
       const systemSettings = JSON.parse(localStorage.getItem("systemSettings"));
-      console.log("⚙️ System settings:", systemSettings);
+      // console.log("⚙️ System settings:", systemSettings);
 
       let requiresVerification = false;
 
@@ -163,7 +163,7 @@ const Register = () => {
 
       // STEP 3: Firebase user create only if verification required
       if (requiresVerification) {
-        console.log("📩 Email verification required → Firebase auth create");
+        // console.log("📩 Email verification required → Firebase auth create");
 
         const userCred = await createUserWithEmailAndPassword(
           auth,
@@ -174,7 +174,7 @@ const Register = () => {
         await sendEmailVerification(userCred.user);
         toast.success("📩 Verification email sent! Please check your inbox.");
       } else {
-        console.log("✅ Email verification not required → skipping Firebase");
+        // console.log("✅ Email verification not required → skipping Firebase");
       }
       const user = response.data.user;
       await requestPushPermission(user._id);

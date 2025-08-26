@@ -12,7 +12,7 @@ import { exec } from "child_process";
 import crypto from "crypto";
 
 import { expireDeals } from "./cronExpireDeals.js";
-import { importHSNData } from "./importHSN.js";
+// import { importGujaratPincodes } from "./importHSN.js";
 // import crypto from "crypto";
 
 // Resolve __dirname in ES module
@@ -25,7 +25,9 @@ console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // MongoDB connection
 import connectDB from "./config/db.js";
-connectDB();
+await connectDB();
+
+// await importGujaratPincodes();
 
 // Create Express app
 const app = express();

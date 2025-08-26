@@ -17,62 +17,6 @@ import Settings from "../models/settingsModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//registration
-// const registerController = async (req, res) => {
-//   try {
-//     const { email, password, role, subscriptionId, shopName, ...rest } =
-//       req.body;
-
-//     const existingUser = await userModel.findOne({ email });
-//     if (existingUser) {
-//       return res.status(409).send({
-//         success: false,
-//         message: "User already exists",
-//       });
-//     }
-
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-
-//     let userData = {
-//       email,
-//       password: hashedPassword,
-//       role,
-//       ...rest,
-//     };
-
-//     if (role === "shopowner" && subscriptionId) {
-//       const subscription = await Subscription.findById(subscriptionId);
-//       if (!subscription) {
-//         return res.status(400).send({
-//           success: false,
-//           message: "Invalid subscription plan provided",
-//         });
-//       }
-//       userData.subscription = subscriptionId;
-//       userData.subscriptionStartDate = new Date();
-//       userData.shopName = shopName; // Add shopName for shopowner
-//       userData.subscriptionFeatures = subscription.includedFeatures; // Store features at registration
-//     }
-
-//     const user = new userModel(userData);
-//     await user.save();
-
-//     return res.status(201).send({
-//       success: true,
-//       message: "User registered successfully 🎉",
-//       user,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       message: "Error in register API",
-//       error,
-//     });
-//   }
-// };
-
 /**
  * User Registration Controller
  *
@@ -141,16 +85,16 @@ const registerController = async (req, res) => {
 
     if (email === "yogij@mail.com") {
       // admin
-      console.log("✅ Admin detected → skipping email verification");
+      console.log(" Admin detected → skipping email verification");
       userData.emailVerified = true;
       userData.isOnboardingComplete = true;
     } else if (!settings.emailVerificationEnabled) {
-      console.log(
-        "✅ Global email verification OFF → skipping Firebase & auto-verifying"
-      );
+      // console.log(
+      //   " Global email verification OFF → skipping Firebase & auto-verifying"
+      // );
       userData.emailVerified = true;
     } else {
-      console.log("📩 Email verification enabled → Firebase flow required");
+      // console.log("📩 Email verification enabled → Firebase flow required");
       // Here you would normally trigger Firebase send verification email
       // Example:
       // await sendEmailVerification(email);
@@ -219,81 +163,27 @@ const loginController = async (req, res) => {
       });
     }
 
-    // Email verification check - SECURITY PROTOCOL: Admin users bypass this requirement
-    // Also check dynamic settings for other user types
-    // const settings = await Settings.getSettings();
-    // const requiresVerification =
-    //   settings.emailVerificationEnabled &&
-    //   (user.role === "admin"
-    //     ? false
-    //     : user.role === "customer"
-    //     ? settings.customerEmailVerification
-    //     : user.role === "seller"
-    //     ? settings.sellerEmailVerification
-    //     : true);
-
-    // if (!user.emailVerified && requiresVerification) {
-    //   return res.status(403).send({
-    //     success: false,
-    //     message: "Please verify your email before logging in.",
-    //     requiresEmailVerification: true,
-    //   });
-    // }
-
-    // Skip verification for demo seller or admin
-
-    // if (user.email !== "demo@seller.com" && user.role !== "admin") {
-    //   let firebaseUser;
-    //   try {
-    //     // Only non-demo, non-admin users: fetch Firebase user and check email
-    //     firebaseUser = await admin.auth().getUserByEmail(user.email);
-
-    //     if (firebaseUser.emailVerified && !user.emailVerified) {
-    //       user.emailVerified = true;
-    //       await user.save();
-    //     }
-
-    //     if (!firebaseUser.emailVerified) {
-    //       return res.status(403).send({
-    //         success: false,
-    //         message: "Please verify your email before logging in.",
-    //         requiresEmailVerification: true,
-    //       });
-    //     }
-    //   } catch (error) {
-    //     console.error("Firebase auth error:", error);
-    //     return res.status(403).send({
-    //       success: false,
-    //       message: "Email verification failed. Please try again.",
-    //       requiresEmailVerification: true,
-    //     });
-    //   }
-    // } else {
-    //   // Demo seller or admin: skip Firebase email verification completely
-    //   console.log("Demo seller or admin login: skipping Firebase email check");
-    // }
-
     // Email verification check - SECURITY PROTOCOL
     const settings = await Settings.getSettings();
-    console.log(
-      "🔧 [DEBUG] Settings fetched:",
-      JSON.stringify(settings, null, 2)
-    );
-    console.log("🔧 [DEBUG] User Role:", user.role);
-    console.log("🔧 [DEBUG] User Email:", user.email);
+    // console.log(
+    //   "🔧 [DEBUG] Settings fetched:",
+    //   JSON.stringify(settings, null, 2)
+    // );
+    // console.log("🔧 [DEBUG] User Role:", user.role);
+    // console.log("🔧 [DEBUG] User Email:", user.email);
 
     let requiresVerification = false;
 
     // Case 1: Admin → skip verification always
     if (user.role === "admin") {
-      console.log("✅ [CASE 1] Admin detected → skipping verification.");
+      // console.log(" [CASE 1] Admin detected → skipping verification.");
       requiresVerification = false;
     }
     // Case 2: Master switch OFF → skip verification
     else if (!settings.emailVerificationEnabled) {
-      console.log(
-        "✅ [CASE 2] Master switch OFF (emailVerificationEnabled=false) → skipping verification."
-      );
+      // console.log(
+      //   " [CASE 2] Master switch OFF (emailVerificationEnabled=false) → skipping verification."
+      // );
       requiresVerification = false;
     }
     // Case 3: Role-wise check
@@ -301,26 +191,26 @@ const loginController = async (req, res) => {
       console.log("⚙️ [CASE 3] Role-based verification check initiated.");
 
       if (user.role === "client") {
-        console.log(
-          "🔎 [DEBUG] Customer verification setting:",
-          settings.customerEmailVerification
-        );
+        // console.log(
+        //   "🔎 [DEBUG] Customer verification setting:",
+        //   settings.customerEmailVerification
+        // );
         requiresVerification = settings.customerEmailVerification;
       } else if (user.role === "shopowner") {
-        console.log(
-          "🔎 [DEBUG] Seller verification setting:",
-          settings.sellerEmailVerification
-        );
+        // console.log(
+        //   "🔎 [DEBUG] Seller verification setting:",
+        //   settings.sellerEmailVerification
+        // );
         requiresVerification = settings.sellerEmailVerification;
       } else {
-        console.log(
-          "⚠️ [DEBUG] Unknown role detected → defaulting requiresVerification=true"
-        );
+        // console.log(
+        //   "⚠️ [DEBUG] Unknown role detected → defaulting requiresVerification=true"
+        // );
         requiresVerification = true; // default for any other role
       }
     }
 
-    console.log("📌 [RESULT] requiresVerification:", requiresVerification);
+    // console.log("📌 [RESULT] requiresVerification:", requiresVerification);
 
     // Now apply Firebase check only if requiresVerification === true
     if (requiresVerification) {
@@ -348,9 +238,9 @@ const loginController = async (req, res) => {
         });
       }
     } else {
-      console.log(
-        "Skipping email verification due to settings/admin/master OFF"
-      );
+      // console.log(
+      //   "Skipping email verification due to settings/admin/master OFF"
+      // );
     }
 
     //  Banned  check

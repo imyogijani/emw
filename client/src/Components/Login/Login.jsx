@@ -44,7 +44,7 @@ const Login = () => {
 
       return userCred.user; // verified user return kar
     } catch (error) {
-      console.log("Firebase Error:", error.code);
+      // console.log("Firebase Error:", error.code);
 
       // Yahan dono case handle kar le
       if (
@@ -111,7 +111,7 @@ const Login = () => {
           "systemSettings",
           JSON.stringify(res.data.settings)
         );
-        console.log("⚙️ Loaded system settings:", res.data.settings);
+        // console.log("⚙️ Loaded system settings:", res.data.settings);
       } catch (err) {
         console.error("❌ Failed to fetch system settings:", err);
       }
@@ -163,7 +163,7 @@ const Login = () => {
 
       // --- Step 1: Load system settings ---
       const systemSettings = JSON.parse(localStorage.getItem("systemSettings"));
-      console.log("⚙️ System settings at login:", systemSettings);
+      // console.log("⚙️ System settings at login:", systemSettings);
 
       // --- Admin skip ---
       if (formData.email === "yogij@mail.com") {
@@ -192,7 +192,7 @@ const Login = () => {
           }
         }
         if (requiresVerification) {
-          console.log("📩 Email verification required → Firebase login");
+          // console.log("📩 Email verification required → Firebase login");
 
           // // Firebase login
           // const userCred = await signInWithEmailAndPassword(
@@ -230,7 +230,7 @@ const Login = () => {
             return;
           }
         } else {
-          console.log("✅ Email verification not required → skipping Firebase");
+          // console.log("✅ Email verification not required → skipping Firebase");
           // Direct backend login
           response = await axios.post("/api/auth/login", formData);
         }
@@ -247,12 +247,6 @@ const Login = () => {
           navigate("/admin/dashboard");
           return;
         }
-
-        // Skip onboarding for demo sellers
-        // if (response.data.demoAccess || response.data.user.demoAccess) {
-        //   navigate("/seller/dashboard");
-        //   return;
-        // }
 
         // //  Skip onboarding if demoAccess is true
         if (response.data.demoAccess || response.data.user.demoAccess) {
