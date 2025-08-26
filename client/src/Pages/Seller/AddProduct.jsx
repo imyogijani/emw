@@ -4,6 +4,7 @@ import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import axios from "../../utils/axios";
 import "../../App.css";
 import "./SellerProducts.css";
+import { Button, Input } from "../../Components/Reusable";
 
 const AddProduct = () => {
   const [categories, setCategories] = useState([]);
@@ -304,7 +305,7 @@ const AddProduct = () => {
         >
           <div className="form-group">
             <label htmlFor="name">Product Name *</label>
-            <input
+            <Input
               type="text"
               id="name"
               name="name"
@@ -413,7 +414,7 @@ const AddProduct = () => {
 
           <div className="form-group">
             <label htmlFor="price">Price (INR) *</label>
-            <input
+            <Input
               type="number"
               id="price"
               name="price"
@@ -428,7 +429,7 @@ const AddProduct = () => {
 
           <div className="form-group">
             <label htmlFor="discount">Discount (%)</label>
-            <input
+            <Input
               type="number"
               id="discount"
               name="discount"
@@ -443,7 +444,7 @@ const AddProduct = () => {
 
           <div className="form-group">
             <label htmlFor="stock">Stock Quantity *</label>
-            <input
+            <Input
               type="number"
               id="stock"
               name="stock"
@@ -471,7 +472,7 @@ const AddProduct = () => {
 
           <div className="form-group">
             <label htmlFor="image">Product Images *</label>
-            <input
+            <Input
               type="file"
               id="image"
               name="image"
@@ -481,11 +482,6 @@ const AddProduct = () => {
               required
               ref={imageInputRef}
             />
-            {/* {imagePreview && (
-              <div className="image-preview">
-                <img src={imagePreview} alt="Preview" />
-              </div>
-            )} */}
             {imagePreview.length > 0 && (
               <div className="image-preview-group">
                 {imagePreview.map((src, index) => (
@@ -497,18 +493,18 @@ const AddProduct = () => {
 
           <div className="form-group">
             <label>Variants (optional)</label>
-            <button type="button" onClick={addVariant}>
+            <Button type="button" onClick={addVariant}>
               + Add Variant
-            </button>
+            </Button>
             {formData.variants.map((variant, index) => (
               <div key={index} className="variant-row">
-                <input
+                <Input
                   type="text"
                   placeholder="Variant Name"
                   value={variant.name}
                   onChange={(e) => updateVariant(index, "name", e.target.value)}
                 />
-                <input
+                <Input
                   type="number"
                   placeholder="Price"
                   value={variant.price}
@@ -516,7 +512,7 @@ const AddProduct = () => {
                     updateVariant(index, "price", e.target.value)
                   }
                 />
-                <input
+                <Input
                   type="checkbox"
                   checked={variant.inStock}
                   onChange={(e) =>
@@ -529,17 +525,17 @@ const AddProduct = () => {
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="submit-btn" disabled={loading}>
+            <Button type="submit" className="submit-btn" disabled={loading}>
               {loading ? "Adding..." : "Add Product"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               className="cancel-btn"
               onClick={handleCancel}
               disabled={loading}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import "./AddressModal.css";
 import axios from "../../utils/axios"; // Adjust the import path as necessary
 import { toast } from "react-toastify";
+import { Button, Input } from "../../Components/Reusable";
 
 const AddressModal = ({
   isOpen,
@@ -130,7 +131,7 @@ const AddressModal = ({
         <h3>{isEditing ? "Edit Address" : "Add Address"}</h3>
 
         {/* Address Line 1 */}
-        <input
+        <Input
           name="addressLine1"
           placeholder="Address Line 1"
           value={addressForm.addressLine1}
@@ -145,7 +146,7 @@ const AddressModal = ({
         )}
 
         {/* Address Line 2 - Optional */}
-        <input
+        <Input
           name="addressLine2"
           placeholder="Address Line 2 (optional)"
           value={addressForm.addressLine2}
@@ -220,7 +221,7 @@ const AddressModal = ({
         )}
 
         {/* Country */}
-        <input
+        <Input
           name="country"
           placeholder="Country"
           value={addressForm.country}
@@ -230,12 +231,12 @@ const AddressModal = ({
         />
 
         <div className="modal-actions">
-          <button className="btn-primary" onClick={handleSave}>
+          <Button className="btn-primary" onClick={handleSave}>
             Save
-          </button>
-          <button className="btn-danger" onClick={onClose}>
+          </Button>
+          <Button className="btn-danger" onClick={onClose}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>
