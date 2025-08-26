@@ -24,7 +24,10 @@ const SellerOnboarding = () => {
           console.log("Onboarding step fetched:", response.data);
         }
       } catch (error) {
-        showErrorToast("Failed to fetch onboarding progress", "Seller Onboarding - Data Fetch");
+        showErrorToast(
+          "Failed to fetch onboarding progress",
+          "Seller Onboarding - Data Fetch"
+        );
       } finally {
         setLoading(false);
       }
@@ -78,23 +81,13 @@ const SellerOnboarding = () => {
     gstNumber: "",
   });
 
-  // const [documents, setDocuments] = useState([
-  //   {
-  //     docType: "aadhaar",
-  //     file: null,
-  //     preview: null,
-  //     number: "",
-  //     categories: [],
-  //   },
-  //   { docType: "pan", file: null, preview: null, number: "", categories: [] },
-  //   {
-  //     docType: "addressProof",
-  //     file: null,
-  //     preview: null,
-  //     number: "",
-  //     categories: [],
-  //   },
-  // ]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [pincodes, setPincodes] = useState([]);
+
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedPincode, setSelectedPincode] = useState("");
 
   // -------------------- STATE --------------------
   const [documents, setDocuments] = useState([
@@ -178,6 +171,54 @@ const SellerOnboarding = () => {
     navigate("/login");
   };
 
+  // ================== 1. Load States ==================
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const res = await axios.get("/api/location/states-dropdown");
+        setStates(res.data.data || []);
+        // console.log("States loaded:", res.data.data);
+      } catch (err) {
+        console.error("Error fetching states:", err);
+      }
+    };
+    fetchStates();
+  }, []);
+
+  // ================== 2. Load Cities when state changes ==================
+  useEffect(() => {
+    if (!selectedState) return;
+    const fetchCities = async () => {
+      try {
+        const res = await axios.get(
+          `/api/location/cities-dropdown/${selectedState}`
+        );
+        setCities(res.data.data || []);
+        // console.log("Cities loaded:", res.data.data);
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+      }
+    };
+    fetchCities();
+  }, [selectedState]);
+
+  // ================== 3. Load Pincodes when city changes ==================
+  useEffect(() => {
+    if (!selectedState || !selectedCity) return;
+    const fetchPincodes = async () => {
+      try {
+        const res = await axios.get(
+          `/api/location/pincodes-dropdown/${selectedState}/${selectedCity}`
+        );
+        setPincodes(res.data.data || {});
+        // console.log("Pincodes loaded:", res.data.data);
+      } catch (err) {
+        console.error("Error fetching pincodes:", err);
+      }
+    };
+    fetchPincodes();
+  }, [selectedState, selectedCity]);
+
   // Cleanup effect for logo preview URL
   useEffect(() => {
     return () => {
@@ -213,11 +254,17 @@ const SellerOnboarding = () => {
         if (res.data.success) {
           setPlans(res.data.subscriptions);
         } else {
-          showErrorToast(res.data.message || "Failed to load plans", "Seller Onboarding - Plans");
+          showErrorToast(
+            res.data.message || "Failed to load plans",
+            "Seller Onboarding - Plans"
+          );
         }
       } catch (err) {
         console.error("Error fetching subscription plans:", err);
-        showErrorToast("Failed to fetch subscription plans", "Seller Onboarding - Plans");
+        showErrorToast(
+          "Failed to fetch subscription plans",
+          "Seller Onboarding - Plans"
+        );
       } finally {
         setLoading(false);
       }
@@ -231,7 +278,10 @@ const SellerOnboarding = () => {
       setCategories(response.data.categories || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      showErrorToast("Failed to fetch categories", "Seller Onboarding - Categories");
+      showErrorToast(
+        "Failed to fetch categories",
+        "Seller Onboarding - Categories"
+      );
     }
   };
 
@@ -331,11 +381,17 @@ const SellerOnboarding = () => {
     switch (step) {
       case 1:
         if (!formData.shopName) {
-          showErrorToast("Shop name is required", "Seller Onboarding - Step 1 Validation");
+          showErrorToast(
+            "Shop name is required",
+            "Seller Onboarding - Step 1 Validation"
+          );
           return false;
         }
         if (!formData.shopLogo) {
-          showErrorToast("Shop logo is required", "Seller Onboarding - Step 1 Validation");
+          showErrorToast(
+            "Shop logo is required",
+            "Seller Onboarding - Step 1 Validation"
+          );
           return false;
         }
         // if (!formData.shopAddress) {
@@ -347,7 +403,10 @@ const SellerOnboarding = () => {
         //   return false;
         // }
         if (formData.shopImages.length === 0) {
-          showErrorToast("Please upload at least one shop image", "Seller Onboarding - Step 1 Validation");
+          showErrorToast(
+            "Please upload at least one shop image",
+            "Seller Onboarding - Step 1 Validation"
+          );
           return false;
         }
         break;
@@ -357,14 +416,20 @@ const SellerOnboarding = () => {
           (day) => day.isOpen
         );
         if (!hasOpenDay) {
-          showErrorToast("Please select at least one working day", "Seller Onboarding - Step 2 Validation");
+          showErrorToast(
+            "Please select at least one working day",
+            "Seller Onboarding - Step 2 Validation"
+          );
           return false;
         }
         break;
       }
       case 3:
         if (!formData.selectedPlan) {
-          showErrorToast("Please select a subscription plan", "Seller Onboarding - Step 3 Validation");
+          showErrorToast(
+            "Please select a subscription plan",
+            "Seller Onboarding - Step 3 Validation"
+          );
           return false;
         }
         break;
@@ -438,7 +503,10 @@ const SellerOnboarding = () => {
       // Start free trial
       await axios.post("/api/seller/start-free-trial");
 
-      showSuccessToast("🎉 Profile completed! Your 7-day free trial has started!", "Seller Onboarding - Trial Started");
+      showSuccessToast(
+        "🎉 Profile completed! Your 7-day free trial has started!",
+        "Seller Onboarding - Trial Started"
+      );
       // Redirect to seller dashboard
       navigate("/seller/dashboard");
     } catch (error) {
@@ -459,7 +527,10 @@ const SellerOnboarding = () => {
       // Safe localStorage access
       const userStr = localStorage.getItem("user");
       if (!userStr) {
-        showErrorToast("User session not found. Please login again.", "Seller Onboarding - Authentication");
+        showErrorToast(
+          "User session not found. Please login again.",
+          "Seller Onboarding - Authentication"
+        );
         navigate("/login");
         return;
       }
@@ -469,7 +540,10 @@ const SellerOnboarding = () => {
       // console.log("User details:", sellerId);
 
       if (!sellerId) {
-        showErrorToast("Seller ID not found. Please contact support.", "Seller Onboarding - Authentication");
+        showErrorToast(
+          "Seller ID not found. Please contact support.",
+          "Seller Onboarding - Authentication"
+        );
         return;
       }
 
@@ -481,6 +555,7 @@ const SellerOnboarding = () => {
       // fd.append("shopAddress", formData.shopAddress);
       // fd.append("location", formData.location);
       fd.append("shopAddresses", JSON.stringify(formData.shopAddresses));
+      fd.append("incrementOnboarding", true); // Increment onboarding step on server
       if (formData.shopLogo) {
         fd.append("shopImage", formData.shopLogo);
       }
@@ -497,11 +572,17 @@ const SellerOnboarding = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      showSuccessToast("Step 1 saved successfully", "Seller Onboarding - Step 1");
+      showSuccessToast(
+        "Step 1 saved successfully",
+        "Seller Onboarding - Step 1"
+      );
       setStep(2);
     } catch (error) {
       console.error("Step 1 submission error:", error);
-      showErrorToast(error.response?.data?.message || "Failed to save Step 1", "Seller Onboarding - Step 1");
+      showErrorToast(
+        error.response?.data?.message || "Failed to save Step 1",
+        "Seller Onboarding - Step 1"
+      );
     } finally {
       setLoading(false);
     }
@@ -515,7 +596,10 @@ const SellerOnboarding = () => {
       // Safe localStorage access
       const userStr = localStorage.getItem("user");
       if (!userStr) {
-        showErrorToast("User session not found. Please login again.", "Seller Onboarding - Authentication");
+        showErrorToast(
+          "User session not found. Please login again.",
+          "Seller Onboarding - Authentication"
+        );
         navigate("/login");
         return;
       }
@@ -524,7 +608,10 @@ const SellerOnboarding = () => {
       const sellerId = user?.sellerId;
 
       if (!sellerId) {
-        showErrorToast("Seller ID not found. Please contact support.", "Seller Onboarding - Authentication");
+        showErrorToast(
+          "Seller ID not found. Please contact support.",
+          "Seller Onboarding - Authentication"
+        );
         return;
       }
 
@@ -547,11 +634,17 @@ const SellerOnboarding = () => {
       };
 
       const response = await axios.post(`/api/shop-timing/${sellerId}`, data);
-      showSuccessToast("Shop timings saved successfully", "Seller Onboarding - Step 2");
+      showSuccessToast(
+        "Shop timings saved successfully",
+        "Seller Onboarding - Step 2"
+      );
       setStep(3);
     } catch (error) {
       console.error("Step 2 submission error:", error);
-      showErrorToast(error.response?.data?.message || "Failed to save timings", "Seller Onboarding - Step 2");
+      showErrorToast(
+        error.response?.data?.message || "Failed to save timings",
+        "Seller Onboarding - Step 2"
+      );
     } finally {
       setLoading(false);
     }
@@ -626,7 +719,10 @@ const SellerOnboarding = () => {
           await axios.post("/api/sellers/gst-number", {
             gstNumber: formData.gstNumber,
           });
-          showSuccessToast("GST number updated successfully 🎉", "Seller Onboarding - GST Update");
+          showSuccessToast(
+            "GST number updated successfully 🎉",
+            "Seller Onboarding - GST Update"
+          );
         } catch (gstErr) {
           console.error("GST update error:", gstErr);
           // Show backend error message if available
@@ -634,7 +730,9 @@ const SellerOnboarding = () => {
             gstErr.response?.data?.message || "GST number update failed",
             "Seller Onboarding - GST Update"
           );
-          throw new Error(gstErr.response?.data?.message || "GST number update failed");
+          throw new Error(
+            gstErr.response?.data?.message || "GST number update failed"
+          );
         }
       }
 
@@ -669,14 +767,20 @@ const SellerOnboarding = () => {
       });
 
       console.log("Upload response:", response.data);
-      showSuccessToast("Documents uploaded successfully 🎉", "Seller Onboarding - Documents");
+      showSuccessToast(
+        "Documents uploaded successfully 🎉",
+        "Seller Onboarding - Documents"
+      );
       setStep(4);
     } catch (err) {
       // Only show error, do not advance step
       if (err instanceof Error && err.message) {
         showErrorToast(err.message, "Seller Onboarding - GST/Documents");
       } else {
-        showErrorToast("Upload failed. Please try again.", "Seller Onboarding - Documents");
+        showErrorToast(
+          "Upload failed. Please try again.",
+          "Seller Onboarding - Documents"
+        );
       }
     }
   };
@@ -706,8 +810,13 @@ const SellerOnboarding = () => {
   const renderBasicDetailsForm = () => (
     <div className="form-step">
       {/* Logout button top right */}
-      <button className="btn btn-small btn-danger logout-btn-onboarding" onClick={handleLogout}>
-        <span className="sparkle"><FaSignOutAlt /></span>
+      <button
+        className="btn btn-small btn-danger logout-btn-onboarding"
+        onClick={handleLogout}
+      >
+        <span className="sparkle">
+          <FaSignOutAlt />
+        </span>
         <span className="text">Logout</span>
       </button>
       <h2 className="step-title">Basic Details</h2>
@@ -732,7 +841,10 @@ const SellerOnboarding = () => {
             onChange={handleLogoChange}
             style={{ display: "none" }}
           />
-          <label htmlFor="logo" className="btn btn-medium btn-secondary logo-upload-btn">
+          <label
+            htmlFor="logo"
+            className="btn btn-medium btn-secondary logo-upload-btn"
+          >
             <span className="text">Choose File</span>
           </label>
         </div>
@@ -807,7 +919,7 @@ const SellerOnboarding = () => {
         />
       </div>
 
-      <div className="form-group">
+      {/* <div className="form-group">
         <input
           type="text"
           className="form-input"
@@ -819,8 +931,11 @@ const SellerOnboarding = () => {
           }}
           placeholder="Enter city"
         />
-      </div>
+      </div> */}
 
+      {/* <label className="form-label">City</label> */}
+
+      {/* 
       <div className="form-group">
         <input
           type="text"
@@ -833,9 +948,89 @@ const SellerOnboarding = () => {
           }}
           placeholder="Enter state"
         />
-      </div>
+      </div> */}
+      {/* ================== State Dropdown ================== */}
+      {/* ================== State Dropdown ================== */}
+      <select
+        className="form-input"
+        value={formData.shopAddresses[0].state}
+        onChange={(e) => {
+          const value = e.target.value;
+          setSelectedState(value);
+          setSelectedCity("");
+          setSelectedPincode("");
+          setCities([]);
+          setPincodes([]);
 
-      <div className="form-group">
+          // update formData
+          const updatedAddresses = [...formData.shopAddresses];
+          updatedAddresses[0].state = value;
+          updatedAddresses[0].city = ""; // reset city
+          updatedAddresses[0].pincode = ""; // reset pincode
+          setFormData({ ...formData, shopAddresses: updatedAddresses });
+        }}
+      >
+        <option value="">-- Select State --</option>
+        {states.map((state, idx) => (
+          <option key={idx} value={state}>
+            {state}
+          </option>
+        ))}
+      </select>
+
+      {/* ================== City Dropdown ================== */}
+      <select
+        className="form-input"
+        value={formData.shopAddresses[0].city}
+        onChange={(e) => {
+          const value = e.target.value;
+          setSelectedCity(value);
+          setSelectedPincode("");
+          setPincodes([]);
+
+          // update formData
+          const updatedAddresses = [...formData.shopAddresses];
+          updatedAddresses[0].city = value;
+          updatedAddresses[0].pincode = ""; // reset pincode
+          setFormData({ ...formData, shopAddresses: updatedAddresses });
+        }}
+        disabled={!formData.shopAddresses[0].state} // disable if state not selected
+      >
+        <option value="">-- Select City --</option>
+        {cities.map((city, idx) => (
+          <option key={idx} value={city}>
+            {city}
+          </option>
+        ))}
+      </select>
+
+      {/* ================== Pincode Dropdown ================== */}
+      <select
+        className="form-input"
+        value={formData.shopAddresses[0].pincode}
+        onChange={(e) => {
+          const selectedPincode = e.target.value;
+          const selectedArea =
+            e.target.options[e.target.selectedIndex].dataset.area;
+
+          // update formData
+          const updatedAddresses = [...formData.shopAddresses];
+          updatedAddresses[0].pincode = selectedPincode;
+          updatedAddresses[0].area = selectedArea;
+
+          setFormData({ ...formData, shopAddresses: updatedAddresses });
+        }}
+        disabled={!formData.shopAddresses[0].city} // disable if city not selected
+      >
+        <option value="">-- Select Pincode --</option>
+        {Object.entries(pincodes).map(([area, pincode], idx) => (
+          <option key={idx} value={pincode} data-area={area}>
+            {area} ({pincode})
+          </option>
+        ))}
+      </select>
+
+      {/* <div className="form-group">
         <input
           type="text"
           className="form-input"
@@ -847,7 +1042,7 @@ const SellerOnboarding = () => {
           }}
           placeholder="Enter pincode"
         />
-      </div>
+      </div> */}
 
       <div className="form-group">
         <input

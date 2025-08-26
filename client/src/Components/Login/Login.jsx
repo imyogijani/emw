@@ -7,7 +7,12 @@ import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";
 import { CloudCog } from "lucide-react";
 import LoadingTransition from "../LoadingTransition/LoadingTransition";
-import { navigateByRole, navigateWithTransition, getReturnUrl, clearReturnUrl } from "../../utils/navigationUtils";
+import {
+  navigateByRole,
+  navigateWithTransition,
+  getReturnUrl,
+  clearReturnUrl,
+} from "../../utils/navigationUtils";
 import {
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -138,7 +143,10 @@ const Login = () => {
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      showErrorToast("Please enter a valid email address", "Login - Form Validation");
+      showErrorToast(
+        "Please enter a valid email address",
+        "Login - Form Validation"
+      );
       setError("Please enter a valid email address");
       return false;
     }
@@ -240,7 +248,10 @@ const Login = () => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         document.cookie = `token=${response.data.token}; path=/; max-age=86400; secure; samesite=strict`;
-        showSuccessToast(response.data.message || "Welcome back! 👋", "Login - Success");
+        showSuccessToast(
+          response.data.message || "Welcome back! 👋",
+          "Login - Success"
+        );
 
         // Admin redirect
         if (response.data.redirectToAdminDashboard) {
@@ -459,11 +470,11 @@ const Login = () => {
           </form>
         </div>
       </div>
-      
+
       {/* Loading Overlay */}
-      <LoadingTransition 
-        isLoading={isLoading} 
-        message="Signing you in..." 
+      <LoadingTransition
+        isLoading={isLoading}
+        message="Signing you in..."
         overlay={true}
       />
     </div>

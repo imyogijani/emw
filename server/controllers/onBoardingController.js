@@ -10,7 +10,14 @@ import User from "../models/userModel.js";
 
 export const onboardingStep1 = async (req, res) => {
   try {
-    const { categories, brands, shopName, sellerId, shopAddresses } = req.body;
+    const {
+      categories,
+      brands,
+      shopName,
+      sellerId,
+      shopAddresses,
+      incrementOnboarding,
+    } = req.body;
 
     console.log("Obboarding Body", req.body);
 
@@ -145,7 +152,7 @@ export const onboardingStep1 = async (req, res) => {
     seller.categories = parsedCategories;
     seller.brands = parsedBrands || [];
 
-    if (seller.onboardingStep) {
+    if (incrementOnboarding) {
       // seller.onboardingStep = seller.onboardingStep + 1;
       seller.onboardingStep = 2;
     }

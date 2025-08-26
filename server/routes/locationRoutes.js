@@ -17,6 +17,9 @@ import {
   deletePincode,
   getAllCountries,
   getLocationStats,
+  getStatesDropDown,
+  getCitiesByStateDropDown,
+  getPincodesByCityDropDown,
 } from "../controllers/locationController.js";
 import {
   authenticateToken,
@@ -34,6 +37,12 @@ router.get("/cities/:stateId", getCitiesByState);
 router.get("/pincode/:stateId/:cityId", getPincodesByCity);
 
 router.get("/stats", getLocationStats);
+
+// Api for DropDown :
+
+router.get("/states-dropdown", getStatesDropDown);
+router.get("/cities-dropdown/:state", getCitiesByStateDropDown);
+router.get("/pincodes-dropdown/:state/:city", getPincodesByCityDropDown);
 
 // Country routes
 router.post(
