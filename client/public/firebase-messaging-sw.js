@@ -9,11 +9,12 @@ importScripts(
 );
 
 firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyBNBplIKMtXjzaHjSg1HzF1JST60XYTh7g",
+  authDomain: "ecom-emall-world.firebaseapp.com",
+  projectId: "ecom-emall-world",
+  storageBucket: "ecom-emall-world.appspot.com",
+  messagingSenderId: "422412652929",
+  appId: "1:422412652929:web:eeb1d855719ba22cd4d880",
 });
 
 const messaging = firebase.messaging();

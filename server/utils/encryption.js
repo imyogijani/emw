@@ -4,7 +4,7 @@ const ALGORITHM = "aes-256-gcm";
 const SECRET = process.env.APP_SECRET; // strong secret
 
 const APP_SECRET = process.env.APP_SECRET;
-console.log("APP_SECRET:", APP_SECRET);
+// console.log("APP_SECRET:", APP_SECRET);
 if (!APP_SECRET) throw new Error("APP_SECRET not defined in .env");
 
 // Encrypt buffer

@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { showErrorToast, showSuccessToast, validateForm } from "../../utils/errorHandler";
+import {
+  showErrorToast,
+  showSuccessToast,
+  validateForm,
+} from "../../utils/errorHandler";
 import "./CustomerOnboarding.css";
+import axios from "../../utils/axios";
+import { toast } from "react-toastify";
 
 const CustomerOnboarding = () => {
   const navigate = useNavigate();
@@ -66,22 +72,23 @@ const CustomerOnboarding = () => {
       preferences: {
         required: true,
         requiredMessage: "Please select at least one preference",
-        custom: (value) => value.length > 0 || "Please select at least one preference"
+        custom: (value) =>
+          value.length > 0 || "Please select at least one preference",
       },
-      'location.city': {
+      "location.city": {
         required: true,
-        requiredMessage: "City is required"
+        requiredMessage: "City is required",
       },
-      'location.state': {
+      "location.state": {
         required: true,
-        requiredMessage: "State is required"
-      }
+        requiredMessage: "State is required",
+      },
     };
 
     const flatFormData = {
       preferences: formData.preferences,
-      'location.city': formData.location.city,
-      'location.state': formData.location.state
+      "location.city": formData.location.city,
+      "location.state": formData.location.state,
     };
 
     const { isValid } = validateForm(flatFormData, validationRules);
@@ -91,7 +98,7 @@ const CustomerOnboarding = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateOnboardingForm()) {
+    if (!validateForm()) {
       return;
     }
 
@@ -105,23 +112,14 @@ const CustomerOnboarding = () => {
     setLoading(true);
 
     try {
-      // Update user onboarding status
-      const response = await fetch("/api/auth/complete-onboarding", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          onboardingData: formData,
-          userType: "customer",
-        }),
+      const response = await axios.patch("/api/auth/complete-onboarding", {
+        onboardingData: formData,
+        userType: "customer",
       });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
-        // Update user data in localStorage
         const userData = JSON.parse(localStorage.getItem("user") || "{}");
         userData.isOnboardingComplete = true;
         localStorage.setItem("user", JSON.stringify(userData));
@@ -151,7 +149,9 @@ const CustomerOnboarding = () => {
 
   const handleSkip = () => {
     // Complete onboarding with minimal data
-    handleSubmit({ preventDefault: () => {} });
+    // handleSubmit({ preventDefault: () => {} });
+    toast.info("You can complete your profile later!");
+    navigate("/");
   };
 
   return (
