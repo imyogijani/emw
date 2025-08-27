@@ -134,9 +134,9 @@ const SellerDashboard = () => {
         </div>
       )}
       
-      <div className="seller-header">
+      <div className="admin-header">
         <h1>Seller Dashboard</h1>
-        <p className="seller-subtitle">
+        <p className="admin-subtitle">
           Monitor your store's performance and orders
           {isReadOnly && <span className="read-only-badge"> (Read-Only Mode)</span>}
         </p>
