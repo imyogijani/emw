@@ -206,21 +206,26 @@
 }
 
 .share-button {
-  background: none;
-  border: 1px solid #d5d9d9;
+  background: #fff;
+  border: 1.5px solid #ff9900;
+  color: #ff9900;
   padding: 8px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  transition: all 0.2s;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 8px rgba(255,153,0,0.08);
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .share-button:hover {
-  background: #f7f8f8;
+  background: #ff9900;
+  color: #fff;
+  border-color: #ff9900;
+  box-shadow: 0 4px 16px rgba(255,153,0,0.18);
 }
 
 /* Rating Section */
@@ -521,17 +526,25 @@
 }
 
 .read-more-btn {
-  background: none;
+  background: linear-gradient(90deg, #ff9900 0%, #fc8a06 100%);
+  color: #fff;
   border: none;
-  color: #007185;
-  cursor: pointer;
+  border-radius: 16px;
   font-size: 14px;
-  padding: 0;
-  margin-left: 4px;
+  font-weight: 600;
+  padding: 4px 16px;
+  margin-left: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255,153,0,0.10);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  outline: none;
 }
 
-.read-more-btn:hover {
-  text-decoration: underline;
+.read-more-btn:hover, .read-more-btn:focus {
+  background: linear-gradient(90deg, #fc8a06 0%, #ff9900 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255,153,0,0.18);
+  text-decoration: none;
 }
 
 /* Purchase Section */
@@ -659,56 +672,86 @@
   border-radius: 4px;
 }
 
+/* --- FIXED BUTTON OVERLAP & IMPROVED BUTTON UI --- */
 .action-buttons {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
   margin-bottom: 20px;
+  width: 100%;
 }
 
-.add-to-cart-btn,
-.buy-now-btn {
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: all 0.2s;
+.add-to-cart-btn, .buy-now-btn {
+  border-radius: 28px;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 0;
+  width: 100%;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(255,153,0,0.13);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: none;
+  gap: 10px;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 44px;
 }
 
 .add-to-cart-btn {
-  background: #fc8a06;
-  color: #0f1111;
-  box-shadow: 0 2px 5px rgba(213, 217, 217, 0.5);
-  font-weight: 600;
-  border: 1px solid #ff9900;
+  background: linear-gradient(90deg, #ff9900 0%, #fc8a06 100%);
+  color: #fff;
+  border: none;
 }
 
-.add-to-cart-btn:hover {
-  background: #e37800;
-  border-color: #e88900;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(213, 217, 217, 0.7);
+.add-to-cart-btn:hover, .add-to-cart-btn:focus {
+  background: linear-gradient(90deg, #fc8a06 0%, #ff9900 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255,153,0,0.18);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .buy-now-btn {
-  background: #ffa41c;
-  color: #0f1111;
-  box-shadow: 0 2px 5px rgba(213, 217, 217, 0.5);
-  font-weight: 600;
-  border: 1px solid #ffa41c;
+  background: linear-gradient(90deg, #232f3e 0%, #37475a 100%);
+  color: #fff;
+  border: none;
 }
 
-.buy-now-btn:hover {
-  background: #fa8900;
-  border-color: #fa8900;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(213, 217, 217, 0.7);
+.buy-now-btn:hover, .buy-now-btn:focus {
+  background: linear-gradient(90deg, #37475a 0%, #232f3e 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(35,47,62,0.18);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.add-to-cart-btn .text, .buy-now-btn .text {
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .add-to-cart-btn, .buy-now-btn {
+    font-size: 16px;
+    padding: 10px 0;
+    border-radius: 20px;
+    min-height: 38px;
+  }
+
+  .add-to-cart-btn .text, .buy-now-btn .text {
+    font-size: 16px;
+  }
+
+  .action-buttons {
+    gap: 10px;
+  }
 }
 
 .security-info {
@@ -1333,13 +1376,19 @@
   }
 
   .action-buttons {
-    gap: 12px;
+    gap: 16px;
   }
 
   .add-to-cart-btn,
   .buy-now-btn {
-    padding: 12px 20px;
-    font-size: 14px;
+    padding: 18px 0;
+    font-size: 19px;
+    border-radius: 28px;
+    min-height: 54px;
+  }
+
+  .add-to-cart-btn .text, .buy-now-btn .text {
+    font-size: 19px;
   }
 }
 

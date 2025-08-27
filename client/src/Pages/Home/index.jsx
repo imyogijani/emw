@@ -2,6 +2,7 @@
 // Logic/JavaScript Part
 import "./Home.css";
 import "./theme-override.css";
+import "./products-slider.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
@@ -76,42 +77,11 @@ export default function Home() {
 
   const fetchDeals = React.useCallback(async () => {
     try {
-      // Fetch both offers and deals in parallel
       const [dealsRes] = await Promise.all([
-        // axios.get("/api/offers/today"),
         axios.get("/api/deals/active"),
       ]);
 
-      // Extract offers data with fallback to empty array
-      // const offers = offersRes?.data?.offers || [];
-
-      // Map offers to consistent deal format
-      // const mappedOffers = offers.map((offer) => {
-      //   // Destructure commonly used properties
-      //   const { product, _id, title, description, discount, price } = offer;
-
-      //   return {
-      //     _id,
-      //     title: title || product?.name || "Today's Offer",
-      //     description:
-      //       description ||
-      //       product?.description ||
-      //       "Special offer for today only!",
-      //     image: processImageUrl(product?.image),
-      //     dealPrice: calculateDealPrice(offer),
-      //     originalPrice: product?.price || price,
-      //     discountPercentage: discount || 0,
-      //     shopName: getShopName(offer),
-      //     isOffer: true,
-      //     rating: product?.rating || 4.5,
-      //     reviewCount: product?.reviewCount || 100,
-      //   };
-      // });
-
-      // Combine offers with deals and update state
       const deals = dealsRes?.data?.deals || [];
-      // console.log(dealsRes?.data?.deals);
-
       setDeals([...deals]);
     } catch (error) {
       console.error("Deals fetch error:", error);
@@ -126,7 +96,6 @@ export default function Home() {
         "/api/products?populateCategory=true&populateSubcategory=true"
       );
       setProducts(response.data.products);
-      // console.log("Index all product", response.data.products);
     } catch (error) {
       console.error("Product fetch error:", error);
       toast.error("Error fetching products");
@@ -180,7 +149,6 @@ export default function Home() {
   }, [fetchDeals]);
 
   const userId = JSON.parse(localStorage.getItem("user"));
-  // console.log("User Login after userId for requestPushPermission", userId?._id);
 
   useEffect(() => {
     if (userId?._id) {
@@ -194,8 +162,6 @@ export default function Home() {
       location: window.location.pathname,
     });
   }, []);
-
-  // processImageUrl is now imported from utils
 
   const calculateDealPrice = (offer) => {
     if (offer.price) return offer.price;
@@ -301,7 +267,6 @@ export default function Home() {
     };
 
     const handleProductClick = async () => {
-      // Track the click event
       await trackEvent("view_product_card_click", {
         product_id: product._id,
         name: product.name,
@@ -313,7 +278,6 @@ export default function Home() {
         location: window.location.pathname,
       });
 
-      // Navigate to product detail page
       navigate(`/product/${product._id}`, { state: { product } });
     };
 
@@ -323,38 +287,55 @@ export default function Home() {
         onClick={handleProductClick}
         style={{ cursor: 'pointer' }}
       >
-        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`}>
+        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`} style={{height: 200, background: 'linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderTopLeftRadius: 18, borderTopRightRadius: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.04)'}}>
           <img
             src={getImageSrc()}
             alt={product.name}
             className="card-image"
             loading="lazy"
             style={{
-              objectFit: "cover",
+              objectFit: "contain",
+              width: '90%',
+              height: '90%',
+              maxHeight: 160,
+              maxWidth: 160,
               display: imageLoading ? "none" : "block",
+              background: 'white',
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
             }}
             onLoad={handleImageLoad}
             onError={handleImageError}
           />
           <ProductBadges product={product} />
         </div>
-        <div className="card-content">
-          <h3 className="card-title">{product.name}</h3>
+        <div className="card-content" style={{display: 'flex', flexDirection: 'column', height: '100%', padding: '18px 16px 0 16px', gap: 8}}>
+          <h3 className="card-title" style={{fontSize: 18, fontWeight: 700, margin: 0, color: '#1a202c', lineHeight: 1.2, minHeight: 24, letterSpacing: 0.1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>{product.name}</h3>
           <ProductRating product={product} renderStars={renderStars} />
-          <ProductPrice product={product} />
-          <p className="card-description">
+          <p className="card-description" style={{flexGrow: 1, fontSize: 14, color: '#444', margin: '4px 0 0 0', minHeight: 32, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: 40}}>
             {product.description || "Premium quality product with excellent features and reliable performance."}
           </p>
-          <div className="card-actions">
+          <div style={{flexGrow: 1}} />
+          <div className="card-price-container" style={{marginTop: 10, paddingTop: 10, borderTop: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, fontWeight: 800, color: '#067d62', justifyContent: 'flex-start'}}>
+            <span className="current-price">{product.price}</span>
+            {product.originalPrice && (
+              <span className="original-price" style={{fontSize: 14, color: '#888', textDecoration: 'line-through', marginLeft: 8}}>{product.originalPrice}</span>
+            )}
+            {product.discount && (
+              <span className="discount-percentage" style={{fontSize: 14, color: '#d9534f', fontWeight: 700, marginLeft: 8}}>({product.discount}% off)</span>
+            )}
+          </div>
+          <div className="card-actions" style={{marginTop: 14, display: 'flex', justifyContent: 'flex-end'}}>
             <button
               className="card-action"
+              style={{background: 'linear-gradient(135deg,#067d62 0%,#38a169 100%)', color: '#fff', borderRadius: 16, padding: '8px 18px', fontWeight: 700, fontSize: 14, border: 'none', boxShadow: '0 2px 8px rgba(6,125,98,0.08)', cursor: 'pointer', letterSpacing: 0.2}}
               onClick={(e) => {
                 e.stopPropagation();
                 handleAddToCart(e, product);
               }}
               title="Add to Cart"
             >
-              <ShoppingCart size={16} />
+              <ShoppingCart size={15} style={{marginRight: 6}} />
               Add to Cart
             </button>
           </div>
@@ -363,7 +344,6 @@ export default function Home() {
     );
   };
 
-  // Rest of the components remain unchanged...
   return (
     <div className="amazon-home-container">
       <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
@@ -394,7 +374,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
 
-  // Update items per view based on screen size
   useEffect(() => {
     const updateItemsPerView = () => {
       if (window.innerWidth < 480) {
@@ -428,10 +407,9 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
     setCurrentSlide(slideIndex);
   };
 
-  // Auto-slide functionality (optional)
   useEffect(() => {
     if (filteredProducts.length > itemsPerView) {
-      const interval = setInterval(nextSlide, 5000); // Auto-slide every 5 seconds
+      const interval = setInterval(nextSlide, 5000);
       return () => clearInterval(interval);
     }
   }, [filteredProducts.length, itemsPerView, maxSlide]);
@@ -464,7 +442,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
         <EmptyState />
       ) : (
         <div className="products-slider-container">
-          {/* Slider Navigation - Previous Button */}
           {filteredProducts.length > itemsPerView && (
             <button
               className="slider-nav-btn slider-prev"
@@ -475,7 +452,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
             </button>
           )}
 
-          {/* Slider Content */}
           <div className="products-slider-wrapper">
             <div
               className="products-slider-track"
@@ -498,7 +474,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
             </div>
           </div>
 
-          {/* Slider Navigation - Next Button */}
           {filteredProducts.length > itemsPerView && (
             <button
               className="slider-nav-btn slider-next"
@@ -509,7 +484,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
             </button>
           )}
 
-          {/* Slider Indicators/Dots */}
           {filteredProducts.length > itemsPerView && totalSlides > 1 && (
             <div className="slider-indicators">
               {Array.from({ length: totalSlides }).map((_, index) => (
@@ -524,7 +498,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
             </div>
           )}
 
-          {/* Products Counter */}
           <div className="products-counter">
             <span>
               Showing{" "}
@@ -541,7 +514,6 @@ const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
   );
 };
 
-// Subcomponents remain unchanged...
 const HeroSection = ({ searchQuery, setSearchQuery }) => (
   <div className="hero-banner">
     <div className="hero-content">
@@ -678,8 +650,6 @@ const FilterSortBar = ({
   </div>
 );
 
-// LoadingGrid component replaced with JumpingLoader
-
 const EmptyState = () => (
   <div className="under-development">
     <h3>🚧 Products Coming Soon! 🚧</h3>
@@ -710,13 +680,14 @@ const DealsSection = ({ deals }) => (
       {deals.length === 0 ? (
         <EmptyState />
       ) : (
-        deals.map((deal) => <DealCard key={deal._id} deal={deal} />)
+        deals.map((deal) => (
+          <DealCard key={deal._id} deal={deal} />
+        ))
       )}
     </div>
   </div>
 );
 
-// processImageUrl is now imported from utils
 const DealCard = ({ deal }) => (
   <div className="card-base card-large deal-card">
     <div className="card-image-container">
@@ -741,9 +712,9 @@ const DealCard = ({ deal }) => (
       <p className="card-description">{deal.description}</p>
       <div className="card-pricing">
         <div className="price-row">
-          <span className="current-price">₹{deal.dealPrice || deal.price}</span>
+          <span className="current-price">{deal.dealPrice || deal.price}</span>
           {deal.originalPrice && (
-            <span className="original-price">₹{deal.originalPrice}</span>
+            <span className="original-price">{deal.originalPrice}</span>
           )}
         </div>
       </div>
@@ -762,9 +733,9 @@ const ProductRating = ({ product, renderStars }) => (
 
 const ProductPrice = ({ product }) => (
   <div className="price-container">
-    <span className="current-price">₹{product.price}</span>
+    <span className="current-price">{product.price}</span>
     {product.originalPrice && (
-      <span className="original-price">₹{product.originalPrice}</span>
+      <span className="original-price">{product.originalPrice}</span>
     )}
     {product.discount && (
       <span className="discount-percentage">({product.discount}% off)</span>

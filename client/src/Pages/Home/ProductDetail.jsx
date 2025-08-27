@@ -126,7 +126,7 @@ import { trackEvent } from "../../analytics/trackEvent";
 //       image:
 //         "https://images.pexels.com/photos/1488463/pexels-photo-1488463.jpeg",
 //       price: "₹4999",
-//       originalPrice: "��7999",
+//       originalPrice: "₹7999",
 //       rating: 4.6,
 //       reviews: 234,
 //       category: "Fashion",
@@ -671,28 +671,13 @@ export default function ProductDetail() {
         <div className="standalone-pricing-section">
           <div className="pricing-section">
             <div className="price-row">
-              <span className="current-price">
-                {/* ₹{calculateDiscountedPriceFinal(item.price, item.discount)} */}
-                ₹{item.finalPrice}
-              </span>
-              {/* {item.originalPrice && (
-                <span className="original-price">
-                  M.R.P: <span className="strike">{item.originalPrice}</span>
-                </span>
-              )} */}
-
+              <span className="current-price">{item.finalPrice}</span>
               {item.price && (
                 <span className="original-price">
-                  M.R.P: <span className="strike">₹{item.price}</span>
+                  M.R.P: <span className="strike">{item.price}</span>
                 </span>
               )}
             </div>
-            {/* {calculateSavings() && (
-              <div className="savings-info">
-                You save: ₹{calculateSavings().toLocaleString()} (
-                {item.discount}%)
-              </div>
-            )} */}
             <div className="savings-info">
               You save: ₹{calculateSavingsFinal(item.price, item.discount)} (
               {item.discount}%)
@@ -723,7 +708,6 @@ export default function ProductDetail() {
             <div className="stars-container">
               {renderStars(item.averageRating ?? 4.5)}
             </div>
-            {/* <span className="rating-value">{item.averageRating || 4.5}</span> */}
             <span className="rating-value">{item.averageRating ?? 4.5}</span>
             <span className="review-count">
               ({item.totalReviews ?? 100} reviews)
@@ -735,29 +719,13 @@ export default function ProductDetail() {
           <div className="desktop-pricing-section">
             <div className="pricing-section">
               <div className="price-row">
-                <span className="current-price">
-                  {/* ₹{calculateDiscountedPriceFinal(item.price, item.discount)} */}
-                  ₹{item.finalPrice}
-                </span>
-                {/* {item.originalPrice && (
-                  <span className="original-price">
-                    M.R.P: <span className="strike">{item.originalPrice}</span>
-                  </span>
-                )} */}
-
+                <span className="current-price">{item.finalPrice}</span>
                 {item.price && (
                   <span className="original-price">
-                    M.R.P: <span className="strike">₹{item.price}</span>
+                    M.R.P: <span className="strike">{item.price}</span>
                   </span>
                 )}
               </div>
-              {/* {calculateSavings() && (
-                <div className="savings-info">
-                  You save: ₹{calculateSavings().toLocaleString()} (
-                  {item.discount}%)
-                </div>
-              )} */}
-
               <div className="savings-info">
                 You save: ₹{calculateSavingsFinal(item.price, item.discount)} (
                 {item.discount}%)
@@ -862,11 +830,11 @@ export default function ProductDetail() {
           <div className="mobile-purchase-integration">
             <div className="mobile-price-summary">
               <span className="card-price">
-                ₹{selectedVariant?.price || item.finalPrice}
+                {selectedVariant?.price || item.finalPrice}
               </span>
               {item.originalPrice && (
                 <span className="card-original-price">
-                  M.R.P: <span className="strike">₹{item.price}</span>
+                  M.R.P: <span className="strike">{item.price}</span>
                 </span>
               )}
             </div>
@@ -907,11 +875,11 @@ export default function ProductDetail() {
           <div className="purchase-card">
             <div className="price-summary">
               <span className="card-price">
-                ₹{selectedVariant?.price || item.finalPrice}
+                {selectedVariant?.price || item.finalPrice}
               </span>
               {item.price && (
                 <span className="card-original-price">
-                  M.R.P: <span className="strike">₹{item.price}</span>
+                  M.R.P: <span className="strike">{item.price}</span>
                 </span>
               )}
             </div>
@@ -1179,10 +1147,10 @@ export default function ProductDetail() {
                 </div>
                 <div className="pricing-section">
                   <span className="current-price">
-                    ₹{calculateDiscountedPriceFinal(product.price, product.discount)}
+                    {calculateDiscountedPriceFinal(product.price, product.discount)}
                   </span>
                   {product.price && product.discount && (
-                    <span className="original-price">₹{product.price}</span>
+                    <span className="original-price">{product.price}</span>
                   )}
                 </div>
                 <div className="card-actions">
