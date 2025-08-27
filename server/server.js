@@ -104,6 +104,7 @@ app.use(
     etag: true,
     lastModified: true,
     setHeaders: (res, path) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       if (
         path.endsWith(".jpg") ||
         path.endsWith(".jpeg") ||
