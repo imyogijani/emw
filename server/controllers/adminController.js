@@ -762,9 +762,14 @@ export const deleteUser = async (req, res) => {
       });
     }
 
-    // Step : if shopowner  → Seller details  delete 
+    // Step : if shopowner  → Seller details  delete
     if (user.role === "shopowner" && user.sellerId) {
       await Seller.findByIdAndDelete(user.sellerId);
+
+      await Product.updateMany(
+        { seller: user.sellerId },
+        { $set: { isActive: false } }
+      );
     }
 
     const firebaseUser = await admin.auth().getUserByEmail(user.email);
