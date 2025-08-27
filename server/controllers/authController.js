@@ -335,7 +335,7 @@ const currentUserController = async (req, res) => {
       .populate("subscription")
       .populate(
         "sellerId",
-        "shopName ownerName shopAddresses shopImage shopImages"
+        "shopName ownerName shopAddresses shopImage shopImages gstNumber"
       );
     const user = await userQuery;
     return res.status(200).send({

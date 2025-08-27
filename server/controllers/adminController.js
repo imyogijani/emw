@@ -934,13 +934,44 @@ export const updateShopownerSubscription = async (req, res) => {
 export const getShopownerDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id).populate("subscription");
+    // Fetch user and populate sellerId (which contains shopName etc)
+    const user = await User.findById(id)
+      .populate("subscription")
+      .populate({ path: "sellerId", model: "Seller" });
     if (!user || user.role !== "shopowner") {
       return res
         .status(404)
         .json({ success: false, message: "Shopowner not found" });
     }
-    res.json({ success: true, user });
+    // Merge seller fields into response for convenience
+    let sellerDetails = null;
+    if (user.sellerId) {
+      // If populated, sellerId is the seller document
+      sellerDetails = user.sellerId.toObject ? user.sellerId.toObject() : user.sellerId;
+    }
+    res.json({
+      success: true,
+      user: {
+        ...user.toObject(),
+        shopName: sellerDetails?.shopName || null,
+        shopImage: sellerDetails?.shopImage || null,
+        shopImages: sellerDetails?.shopImages || [],
+        ownerName: sellerDetails?.ownerName || null,
+        description: sellerDetails?.description || null,
+        categories: sellerDetails?.categories || [],
+        location: sellerDetails?.location || null,
+        shopAddresses: sellerDetails?.shopAddresses || [],
+        specialist: sellerDetails?.specialist || [],
+        status: sellerDetails?.status || user.status,
+        averageRating: sellerDetails?.averageRating || null,
+        totalReviews: sellerDetails?.totalReviews || null,
+        gstNumber: sellerDetails?.gstNumber || null,
+        kycVerified: sellerDetails?.kycVerified || null,
+        bankDetails: sellerDetails?.bankDetails || null,
+        onboardingStep: sellerDetails?.onboardingStep || null,
+        isOnboardingComplete: sellerDetails?.isOnboardingComplete || null,
+      },
+    });
   } catch (err) {
     res.status(500).json({
       success: false,

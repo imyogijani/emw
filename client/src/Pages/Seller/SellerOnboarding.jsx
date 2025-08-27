@@ -19,9 +19,13 @@ const SellerOnboarding = () => {
       try {
         const response = await axios.get("/api/sellers/onboarding-status");
         if (response.data.success) {
-          // Set step to the saved onboarding step from server
-          setStep(response.data.step);
-          console.log("Onboarding step fetched:", response.data);
+          // If onboarding step is 1 (blank/intro), force to 1 (basic details)
+          let serverStep = response.data.step;
+          if (serverStep === 1 || !serverStep) {
+            setStep(1); // Always start at basic details
+          } else {
+            setStep(serverStep);
+          }
         }
       } catch (error) {
         showErrorToast(
