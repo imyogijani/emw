@@ -8,6 +8,7 @@ import {
   fetchUser,
 } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
+import { getOnboardingSettings } from "../middlewares/onboardingMiddleware.js";
 
 import {
   onboardingStep1,
@@ -88,6 +89,7 @@ router.post(
     { name: "shopImage", maxCount: 1 },
     { name: "shopImages", maxCount: 5 },
   ]),
+  getOnboardingSettings,
   onboardingStep1
 );
 
@@ -96,6 +98,7 @@ router.post(
   authenticateToken,
   authorizeSeller,
   fetchUser,
+  getOnboardingSettings,
   completeOnboarding
 );
 

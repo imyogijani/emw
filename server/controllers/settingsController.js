@@ -14,17 +14,20 @@ export const updateSettings = async (req, res) => {
       sellerEmailVerification,
       maintenanceMode,
       allowRegistration,
+      onboardingEnabled,
+      onboardingRequiredSteps,
     } = req.body;
 
     const updates = {};
 
-    // ✅ Step 1: Only allow boolean values
+    // ✅ Step 1: Only allow boolean values for boolean fields
     for (const [k, v] of Object.entries({
       emailVerificationEnabled,
       customerEmailVerification,
       sellerEmailVerification,
       maintenanceMode,
       allowRegistration,
+      onboardingEnabled,
     })) {
       if (typeof v !== "undefined" && typeof v !== "boolean") {
         return res.status(400).json({
@@ -33,6 +36,25 @@ export const updateSettings = async (req, res) => {
         });
       }
       if (typeof v === "boolean") updates[k] = v;
+    }
+
+    // Handle onboardingRequiredSteps array
+    if (onboardingRequiredSteps !== undefined) {
+      if (!Array.isArray(onboardingRequiredSteps)) {
+        return res.status(400).json({
+          success: false,
+          message: "onboardingRequiredSteps must be an array",
+        });
+      }
+      const validSteps = ['shopTiming', 'shopDetails', 'legalDocuments', 'basicDetails'];
+      const invalidSteps = onboardingRequiredSteps.filter(step => !validSteps.includes(step));
+      if (invalidSteps.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid onboarding steps: ${invalidSteps.join(', ')}`,
+        });
+      }
+      updates.onboardingRequiredSteps = onboardingRequiredSteps;
     }
 
     // ✅ Step 2: Apply master toggle logic

@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { showErrorToast } from "../../utils/errorHandler";
+import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
 import axios from "../../utils/axios";
 import {
   FaEnvelope,
@@ -84,21 +84,21 @@ const Register = () => {
 
     // Basic validations
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
+      showErrorToast("Passwords do not match");
       setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
 
     if (!/^[6-9]\d{9}$/.test(formData.phone)) {
-      toast.error("Please enter a valid 10-digit phone number");
+      showErrorToast("Please enter a valid 10-digit phone number");
       setError("Please enter a valid 10-digit phone number");
       setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters long");
+      showErrorToast("Password must be at least 6 characters long");
       setError("Password must be at least 6 characters long");
       setIsLoading(false);
       return;
@@ -118,7 +118,7 @@ const Register = () => {
       const response = await axios.post("/api/auth/register", submitData);
 
       if (!response.data.success) {
-        toast.error(response.data.message);
+        showErrorToast(response.data.message);
         setError(response.data.message);
         setIsLoading(false);
         return;
@@ -172,21 +172,29 @@ const Register = () => {
         );
 
         await sendEmailVerification(userCred.user);
-        toast.success("📩 Verification email sent! Please check your inbox.");
+        showSuccessToast("📩 Verification email sent! Please check your inbox.");
       } else {
         // console.log("✅ Email verification not required → skipping Firebase");
       }
+      
       const user = response.data.user;
-      await requestPushPermission(user._id);
+      
+      try {
+        await requestPushPermission(user._id);
+      } catch (pushError) {
+        console.warn("Push permission request failed:", pushError);
+        // Continue with registration even if push permission fails
+      }
 
       trackEvent("register_success", {
         email: formData.email,
         location: window.location.pathname,
       });
 
-      toast.success(
-        "Registration successful! Please check your email to verify."
-      );
+      showSuccessToast("Registration successful! Please check your email to verify.");
+      setIsLoading(false);
+      
+      // Navigate to login immediately
       navigate("/login");
     } catch (err) {
       console.error("Registration error:", err);
@@ -197,6 +205,7 @@ const Register = () => {
       });
 
       const ERROR_CODE = err.code;
+      setIsLoading(false);
       if (err.code === "auth/email-already-in-use") {
         showErrorToast(
           "This email is already registered. Try logging in.",

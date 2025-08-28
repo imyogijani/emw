@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FaSearch,
   FaUserCog,
@@ -11,6 +11,14 @@ import {
   FaUsers,
   FaEye,
   FaEyeSlash,
+  FaUserTag,
+  FaUserCheck,
+  FaUserClock,
+  FaToggleOn,
+  FaBan,
+  FaCheckCircle,
+  FaClock,
+  FaListAlt
 } from "react-icons/fa";
 import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
@@ -22,6 +30,9 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterOnboarding, setFilterOnboarding] = useState("all");
+  const [filterRegistration, setFilterRegistration] = useState("all");
   const [modal, setModal] = useState(null); // { type: 'edit'|'delete', user: {...} }
   const [roleToSet, setRoleToSet] = useState("");
   const [formData, setFormData] = useState({
@@ -41,29 +52,37 @@ const Users = () => {
   const [totalUsersCount, setTotalUsersCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    fetchUsers(1, true); // Load first page on mount
-  }, [filterRole, searchTerm]);
-
-  const fetchUsers = async (pageToFetch = 1, reset = false) => {
+  const fetchUsers = useCallback(async (pageToFetch = 1, reset = false) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Authentication token not found");
+        setLoading(false);
+        return;
+      }
+
       const params = {
         page: pageToFetch,
         limit: 20,
+        role: filterRole !== "all" ? filterRole : undefined,
+        search: searchTerm || undefined,
       };
-      if (filterRole !== "all") params.role = filterRole;
-      if (searchTerm) params.search = searchTerm;
+      
       const response = await axios.get("/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });
-      if (reset) {
-        setUsers(response.data.users || []);
-      } else {
-        setUsers((prev) => [...prev, ...(response.data.users || [])]);
-      }
+
+      const newUsers = response.data.users || [];
+      setUsers(prevUsers => {
+        if (reset) return newUsers;
+        // Remove any duplicates when adding new users
+        const existingIds = new Set(prevUsers.map(u => u._id));
+        const uniqueNewUsers = newUsers.filter(user => !existingIds.has(user._id));
+        return [...prevUsers, ...uniqueNewUsers];
+      });
+      
       setTotalUsersCount(response.data.totalUsers || 0);
       setPage(pageToFetch);
       setHasMore(pageToFetch < (response.data.totalPages || 1));
@@ -72,13 +91,18 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterRole, searchTerm]);
 
-  const handleLoadMore = () => {
+  useEffect(() => {
+    // Initial fetch of users
+    fetchUsers(1, true);
+  }, [fetchUsers]);
+
+  const handleLoadMore = useCallback(() => {
     if (hasMore && !loading) {
       fetchUsers(page + 1);
     }
-  };
+  }, [hasMore, loading, page, fetchUsers]);
 
   const handleDeleteUser = async (userId) => {
     try {
@@ -86,12 +110,27 @@ const Users = () => {
       await axios.delete(`/api/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      // Optimistically update the UI
+      setUsers(prevUsers => {
+        const updatedUsers = prevUsers.filter(user => user._id !== userId);
+        // If we have less than 20 users after deletion and there are more pages,
+        // fetch the next page to maintain the list
+        if (updatedUsers.length < 20 && hasMore) {
+          fetchUsers(page + 1);
+        }
+        return updatedUsers;
+      });
+      setTotalUsersCount(prev => prev - 1);
       toast.success("User deleted successfully");
-      fetchUsers(1, true);
+      // Close the modal immediately
+      setModal(null);
     } catch (error) {
-      toast.error("Error deleting user");
+      console.error('Error deleting user:', error);
+      toast.error(error.response?.data?.message || "Error deleting user");
+      setModal(null);
+      // Refresh the list in case of error to ensure consistency
+      fetchUsers(page, true);
     }
-    setModal(null);
   };
 
   const handleUpdateUser = async (userId, newRole, newStatus) => {
@@ -120,10 +159,25 @@ const Users = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesRole =
       filterRole === "all" ||
       user.role.toLowerCase() === filterRole.toLowerCase();
-    return matchesSearch && matchesRole;
+    
+    const matchesStatus =
+      filterStatus === "all" ||
+      user.status.toLowerCase() === filterStatus.toLowerCase();
+    
+    const matchesOnboarding =
+      filterOnboarding === "all" ||
+      (filterOnboarding === "completed" && user.isOnboardingComplete) ||
+      (filterOnboarding === "pending" && !user.isOnboardingComplete);
+    
+    const matchesRegistration =
+      filterRegistration === "all" ||
+      user.registrationStatus === filterRegistration;
+
+    return matchesSearch && matchesRole && matchesStatus && matchesOnboarding && matchesRegistration;
   });
 
   // Display all filtered users
@@ -240,35 +294,94 @@ const Users = () => {
       </div>
 
       <div className="users-controls">
-        <div className="search-box">
-          <FaSearch />
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        {/* Search and View Toggle Row */}
+        <div className="search-row">
+          <div className="search-box">
+            <FaSearch />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <button
+            className="btn btn-small btn-secondary"
+            onClick={handleToggleViewMode}
+            title={viewMode === 'grid' ? "Switch to list view" : "Switch to grid view"}
+          >
+            <span className="sparkle">{viewMode === 'grid' ? <FaListAlt /> : <FaEye />}</span>
+          </button>
         </div>
 
-        <select
-          value={filterRole}
-          onChange={(e) => setFilterRole(e.target.value)}
-          className="role-filter"
-        >
-          <option value="all">All Users</option>
-          <option value="admin">Admins</option>
-          <option value="shopowner">Shop Owners</option>
-          <option value="client">Customers</option>
-        </select>
+        {/* Role and Status Filters Row */}
+        <div className="filters-row">
+          <div className="filter-group">
+            <div className="filter-icon">
+              <FaUserTag />
+            </div>
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="shopowner">Seller</option>
+              <option value="client">User</option>
+            </select>
+          </div>
 
-        <button
-          className="btn btn-medium btn-secondary"
-          onClick={handleToggleViewMode}
-          title={viewMode === 'grid' ? "Switch to list view" : "Switch to grid view"}
-        >
-          <span className="sparkle">{viewMode === 'grid' ? <FaEyeSlash /> : <FaEye />}</span>
-          <span className="text">{viewMode === 'grid' ? "List View" : "Grid View"}</span>
-        </button>
+          <div className="filter-group">
+            <div className="filter-icon">
+              <FaToggleOn />
+            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="banned">Banned</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Registration and Onboarding Filters Row */}
+        <div className="filters-row">
+          <div className="filter-group">
+            <div className="filter-icon">
+              <FaUserCheck />
+            </div>
+            <select
+              value={filterRegistration}
+              onChange={(e) => setFilterRegistration(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Registration</option>
+              <option value="verified">Verified</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <div className="filter-icon">
+              <FaUserClock />
+            </div>
+            <select
+              value={filterOnboarding}
+              onChange={(e) => setFilterOnboarding(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Onboarding</option>
+              <option value="completed">Done</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="users-table-container">

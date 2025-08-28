@@ -1333,6 +1333,8 @@ export const getSettings = async (req, res) => {
         sellerEmailVerification: settings.sellerEmailVerification,
         maintenanceMode: settings.maintenanceMode,
         allowRegistration: settings.allowRegistration,
+        onboardingEnabled: settings.onboardingEnabled,
+        onboardingRequiredSteps: settings.onboardingRequiredSteps,
       },
     });
   } catch (error) {
@@ -1391,6 +1393,8 @@ export const updateSettings = async (req, res) => {
         sellerEmailVerification: settings.sellerEmailVerification,
         maintenanceMode: settings.maintenanceMode,
         allowRegistration: settings.allowRegistration,
+        onboardingEnabled: settings.onboardingEnabled,
+        onboardingRequiredSteps: settings.onboardingRequiredSteps,
       },
     });
   } catch (error) {

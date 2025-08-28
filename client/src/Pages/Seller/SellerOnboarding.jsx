@@ -1,25 +1,63 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/axios";
-import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
+import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/errorHandler";
 import { useNavigate } from "react-router-dom";
-import "./OnboardingForms.css";
-import { FaSignOutAlt, FaRegClock } from "react-icons/fa";
+import "./OnboardingForms.css?v=1.0.0";
+import "./GSTForm.css?v=1.0.0";
+import { FaSignOutAlt, FaRegClock, FaForward } from "react-icons/fa";
+import { getSystemSettings, isOnboardingEnabled, getRequiredOnboardingSteps, STEP_MAPPING } from "../../utils/systemSettings";
 
 const SellerOnboarding = () => {
+  // -------------------- STATE --------------------
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [plans, setPlans] = useState([]);
+  const [systemSettings, setSystemSettings] = useState(null);
+  const [requiredSteps, setRequiredSteps] = useState([]);
+  const [onboardingDisabled, setOnboardingDisabled] = useState(false);
 
-  // Fetch the current onboarding step when component mounts
+  // Helper function to check if a step is required
+  const isStepRequired = (stepNumber) => {
+    const stepKey = getStepKey(stepNumber);
+    return requiredSteps.includes(stepKey);
+  };
+
+  // Helper function to check if skipping is allowed for current step
+  const canSkipCurrentStep = () => {
+    return !isStepRequired(step);
+  };
+
+  // Fetch system settings and check onboarding status
   useEffect(() => {
-    const fetchOnboardingStep = async () => {
+    const initializeOnboarding = async () => {
       try {
+        // Fetch system settings first
+        const settings = await getSystemSettings();
+        setSystemSettings(settings);
+        
+        const onboardingEnabled = await isOnboardingEnabled();
+        const steps = await getRequiredOnboardingSteps();
+        
+        setRequiredSteps(steps);
+        setOnboardingDisabled(!onboardingEnabled);
+        
+        // If onboarding is disabled, redirect to dashboard with toast
+        if (!onboardingEnabled) {
+          showInfoToast(
+            "Onboarding is currently disabled. You have full dashboard access!",
+            "Onboarding Status"
+          );
+          navigate("/seller/dashboard");
+          return;
+        }
+        
+        // Fetch current onboarding step
         const response = await axios.get("/api/sellers/onboarding-status");
         if (response.data.success) {
-          // If onboarding step is 1 (blank/intro), force to 1 (basic details)
           let serverStep = response.data.step;
           if (serverStep === 1 || !serverStep) {
             setStep(1); // Always start at basic details
@@ -28,21 +66,23 @@ const SellerOnboarding = () => {
           }
         }
       } catch (error) {
+        console.error("Onboarding initialization error:", error);
         showErrorToast(
-          "Failed to fetch onboarding progress",
-          "Seller Onboarding - Data Fetch"
+          "Failed to initialize onboarding",
+          "Seller Onboarding - Initialization"
         );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOnboardingStep();
-  }, []);
+    initializeOnboarding();
+  }, [navigate]);
   const [formData, setFormData] = useState({
     // Step 1 - Basic Details
     shopName: "",
     categories: [],
+    // Document Type Selection
     brands: [],
     shopLogo: null,
     logoPreview: null,
@@ -81,8 +121,15 @@ const SellerOnboarding = () => {
     // Step 4 - Subscription
     selectedPlan: null,
 
-    // Step 3 - GST
+    // Step 3 - Documents and Bank Details
+    hasGST: null,
     gstNumber: "",
+    bankDetails: {
+      accountNumber: "",
+      ifscCode: "",
+      beneficiaryName: "",
+      confirmAccountNumber: "",
+    },
   });
 
   const [states, setStates] = useState([]);
@@ -93,6 +140,7 @@ const SellerOnboarding = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedPincode, setSelectedPincode] = useState("");
 
+  // Document options based on GST status
   // -------------------- STATE --------------------
   const [documents, setDocuments] = useState([
     {
@@ -100,72 +148,39 @@ const SellerOnboarding = () => {
       file: null,
       preview: null,
       number: "",
-      categories: [],
     },
   ]);
 
-  // Doc types exactly as per backend schema
+  // Doc types as per backend schema
+  const docTypes = {
+    // Identity documents
+    identity: ["aadhaar", "pan", "drivingLicense", "voterId", "passport", "governmentIdCard"],
+    // Address proof documents
+    address: ["aadhaar", "electricityBill", "telephoneBill", "rentAgreement", "passbook"],
+    // Business documents
+    business: ["gst", "udyam", "certificateOfIncorporation", "partnershipDeed", "trustDeed"],
+    // Bank related documents
+    bank: ["bankPassbook", "bankStatement"],
+  };
+
+  // All available document types
   const docOptions = [
     "aadhaar",
     "pan",
     "gst",
-    "udyam",
+    "bankPassbook",
+    "bankStatement",
     "drivingLicense",
     "voterId",
-    "electricityBill",
     "passport",
-    "rentAgreement",
-    "bankPassbook",
-    "telephoneBill",
-    "bankAccountStatement",
-    "birthCertificate",
-    "gasConnection",
-    "incomeTaxOrder",
-    "rationCard",
-    "governmentIdCard",
+    "udyam",
     "certificateOfIncorporation",
-    "pensionDocuments",
-    "memorandumOfAssociation",
+    "electricityBill",
+    "telephoneBill",
+    "rentAgreement",
     "partnershipDeed",
     "trustDeed",
-    "certificateFromEmployer",
-    "lastIssuedPassport",
   ];
-
-  // Document categories mapping as per backend
-  const documentCategoriesMap = {
-    aadhaar: ["identity", "address"],
-    pan: ["identity"],
-    gst: ["business"],
-    udyam: ["business"],
-    drivingLicense: ["identity", "address"],
-    voterId: ["identity", "address"],
-    electricityBill: ["address"],
-    passport: ["identity", "address"],
-    rentAgreement: ["address"],
-    bankPassbook: ["bank", "address"],
-    telephoneBill: ["address"],
-    bankAccountStatement: ["bank", "address"],
-    certificateOfIncorporation: ["business"],
-    memorandumOfAssociation: ["business"],
-    partnershipDeed: ["business"],
-    trustDeed: ["business"],
-    lastIssuedPassport: ["identity"],
-    birthCertificate: ["identity"],
-    gasConnection: ["address"],
-    incomeTaxOrder: ["identity", "business"],
-    rationCard: ["identity", "address"],
-    governmentIdCard: ["identity"],
-    pensionDocuments: ["identity", "bank"],
-    certificateFromEmployer: ["identity", "business"],
-  };
-
-  // Get available categories for selected document type
-  const getAvailableCategories = (docType) => {
-    return documentCategoriesMap[docType] || [];
-  };
-
-  const navigate = useNavigate();
 
   // Logout handler
   const handleLogout = () => {
@@ -173,6 +188,60 @@ const SellerOnboarding = () => {
     localStorage.removeItem("user");
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/login");
+  };
+
+  // Skip step handler
+  const handleSkipStep = () => {
+    // Don't allow skipping if step is required
+    if (!canSkipCurrentStep()) {
+      showErrorToast("This step is required and cannot be skipped.");
+      return;
+    }
+
+    const currentStepKey = getStepKey(step);
+    const stepLabels = {
+      basicDetails: 'Basic Details',
+      shopTiming: 'Shop Timing',
+      legalDocuments: 'Legal Documents',
+      subscription: 'Subscription'
+    };
+    
+    // Store skipped step in localStorage for dashboard reminders
+    const existingSkippedSteps = JSON.parse(localStorage.getItem('skippedOnboardingSteps') || '[]');
+    if (!existingSkippedSteps.includes(currentStepKey)) {
+      existingSkippedSteps.push(currentStepKey);
+      localStorage.setItem('skippedOnboardingSteps', JSON.stringify(existingSkippedSteps));
+    }
+    
+    showInfoToast(
+      `${stepLabels[currentStepKey]} step skipped. You can complete it later from your dashboard.`,
+      "Step Skipped"
+    );
+    
+    // Find next required step
+    let nextStep = step + 1;
+    while (nextStep <= 4 && !isStepRequired(nextStep)) {
+      nextStep++;
+    }
+    
+    // If we've passed all steps, go to dashboard
+    if (nextStep > 4) {
+      navigate("/seller/dashboard");
+    } else {
+      setStep(nextStep);
+    }
+  };
+
+  // Check if current step is required
+  const isCurrentStepRequired = () => {
+    const currentStepKey = getStepKey(step);
+    return requiredSteps.includes(currentStepKey);
+  };
+
+  // Get step key from step number
+  const getStepKey = (stepNumber) => {
+    const stepKeys = Object.keys(STEP_MAPPING);
+    return stepKeys.find(key => STEP_MAPPING[key] === stepNumber) || 'basicDetails';
   };
 
   // ================== 1. Load States ==================
@@ -382,6 +451,11 @@ const SellerOnboarding = () => {
   };
 
   const validateStep = () => {
+    // If step is not required, allow to proceed without validation
+    if (!isCurrentStepRequired()) {
+      return true;
+    }
+    
     switch (step) {
       case 1:
         if (!formData.shopName) {
@@ -398,14 +472,6 @@ const SellerOnboarding = () => {
           );
           return false;
         }
-        // if (!formData.shopAddress) {
-        //   showErrorToast("Shop address is required", "Seller Onboarding - Step 1 Validation");
-        //   return false;
-        // }
-        // if (!formData.location) {
-        //   showErrorToast("Shop location is required", "Seller Onboarding - Step 1 Validation");
-        //   return false;
-        // }
         if (formData.shopImages.length === 0) {
           showErrorToast(
             "Please upload at least one shop image",
@@ -428,21 +494,71 @@ const SellerOnboarding = () => {
         }
         break;
       }
-      case 3:
-        if (!formData.selectedPlan) {
+      case 3: {
+        // Check if GST selection is made
+        if (formData.hasGST === null) {
           showErrorToast(
-            "Please select a subscription plan",
+            "Please select your GST registration status",
+            "Seller Onboarding - Step 3 Validation"
+          );
+          return false;
+        }
+
+        // If has GST, validate GST number
+        if (formData.hasGST === true && (!formData.gstNumber || formData.gstNumber.trim().length !== 15)) {
+          showErrorToast(
+            "Please enter a valid 15-character GST number",
+            "Seller Onboarding - Step 3 Validation"
+          );
+          return false;
+        }
+
+        // Validate bank details
+        const bankDetails = formData.bankDetails;
+        if (!bankDetails.beneficiaryName || bankDetails.beneficiaryName.trim() === '') {
+          showErrorToast(
+            "Please enter the account holder name",
+            "Seller Onboarding - Step 3 Validation"
+          );
+          return false;
+        }
+
+        if (!bankDetails.accountNumber || bankDetails.accountNumber.trim() === '') {
+          showErrorToast(
+            "Please enter the bank account number",
+            "Seller Onboarding - Step 3 Validation"
+          );
+          return false;
+        }
+
+        if (!bankDetails.ifscCode || !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankDetails.ifscCode)) {
+          showErrorToast(
+            "Please enter a valid IFSC code",
+            "Seller Onboarding - Step 3 Validation"
+          );
+          return false;
+        }
+
+        // Validate documents based on GST status
+        const requiredDocsCount = formData.hasGST === false ? 2 : 0;
+        const validDocuments = documents.filter(doc => 
+          doc.docType && doc.number && doc.file &&
+          (!formData.hasGST || ["aadhaar", "pan"].includes(doc.docType))
+        );
+
+        if (validDocuments.length < requiredDocsCount) {
+          showErrorToast(
+            `Please provide ${requiredDocsCount} valid identification documents (Aadhaar and PAN)`,
             "Seller Onboarding - Step 3 Validation"
           );
           return false;
         }
         break;
-      // case 4:
-      // if (!formData.gstNumber) {
-      //   toast.error("GST number is required");
-      //   return false;
-      // }
-      // break;
+      }
+      case 4: {
+        // Subscription validation if needed
+        break;
+      }
     }
     return true;
   };
@@ -456,22 +572,41 @@ const SellerOnboarding = () => {
   // };
 
   const handleNext = async () => {
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      return;
+    }
 
     try {
-      if (step === 1) {
-        await submitStep1();
-      } else if (step === 2) {
-        await submitStep2();
-      } else if (step === 3) {
-        await submitStep3();
+      // Only submit if step is required
+      if (isCurrentStepRequired()) {
+        if (step === 1) {
+          await submitStep1();
+        } else if (step === 2) {
+          await submitStep2();
+        } else if (step === 3) {
+          await submitStep3();
+        }
+      } else {
+        // For optional steps, show skip message
+        const currentStepKey = getStepKey(step);
+        const stepLabels = {
+          basicDetails: 'Basic Details',
+          shopTiming: 'Shop Timing',
+          legalDocuments: 'Legal Documents',
+          subscription: 'Subscription'
+        };
+        showInfoToast(
+          `${stepLabels[currentStepKey]} step is optional and was skipped.`,
+          "Optional Step Skipped"
+        );
       }
 
-      // Only advance if no error thrown
+      // Only advance step if we reach this point (no errors thrown)
       setStep(step + 1);
     } catch (error) {
       // Do not advance step if error
-      // Error already shown by submitStep3
+      console.error("Step submission error:", error);
+      showErrorToast(error.response?.data?.message || "Step submission failed", "Seller Onboarding");
     }
   };
 
@@ -506,6 +641,9 @@ const SellerOnboarding = () => {
 
       // Start free trial
       await axios.post("/api/seller/start-free-trial");
+
+      // Clear skipped steps from localStorage since onboarding is now complete
+      localStorage.removeItem('skippedOnboardingSteps');
 
       showSuccessToast(
         "🎉 Profile completed! Your 7-day free trial has started!",
@@ -688,13 +826,11 @@ const SellerOnboarding = () => {
   // Document change (single file each type)
   const handleDocChange = (index, field, value) => {
     const updated = [...documents];
-    updated[index][field] = value;
-
-    // If document type changes, reset categories and auto-select all available categories
-    if (field === "docType") {
-      updated[index].categories = getAvailableCategories(value);
-    }
-
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+      categories: field === "docType" ? [] : updated[index].categories || []
+    };
     setDocuments(updated);
   };
   const handleFileChange = (index, file) => {
@@ -707,42 +843,33 @@ const SellerOnboarding = () => {
   const addDocumentRow = () => {
     setDocuments((prev) => [
       ...prev,
-      { docType: "", file: null, preview: null, number: "", categories: [] },
+      { docType: "", file: null, preview: null, number: "" },
     ]);
   };
 
   const submitStep3 = async () => {
     try {
       const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        throw new Error("User session not found. Please login again.");
+      }
+
       const user = JSON.parse(userStr);
       const sellerId = user?.sellerId;
 
-      // GST number update only if entered
-      if (formData.gstNumber && formData.gstNumber.trim() !== "") {
-        try {
-          await axios.post("/api/sellers/gst-number", {
-            gstNumber: formData.gstNumber,
-          });
-          showSuccessToast(
-            "GST number updated successfully 🎉",
-            "Seller Onboarding - GST Update"
-          );
-        } catch (gstErr) {
-          console.error("GST update error:", gstErr);
-          // Show backend error message if available
-          showErrorToast(
-            gstErr.response?.data?.message || "GST number update failed",
-            "Seller Onboarding - GST Update"
-          );
-          throw new Error(
-            gstErr.response?.data?.message || "GST number update failed"
-          );
-        }
+      if (!sellerId) {
+        throw new Error("Seller ID not found. Please contact support.");
       }
 
+      if (!validateStep()) {
+        throw new Error("Validation failed");
+      }
+
+      // Create form data for document upload
       const fd = new FormData();
       fd.append("sellerId", sellerId);
-      console.log("sellerId:", sellerId);
+      fd.append("bankDetails", JSON.stringify(formData.bankDetails));
+      fd.append("incrementOnboarding", "true");
 
       documents.forEach((doc) => {
         if (!doc.file || !doc.docType) return;
@@ -775,7 +902,6 @@ const SellerOnboarding = () => {
         "Documents uploaded successfully 🎉",
         "Seller Onboarding - Documents"
       );
-      setStep(4);
     } catch (err) {
       // Only show error, do not advance step
       if (err instanceof Error && err.message) {
@@ -817,11 +943,12 @@ const SellerOnboarding = () => {
       <button
         className="btn btn-small btn-danger logout-btn-onboarding"
         onClick={handleLogout}
+        title="Logout and exit onboarding"
       >
         <span className="sparkle">
           <FaSignOutAlt />
         </span>
-        <span className="text">Logout</span>
+        {/* <span className="text">Logout</span> */}
       </button>
       <h2 className="step-title">Basic Details</h2>
       <p className="step-description">
@@ -1443,26 +1570,218 @@ const SellerOnboarding = () => {
     );
   };
 
-  const renderGSTForm = () => (
-    <div className="form-step">
-      <h2 className="step-title">GST & Documents</h2>
-      <p className="step-description">
-        Please provide your GST details and upload the required documents.
-      </p>
+  const renderGSTForm = () => {
+    const requiredDocTypes = formData.hasGST === false ? ["aadhaar", "pan", "bankStatement"] : docOptions;
 
-      {/* GST Number */}
-      <div className="form-group">
-        <label className="form-label">GST Number</label>
-        <input
-          type="text"
-          className="form-input"
-          value={formData.gstNumber}
-          onChange={(e) =>
-            setFormData({ ...formData, gstNumber: e.target.value })
-          }
-          placeholder="Enter GST number"
-        />
+    return (
+      <div className="form-step">
+        <h2 className="step-title">GST & Identity Verification</h2>
+        <p className="step-description">Please provide your business registration details</p>
+
+        {/* GST Section */}
+        <div className="form-section">
+          <h3>GST Registration</h3>
+          <div className="form-group">
+            <label className="form-label">Do you have GST Registration?</label>
+            <div className="gst-options">
+              <button
+                type="button"
+                className={`gst-option ${formData.hasGST === true ? 'selected' : ''}`}
+                onClick={() => setFormData({ ...formData, hasGST: true })}
+              >
+                Yes, I have GST
+              </button>
+              <button
+                type="button"
+                className={`gst-option ${formData.hasGST === false ? 'selected' : ''}`}
+                onClick={() => setFormData({ ...formData, hasGST: false })}
+              >
+                No, I don't have GST
+              </button>
+            </div>
+          </div>
+
+          {formData.hasGST === true && (
+            <div className="form-group">
+              <label className="form-label">GST Number</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.gstNumber}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    gstNumber: e.target.value.toUpperCase()
+                  })
+                }
+                placeholder="Enter your GST number"
+                maxLength="15"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Bank Account Section */}
+        <div className="form-section">
+          <h3>Bank Account Details</h3>
+          <p className="section-note">This account will be used to receive your payments from sales</p>
+
+          <div className="form-group">
+            <label className="form-label">Account Holder Name *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.bankDetails.beneficiaryName || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                bankDetails: { ...formData.bankDetails, beneficiaryName: e.target.value }
+              })}
+              placeholder="Enter account holder name"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Account Number *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.bankDetails.accountNumber || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                bankDetails: { ...formData.bankDetails, accountNumber: e.target.value }
+              })}
+              placeholder="Enter account number"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">IFSC Code *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.bankDetails.ifscCode || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                bankDetails: { ...formData.bankDetails, ifscCode: e.target.value.toUpperCase() }
+              })}
+              placeholder="Enter IFSC code"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Document Upload Section */}
+        <div className="form-section">
+          <h3>Identity Verification</h3>
+          {formData.hasGST === false ? (
+            <>
+              <p className="section-note">Please provide any two documents for verification:</p>
+              <ul className="document-list">
+                <li>Aadhaar Card</li>
+                <li>PAN Card</li>
+                <li>Bank Statement/Passbook (Optional)</li>
+              </ul>
+            </>
+          ) : (
+            <p className="section-note">Additional verification documents (optional)</p>
+          )}
+
+          {documents.map((doc, index) => (
+            <div key={index} className="document-upload-item">
+              <div className="form-group">
+                <label className="form-label">Document Type *</label>
+                <select
+                  className="form-input"
+                  value={doc.docType}
+                  onChange={(e) => handleDocChange(index, "docType", e.target.value)}
+                  required={formData.hasGST === false && index < 2}
+                >
+                  <option value="">Select Document Type</option>
+                  {requiredDocTypes.map((option) => (
+                    <option key={option} value={option}>
+                      {option.charAt(0).toUpperCase() + option.slice(1).replace(/([A-Z])/g, ' $1')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {doc.docType && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">Document Number *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={doc.number}
+                      onChange={(e) => handleDocChange(index, "number", e.target.value)}
+                      placeholder={`Enter ${doc.docType.replace(/([A-Z])/g, ' $1').toLowerCase()} number`}
+                      required={formData.hasGST === false && index < 2}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Upload Document *</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => handleFileChange(index, e.target.files[0])}
+                      required={formData.hasGST === false && index < 2}
+                    />
+                    {doc.preview && (
+                      <div className="document-preview">
+                        {doc.file?.type.startsWith("image/") ? (
+                          <img src={doc.preview} alt="Document preview" />
+                        ) : (
+                          <div className="pdf-preview">PDF Document</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {index > 0 && (
+                <button
+                  type="button"
+                  className="remove-document"
+                  onClick={() => {
+                    const newDocs = [...documents];
+                    newDocs.splice(index, 1);
+                    setDocuments(newDocs);
+                  }}
+                >
+                  Remove Document
+                </button>
+              )}
+            </div>
+          ))}
+
+          {documents.length < 3 && (
+            <button
+              type="button"
+              className="add-document"
+              onClick={() =>
+                setDocuments([
+                  ...documents,
+                  {
+                    docType: "",
+                    file: null,
+                    preview: null,
+                    number: "",
+                  }
+                ])
+              }
+            >
+              Add Another Document
+            </button>
+          )}
+        </div>
       </div>
+    );
+  };
+          
 
       {/* Dynamic Document Upload Rows */}
       {documents.map((doc, idx) => (
@@ -1492,30 +1811,7 @@ const SellerOnboarding = () => {
               onChange={(e) => handleDocChange(idx, "number", e.target.value)}
             />
 
-            {/* Categories */}
-            <select
-              className="form-input"
-              multiple
-              value={doc.categories}
-              onChange={(e) =>
-                handleDocChange(
-                  idx,
-                  "categories",
-                  Array.from(e.target.selectedOptions, (o) => o.value)
-                )
-              }
-              disabled={!doc.docType}
-            >
-              {doc.docType ? (
-                getAvailableCategories(doc.docType).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </option>
-                ))
-              ) : (
-                <option value="">Select document type first</option>
-              )}
-            </select>
+
 
             {/* File Upload */}
             <div className="file-upload">
@@ -1589,8 +1885,6 @@ const SellerOnboarding = () => {
           Save & Continue
         </button>
       </div>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -1619,11 +1913,39 @@ const SellerOnboarding = () => {
             style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
+        
+        {/* Step indicators */}
+        <div className="step-indicators">
+          <div className="step-labels">
+            <div className={`step-label ${step === 1 ? 'active' : step > 1 ? 'completed' : ''}`}>
+              <span className="step-number">1</span>
+              <span className="step-name">Basic Details</span>
+              {!requiredSteps.includes('basicDetails') && <span className="optional-badge">Optional</span>}
+            </div>
+            <div className={`step-label ${step === 2 ? 'active' : step > 2 ? 'completed' : ''}`}>
+              <span className="step-number">2</span>
+              <span className="step-name">Shop Timing</span>
+              {!requiredSteps.includes('shopTiming') && <span className="optional-badge">Optional</span>}
+            </div>
+            <div className={`step-label ${step === 3 ? 'active' : step > 3 ? 'completed' : ''}`}>
+              <span className="step-number">3</span>
+              <span className="step-name">Legal Documents</span>
+              {!requiredSteps.includes('legalDocuments') && <span className="optional-badge">Optional</span>}
+            </div>
+            <div className={`step-label ${step === 4 ? 'active' : step > 4 ? 'completed' : ''}`}>
+              <span className="step-number">4</span>
+              <span className="step-name">Subscription</span>
+              {!requiredSteps.includes('subscription') && <span className="optional-badge">Optional</span>}
+            </div>
+          </div>
+        </div>
 
-        {step === 1 && renderBasicDetailsForm()}
-        {step === 2 && renderTimingForm()}
-        {step === 3 && renderGSTForm()}
-        {step === 4 && renderSubscriptionForm()}
+        {/* Step rendering */}
+        {step === 1 ? renderBasicDetailsForm() :
+         step === 2 ? renderTimingForm() :
+         step === 3 ? renderGSTForm() :
+         step === 4 ? renderSubscriptionForm() :
+         null}
 
         <div className="form-actions">
           {step > 1 && (
@@ -1636,14 +1958,30 @@ const SellerOnboarding = () => {
               Back
             </button>
           )}
+          
+          {/* Skip button for optional steps */}
+          {step < 4 && !isCurrentStepRequired() && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={handleSkipStep}
+              disabled={loading}
+              style={{ marginLeft: '10px' }}
+            >
+              <FaForward style={{ marginRight: '5px' }} />
+              Skip This Step
+            </button>
+          )}
+          
           {step < 4 ? (
             <button
               type="button"
               className="btn btn-primary"
               onClick={handleNext}
               disabled={loading}
+              style={{ marginLeft: '10px' }}
             >
-              Next
+              {isCurrentStepRequired() ? 'Next' : 'Continue'}
             </button>
           ) : (
             <button
@@ -1651,6 +1989,7 @@ const SellerOnboarding = () => {
               className="btn btn-primary"
               onClick={handleSubmit}
               disabled={loading}
+              style={{ marginLeft: '10px' }}
             >
               {loading ? "Starting Trial..." : "Start 7-Day Free Trial"}
             </button>

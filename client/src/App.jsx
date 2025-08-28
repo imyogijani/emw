@@ -121,8 +121,8 @@ function LayoutWrapper() {
     location.pathname.startsWith("/login") ||
     location.pathname.startsWith("/register");
 
-  // Show cart button only on non-admin/seller/auth pages (never on admin/seller pages)
-  const shouldShowCartButton = !isAdminOrSellerOrAuth;
+  // Show cart button only on non-admin/seller/auth/onboarding pages
+  const shouldShowCartButton = !isAdminOrSellerOrAuth && !location.pathname.includes('onboarding');
 
   return (
     <>

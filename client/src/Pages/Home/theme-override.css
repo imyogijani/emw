@@ -342,7 +342,7 @@ h6 {
 .cards-grid-medium {
   display: flex !important;
   flex-wrap: wrap !important;
-  gap: 0 !important;
+  gap: 1 !important;
   justify-content: flex-start !important;
   align-items: flex-start !important;
   margin: 0 !important;
@@ -355,7 +355,7 @@ h6 {
   width: 120px !important;
   min-width: 120px !important;
   max-width: 120px !important;
-  min-height: 140px !important;
+  min-height: 50px !important;
   margin: 0 !important;
 }
 

@@ -5,6 +5,9 @@ import {
   FaToggleOn,
   FaToggleOff,
   FaSave,
+  FaUserPlus,
+  FaCheckSquare,
+  FaSquare,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
 import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/errorHandler";
@@ -16,6 +19,8 @@ const Settings = () => {
     emailVerificationEnabled: true,
     customerEmailVerification: true,
     sellerEmailVerification: true,
+    onboardingEnabled: false,
+    onboardingRequiredSteps: ['shopTiming', 'shopDetails', 'legalDocuments'],
   });
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +125,14 @@ const Settings = () => {
         }
       }
 
+      // Handle onboarding toggle
+      if (settingKey === "onboardingEnabled") {
+        return {
+          ...prev,
+          onboardingEnabled: !prev.onboardingEnabled,
+        };
+      }
+
       // Agar role-based toggle ho aur master ON hai → ignore
       if (prev.emailVerificationEnabled) {
         showInfoToast("Master toggle ON → role-based settings locked", "Settings Lock");
@@ -130,6 +143,20 @@ const Settings = () => {
       return {
         ...prev,
         [settingKey]: !prev[settingKey],
+      };
+    });
+  };
+
+  const handleOnboardingStepToggle = (step) => {
+    setSettings((prev) => {
+      const currentSteps = prev.onboardingRequiredSteps;
+      const newSteps = currentSteps.includes(step)
+        ? currentSteps.filter(s => s !== step)
+        : [...currentSteps, step];
+      
+      return {
+        ...prev,
+        onboardingRequiredSteps: newSteps,
       };
     });
   };
@@ -317,6 +344,83 @@ const Settings = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <FaUserPlus className="settings-icon" />
+            <h3>Seller Onboarding Settings</h3>
+          </div>
+
+          <div className="settings-card-body">
+            {/* Master onboarding toggle */}
+            <div className="setting-item">
+              <div className="setting-info">
+                <h4>Onboarding Process</h4>
+                <p>Enable or disable the seller onboarding process system-wide</p>
+              </div>
+              <div className="setting-control">
+                <button
+                  className={`toggle-btn ${
+                    settings.onboardingEnabled ? "active" : ""
+                  }`}
+                  onClick={() => handleToggle("onboardingEnabled")}
+                >
+                  {settings.onboardingEnabled ? (
+                    <FaToggleOn className="toggle-icon active" />
+                  ) : (
+                    <FaToggleOff className="toggle-icon" />
+                  )}
+                  <span>
+                    {settings.onboardingEnabled ? "Enabled" : "Disabled"}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Onboarding steps configuration */}
+            <div className="setting-item">
+              <div className="setting-info">
+                <h4>Required Onboarding Steps</h4>
+                <p>Select which steps are required during seller onboarding</p>
+              </div>
+              <div className="setting-control">
+                <div className="onboarding-steps-grid">
+                  {[
+                    { key: 'shopTiming', label: 'Shop Timing' },
+                    { key: 'shopDetails', label: 'Shop Details' },
+                    { key: 'legalDocuments', label: 'Legal Documents' },
+                    { key: 'basicDetails', label: 'Basic Details' }
+                  ].map((step) => (
+                    <button
+                      key={step.key}
+                      className={`step-toggle-btn ${
+                        settings.onboardingRequiredSteps.includes(step.key) ? "active" : ""
+                      }`}
+                      onClick={() => handleOnboardingStepToggle(step.key)}
+                      disabled={!settings.onboardingEnabled}
+                    >
+                      {settings.onboardingRequiredSteps.includes(step.key) ? (
+                        <FaCheckSquare className="step-icon active" />
+                      ) : (
+                        <FaSquare className="step-icon" />
+                      )}
+                      <span>{step.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {!settings.onboardingEnabled && (
+              <div className="onboarding-info-note">
+                <p>
+                  <strong>Note:</strong> When onboarding is disabled, sellers will have full dashboard access immediately after registration. 
+                  Only the selected essential steps above will be shown as optional reminders via toast notifications.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

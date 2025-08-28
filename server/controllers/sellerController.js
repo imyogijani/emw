@@ -117,6 +117,13 @@ export const getSellerDashboard = async (req, res) => {
     // Optional: use monthlyReviews for rating growth logic if needed
     const ratingGrowth = monthlyReviews;
 
+    // Get system settings for onboarding
+    const Settings = (await import('../models/settingsModel.js')).default;
+    const settings = await Settings.getSettings();
+    
+    // Get user for onboarding status
+    const user = await User.findById(userId);
+    
     // Final response
     res.json({
       todaySales,
@@ -133,6 +140,18 @@ export const getSellerDashboard = async (req, res) => {
       averageRating,
       monthlyReviews,
       ratingGrowth,
+      
+      // Onboarding and access information
+      onboardingSettings: {
+        enabled: settings.onboardingEnabled,
+        requiredSteps: settings.onboardingRequiredSteps || ['shopTiming', 'shopDetails', 'legalDocuments']
+      },
+      userOnboardingStatus: {
+        isComplete: user.isOnboardingComplete,
+        currentStep: seller.onboardingStep,
+        demoAccess: user.demoAccess || false
+      },
+      dashboardAccess: req.dashboardAccess || 'full'
     });
   } catch (err) {
     console.error("Dashboard Error:", err);
@@ -1031,11 +1050,22 @@ export const getOnboardingStep = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Seller not found" });
     }
-    let user = await User.findById(req.user._id);
+    
+    const user = await User.findById(req.user._id);
+    
+    // Get system settings for onboarding
+    const Settings = (await import('../models/settingsModel.js')).default;
+    const settings = await Settings.getSettings();
+    
     res.json({
       success: true,
       step: seller.onboardingStep,
       isComplete: user.isOnboardingComplete,
+      onboardingSettings: {
+        enabled: settings.onboardingEnabled,
+        requiredSteps: settings.onboardingRequiredSteps || ['shopTiming', 'shopDetails', 'legalDocuments']
+      },
+      demoAccess: user.demoAccess || false
     });
   } catch (err) {
     res

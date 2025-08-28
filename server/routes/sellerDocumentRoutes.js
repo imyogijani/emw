@@ -13,6 +13,7 @@ import {
   fetchUser,
   authorizeSeller,
 } from "../middlewares/authMiddleware.js";
+import { checkOnboardingSettings } from "../middlewares/onboardingMiddleware.js";
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
 
 const docTypes = [
@@ -89,6 +90,7 @@ router.post(
   authenticateToken,
   fetchUser,
   authorizeSeller,
+  checkOnboardingSettings,
   (req, res, next) => {
     // Custom middleware logic (if any)
     console.log("Upload document request received", req.body);
@@ -119,6 +121,7 @@ router.patch(
   authenticateToken,
   fetchUser,
   authorizeSeller,
+  checkOnboardingSettings,
   upload.fields([
     { name: "aadhaar", maxCount: 1 },
     { name: "pan", maxCount: 1 },

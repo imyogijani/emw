@@ -6,6 +6,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
-    allowedHosts: ["ecom.emallworld.com"],
+    allowedHosts: ["https://emallworld.com"],
   },
+  build: {
+    // Force cache busting on every build
+    rollupOptions: {
+      output: {
+        entryFileNames: `[name].[hash].js`,
+        chunkFileNames: `[name].[hash].js`,
+        assetFileNames: `[name].[hash].[ext]`
+      }
+    }
+  }
 });

@@ -544,6 +544,40 @@
   border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
+/* Skipped Steps Alert - Info variant */
+.skipped-steps-alert {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+}
+
+.info-icon {
+  color: #bfdbfe;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.dismiss-btn {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dismiss-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -575,6 +609,16 @@
   }
   
   .complete-onboarding-btn {
+    width: 100%;
+    padding: 1rem;
+  }
+  
+  .alert-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .dismiss-btn {
     width: 100%;
     padding: 1rem;
   }

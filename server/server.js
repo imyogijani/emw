@@ -79,6 +79,17 @@ app.post("/webhook", (req, res) => {
 });
 
 // Middleware
+// Add cache control headers
+app.use((req, res, next) => {
+  // For CSS and JS files
+  if (req.url.match(/\.(css|js)$/)) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(
   cors({

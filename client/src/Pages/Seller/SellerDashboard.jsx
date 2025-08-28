@@ -19,8 +19,16 @@ import {
   FaShoppingBag,
   FaDollarSign,
   FaExclamationTriangle,
+  FaInfoCircle,
 } from "react-icons/fa";
 import SellerNotification from "../../Components/SellerNotification";
+import { 
+  getSystemSettings, 
+  isOnboardingEnabled, 
+  getRequiredOnboardingSteps,
+  STEP_MAPPING 
+} from "../../utils/systemSettings";
+import { showInfoToast } from "../../utils/errorHandler";
 
 import axios from "../../utils/axios";
 
@@ -33,19 +41,58 @@ const SellerDashboard = () => {
   const [error, setError] = useState(null);
   const [showOnboardingAlert, setShowOnboardingAlert] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [systemSettings, setSystemSettings] = useState(null);
+  const [skippedSteps, setSkippedSteps] = useState([]);
+  const [showSkippedStepsReminder, setShowSkippedStepsReminder] = useState(false);
 
-  // Check onboarding status on component mount
+  // Check onboarding status and system settings on component mount
   useEffect(() => {
-    const checkOnboardingStatus = () => {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
+    const checkOnboardingStatus = async () => {
+      try {
+        const userStr = localStorage.getItem("user");
+        if (!userStr) return;
+
         const user = JSON.parse(userStr);
         
+        // Fetch system settings
+        const settings = await getSystemSettings();
+        setSystemSettings(settings);
+
+        // Check if onboarding is enabled globally
+        if (!isOnboardingEnabled(settings)) {
+          // Onboarding is disabled, allow full access
+          setShowOnboardingAlert(false);
+          setIsReadOnly(false);
+          return;
+        }
+
         // If user doesn't have demo access and onboarding is not complete
         if (!user.demoAccess && !user.isOnboardingComplete) {
           setShowOnboardingAlert(true);
           setIsReadOnly(true);
+          return;
         }
+
+        // Check for skipped steps if onboarding is complete
+        if (user.isOnboardingComplete) {
+          const skippedStepsData = localStorage.getItem('skippedOnboardingSteps');
+          if (skippedStepsData) {
+            const skipped = JSON.parse(skippedStepsData);
+            const requiredSteps = getRequiredOnboardingSteps(settings);
+            
+            // Filter skipped steps to only show required ones
+            const skippedRequiredSteps = skipped.filter(stepKey => 
+              requiredSteps.includes(stepKey)
+            );
+            
+            if (skippedRequiredSteps.length > 0) {
+              setSkippedSteps(skippedRequiredSteps);
+              setShowSkippedStepsReminder(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
       }
     };
 
@@ -111,6 +158,25 @@ const SellerDashboard = () => {
     navigate("/seller/onboarding");
   };
 
+  const handleCompleteSkippedSteps = () => {
+    navigate("/seller/onboarding");
+  };
+
+  const handleDismissSkippedStepsReminder = () => {
+    setShowSkippedStepsReminder(false);
+    showInfoToast("Reminder dismissed. You can complete these steps anytime from Settings.");
+  };
+
+  const getStepDisplayName = (stepKey) => {
+    const stepNames = {
+      'basicDetails': 'Basic Details',
+      'shopTiming': 'Shop Timing',
+      'legalDocuments': 'Legal Documents',
+      'subscription': 'Subscription Plan'
+    };
+    return stepNames[stepKey] || stepKey;
+  };
+
   return (
     <div className="seller-dashboard">
       <SellerNotification />
@@ -130,6 +196,37 @@ const SellerDashboard = () => {
             >
               <span className="text">Complete Onboarding</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Skipped Steps Reminder */}
+      {showSkippedStepsReminder && (
+        <div className="onboarding-alert skipped-steps-alert">
+          <div className="alert-content">
+            <FaInfoCircle className="alert-icon info-icon" />
+            <div className="alert-text">
+              <h3>Complete Skipped Steps</h3>
+              <p>
+                You skipped some important onboarding steps: {' '}
+                <strong>{skippedSteps.map(getStepDisplayName).join(', ')}</strong>.
+                Complete them to unlock full functionality.
+              </p>
+            </div>
+            <div className="alert-actions">
+              <button 
+                className="btn btn-medium btn-primary complete-onboarding-btn"
+                onClick={handleCompleteSkippedSteps}
+              >
+                <span className="text">Complete Steps</span>
+              </button>
+              <button 
+                className="btn btn-medium btn-outline dismiss-btn"
+                onClick={handleDismissSkippedStepsReminder}
+              >
+                <span className="text">Dismiss</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

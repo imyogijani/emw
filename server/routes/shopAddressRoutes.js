@@ -6,6 +6,7 @@ import {
 } from "../controllers/shopAddressController.js";
 import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 import { demoGuard } from "../middlewares/demoGuard.js";
+import { checkOnboardingSettings } from "../middlewares/onboardingMiddleware.js";
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post(
   authenticateToken,
   fetchUser,
   demoGuard,
+  checkOnboardingSettings,
   addShopAddress
 );
 router.patch(
@@ -21,6 +23,7 @@ router.patch(
   authenticateToken,
   fetchUser,
   demoGuard,
+  checkOnboardingSettings,
   updateShopAddress
 );
 router.delete(
@@ -28,6 +31,7 @@ router.delete(
   authenticateToken,
   fetchUser,
   demoGuard,
+  checkOnboardingSettings,
   deleteShopAddress
 );
 

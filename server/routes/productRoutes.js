@@ -3,6 +3,7 @@ import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import { demoGuard } from "../middlewares/demoGuard.js";
 import { restrictDemoAccess } from "../middlewares/demoAccessMiddleware.js";
+import { checkOnboardingSettings } from "../middlewares/onboardingMiddleware.js";
 import {
   addProduct,
   getSellerProducts,
@@ -26,6 +27,7 @@ router.post(
   fetchUser,
   demoGuard,
   restrictDemoAccess,
+  checkOnboardingSettings,
   addProduct
 );
 
@@ -47,6 +49,7 @@ router.patch(
   fetchUser,
   demoGuard,
   restrictDemoAccess,
+  checkOnboardingSettings,
   upload.array("images", 10),
   updateProduct
 );
@@ -58,6 +61,7 @@ router.delete(
   fetchUser,
   demoGuard,
   restrictDemoAccess,
+  checkOnboardingSettings,
   deleteProduct
 );
 
