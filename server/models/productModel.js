@@ -37,14 +37,7 @@ const productSchema = new mongoose.Schema(
       validate: [(arr) => arr.length <= 10, "Max 10 images allowed"],
       required: true,
     },
-    // VARIANTS ARRAY
-    // variants: [
-    //   {
-    //     name: { type: String, required: true }, // "Default", "Premium", etc.
-    //     price: { type: Number, required: true },
-    //     inStock: { type: Boolean, default: true },
-    //   },
-    // ],
+
     variants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Variant" }],
     stock: {
       type: Number,
@@ -143,7 +136,7 @@ productSchema.index({ seller: 1 }); // Seller wise product find fast
 productSchema.index({ createdAt: -1 });
 productSchema.pre("save", function (next) {
   this.finalPrice = this.price - (this.price * this.discount) / 100;
-  console.log("Produc schema", this.finalPrice);
+  // console.log("Produc schema", this.finalPrice);
   next();
 });
 

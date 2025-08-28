@@ -11,7 +11,8 @@ export const checkServiceability = async (pincode) => {
     const response = await apiClient.get(`/c/api/pin-codes/json/`, {
       params: { filter_codes: pincode }, // query params
     });
-    //   console.log("full url : --",)
+
+    // console.log("full url : --",)
 
     console.log(" API Call Success");
     console.log("📦 Full Response:", JSON.stringify(response.data, null, 2));
@@ -172,7 +173,7 @@ const createShipment = async (order, item, seller, shippingAddress) => {
     // 2️⃣ Weight handling (gram → kg)
     let weightInKg = 0.5; // default
     if (item.productId?.technicalDetails?.weight) {
-      const w = item.productId.technicalDetails.weight; 
+      const w = item.productId.technicalDetails.weight;
       weightInKg = w / 1000;
       console.log(`Product weight: ${w}g => ${weightInKg}kg`);
     } else {
@@ -265,5 +266,78 @@ export const processShipmentsForOrder = async (orderId) => {
       item.deliveryTrackingURL = `https://www.delhivery.com/track/package/${shipment.shipments[0].waybill}`;
       await order.save();
     }
+  }
+};
+
+// label  : Seller panel in download to this call and download. or automatic generate and email in send.
+export const generateLabel = async (waybill) => {
+  try {
+    console.log("🖨️ Generating Label for:", waybill);
+
+    const res = await apiClient.get(
+      `/api/p/packing_slip?wbns=${waybill}&pdf=true`
+    );
+
+    // ⚠️ Response will be PDF (Buffer)
+    const filePath = `labels/${waybill}.pdf`;
+    fs.writeFileSync(filePath, res.data);
+    console.log("✅ Label Saved at:", filePath);
+
+    return filePath;
+  } catch (err) {
+    console.error("❌ Label Generation Failed:", err.message);
+    return null;
+  }
+};
+
+// Pickup Request:
+// 👉 Use case:
+// Seller ne apne dashboard me "Schedule Pickup" click kiya
+// System auto Delhivery ko request bhej dega.
+export const createPickupRequest = async (pickupLocation) => {
+  try {
+    console.log("🚚 Creating Pickup Request...");
+
+    const payload = {
+      pickup_location: {
+        name: pickupLocation.name,
+        city: pickupLocation.city,
+        state: pickupLocation.state,
+        country: "India",
+        phone: pickupLocation.phone,
+        pin: pickupLocation.pincode,
+        address: pickupLocation.address,
+      },
+    };
+
+    const res = await apiClient.post("/api/cmu/pickup", payload);
+
+    console.log("✅ Pickup Request Created:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Pickup Request Failed:", err.message);
+    return null;
+  }
+};
+
+// 👉 Tracking Status
+
+// 👉 Use case:  User / Seller dono ko live status dikhane ke liye.
+// User app me "Track Order" button click kare → ye API call hogi
+// Seller ko bhi apne panel me dikhana.
+
+export const trackShipment = async (waybill) => {
+  try {
+    console.log("📦 Tracking Waybill:", waybill);
+
+    const res = await apiClient.get(
+      `/api/v1/packages/json/?waybill=${waybill}`
+    );
+
+    console.log("✅ Tracking Data:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Tracking Failed:", err.message);
+    return null;
   }
 };

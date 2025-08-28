@@ -12,21 +12,42 @@ import TechnicalDetails from "../models/technicalDetails.js";
 // };
 
 export const createTechnicalDetails = async (req, res) => {
-  const { title } = req.body;
+  try {
+    const { title, dimensions, weight } = req.body;
 
-  if (!title || title.trim() === "") {
-    return res.status(400).json({ message: "Title is required" });
+    // Manual validation (extra safety)
+    if (!title || title.trim() === "") {
+      return res.status(400).json({ message: "Title is required" });
+    }
+
+    if (
+      !dimensions ||
+      !dimensions.length ||
+      !dimensions.width ||
+      !dimensions.height
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Dimensions (length, width, height) are required" });
+    }
+
+    if (!weight || weight <= 0) {
+      return res.status(400).json({ message: "Valid weight is required" });
+    }
+
+    const technicalDetails = await TechnicalDetails.create({
+      ...req.body,
+      createdBy: req.userId,
+    });
+
+    res.status(201).json({
+      message: "Technical Details Created",
+      technicalDetails,
+    });
+  } catch (error) {
+    console.error("Error creating technical details:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
-
-  const technicalDetails = await TechnicalDetails.create({
-    ...req.body,
-    createdBy: req.userId,
-  });
-
-  res.status(201).json({
-    message: "Technical Details Created",
-    technicalDetails,
-  });
 };
 
 //  Update

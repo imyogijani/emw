@@ -19,6 +19,8 @@ import upload, {
   saveImageToDatabase,
 } from "../middlewares/uploadMiddleware.js";
 
+import { getSubcategoryWithBrands } from "../controllers/brandController.js";
+
 const router = express.Router();
 
 // routes
@@ -93,5 +95,9 @@ router.get("/hsn-suggestions", getHsnSuggestionsController);
 
 // Get GST rate by HSN code
 router.get("/gst-rate/:hsnCode", getGSTRateByHSN);
+
+// Brands :
+
+router.get("/:subcategoryId/brands", getSubcategoryWithBrands);
 
 export default router;

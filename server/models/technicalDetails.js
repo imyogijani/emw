@@ -9,8 +9,33 @@ const technicalDetailsSchema = new mongoose.Schema(
     },
     modelNumber: { type: String },
     material: { type: String },
-    weight: { type: String },
-    dimensions: { type: String },
+    // weight: { type: String },
+    // dimensions: { type: String },
+    dimensions: {
+      length: {
+        type: Number,
+        required: [true, "Length is required"],
+        min: [1, "Length must be greater than 0"],
+      },
+      width: {
+        type: Number,
+        required: [true, "Width is required"],
+        min: [1, "Width must be greater than 0"],
+      },
+      height: {
+        type: Number,
+        required: [true, "Height is required"],
+        min: [1, "Height must be greater than 0"],
+      },
+      unit: { type: String, enum: ["cm", "mm", "inch"], default: "cm" },
+    },
+
+    weight: {
+      type: Number,
+      required: [true, "Weight is required"],
+      min: [1, "Weight must be greater than 0"], // grams
+    },
+
     warranty: { type: String },
     originCountry: { type: String },
     manufacturingDate: { type: Date },
