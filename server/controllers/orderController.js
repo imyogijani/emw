@@ -13,6 +13,7 @@ import Variant from "../models/variantsModel.js";
 import { generateInvoicesForOrder } from "./invoiceController.js";
 import { createNotification } from "./notificationController.js";
 import Counter from "../models/counterModel.js";
+import { processShipmentsForOrder } from "../services/delhiveryService.js";
 
 export const getAllOrdersAdmin = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -170,6 +171,17 @@ export const createOrder = asyncHandler(async (req, res) => {
       const discount = product.discount;
       let basePrice = product.price;
       let finalPrice = product.finalPrice; // default: price after discount
+
+      if (!product.isActive) {
+        await Cart.updateOne(
+          { userId },
+          { $pull: { items: { productId: product._id } } }
+        );
+        return res.status(400).json({
+          success: false,
+          message: `${product.name} is not available anymore and has been removed from your cart.`,
+        });
+      }
 
       //  Product Out of Stock Check
       if (product.status === "Out of Stock") {
@@ -374,26 +386,32 @@ export const createOrder = asyncHandler(async (req, res) => {
   });
 
   await order.save();
-  await createNotification({
-    recipient: userId,
-    title: "Order Placed Successfully!",
-    message: `Your order #${order._id} has been placed with ${orderItems.length} items.`,
-    type: "order",
-    channels: ["inApp", "email", "push"], // Optional: depends on your setup
-  });
+
+  //  Ab order ke liye shipment process karo
+  console.log("Check Order Id =--=-=", order._id);
+  await processShipmentsForOrder(order._id);
+
+  // await createNotification({
+  //   recipient: userId,
+  //   title: "Order Placed Successfully!",
+  //   message: `Your order #${order._id} has been placed with ${orderItems.length} items.`,
+  //   type: "order",
+  //   channels: ["inApp", "email", "push"], // Optional: depends on your setup
+  // });
+
   const uniqueSellerIds = [
     ...new Set(orderItems.map((i) => i.sellerId.toString())),
   ];
 
-  for (const sellerId of uniqueSellerIds) {
-    await createNotification({
-      recipient: sellerId,
-      title: "New Order Received!",
-      message: `You have received a new order #${order.orderId}. Please process the shipment.`,
-      type: "seller",
-      channels: ["inApp", "email", "push"],
-    });
-  }
+  // for (const sellerId of uniqueSellerIds) {
+  //   await createNotification({
+  //     recipient: sellerId,
+  //     title: "New Order Received!",
+  //     message: `You have received a new order #${order.orderId}. Please process the shipment.`,
+  //     type: "seller",
+  //     channels: ["inApp", "email", "push"],
+  //   });
+  // }
 
   await generateInvoicesForOrder(order._id);
 

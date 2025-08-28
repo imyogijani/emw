@@ -545,6 +545,7 @@ export const getAllProducts = async (req, res) => {
     //  1. Dynamic Filters
     const filter = {
       price: { $gte: Number(minPrice), $lte: Number(maxPrice) },
+      isActive: true,
     };
 
     // . If user is NOT a shopowner, filter by city

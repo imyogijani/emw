@@ -73,6 +73,10 @@ const productSchema = new mongoose.Schema(
       enum: ["In Stock", "Low Stock", "Out of Stock"],
       default: "In Stock",
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     averageRating: {
       type: Number,
       default: 0,
@@ -106,19 +110,19 @@ const productSchema = new mongoose.Schema(
       required: false, // Optional field for HSN/SAC code
       trim: true,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           // HSN codes are typically 4, 6, or 8 digits
           // SAC codes are typically 6 digits
           return !v || /^\d{4,8}$/.test(v);
         },
-        message: 'HSN/SAC code must be 4-8 digits'
-      }
+        message: "HSN/SAC code must be 4-8 digits",
+      },
     },
     // Track if HSN code was auto-suggested or manually overridden
     hsnCodeSource: {
       type: String,
-      enum: ['auto', 'manual', 'category_default'],
-      default: 'auto'
+      enum: ["auto", "manual", "category_default"],
+      default: "auto",
     },
     // Store original suggested HSN code for reference
     suggestedHsnCode: {
@@ -128,7 +132,7 @@ const productSchema = new mongoose.Schema(
     // Flag to indicate if seller confirmed the HSN code change
     hsnCodeConfirmed: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
   {
