@@ -16,6 +16,8 @@ const SellerProducts = () => {
   const [editProduct, setEditProduct] = useState(null);
   const [editCategory, setEditCategory] = useState("");
   const [editStatus, setEditStatus] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editStock, setEditStock] = useState("");
 
   useEffect(() => {
     fetchCategories();
@@ -79,6 +81,8 @@ const SellerProducts = () => {
     setEditProduct(product);
     setEditCategory(product.category?._id || "");
     setEditStatus(product.status || "");
+    setEditPrice(product.price || "");
+    setEditStock(product.stock || "");
     setShowEditModal(true);
   };
 
@@ -87,6 +91,8 @@ const SellerProducts = () => {
     setEditProduct(null);
     setEditCategory("");
     setEditStatus("");
+    setEditPrice("");
+    setEditStock("");
   };
 
   const handleSaveEdit = async (e) => {
@@ -100,6 +106,8 @@ const SellerProducts = () => {
       const updatePayload = {
         category: editCategory,
         status: editStatus,
+        price: editPrice,
+        stock: editStock,
       };
 
       await axios.patch(`/api/products/${editProduct._id}`, updatePayload, {
@@ -124,7 +132,16 @@ const SellerProducts = () => {
 
   if (loading) {
     return (
-      <div className="loading-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+      <div
+        className="loading-container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "50vh",
+        }}
+      >
         <JumpingLoader size="medium" />
         <p>Loading products...</p>
       </div>
@@ -171,7 +188,7 @@ const SellerProducts = () => {
 
       <div className="products-container">
         <div className="products-grid-container">
-          <div className="product-cards-container">
+          <div className="product-cards-container seller-horizontal-grid">
             {filteredProducts.map((product) => (
               <div key={product._id} className="product-card">
                 <div className="product-card-header">
@@ -179,14 +196,36 @@ const SellerProducts = () => {
                     src={
                       product.images && product.images.length > 0
                         ? product.images[0]
-                        : "https://via.placeholder.com/150"
+                        : "https://via.placeholder.com/300x200?text=No+Image"
                     }
                     alt={product.name}
                     className="product-card-image"
+                    style={{
+                      width: "100%",
+                      height: 160,
+                      objectFit: "contain",
+                      background: "#fff",
+                      borderRadius: 8,
+                      border: "1.5px solid #f0f0f0",
+                    }}
                   />
-                  <h3 className="product-card-name">{product.name}</h3>
+                  <h3
+                    className="product-card-name"
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 20,
+                      margin: "12px 0 0 0",
+                      color: "#1a237e",
+                      textAlign: "left",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {product.name}
+                  </h3>
                 </div>
-                <div className="product-card-body">
+                <div className="product-card-body" style={{ padding: 18 }}>
                   <p className="product-card-detail">
                     <strong>Category:</strong> {product.category?.name}
                   </p>
@@ -197,9 +236,9 @@ const SellerProducts = () => {
                     <strong>Stock:</strong> {product.stock}
                   </p>
                   <p className="product-card-detail">
-                    <strong>Status:</strong>
+                    <strong>Status:</strong>{" "}
                     <span
-                      className={`status ${product.status
+                      className={`status-badge ${product.status
                         ?.toLowerCase()
                         .replace(" ", "-")}`}
                     >
@@ -212,7 +251,9 @@ const SellerProducts = () => {
                     className="btn btn-small btn-primary edit-product-btn"
                     onClick={() => handleEdit(product)}
                   >
-                    <span className="sparkle"><FaEdit /></span>
+                    <span className="sparkle">
+                      <FaEdit />
+                    </span>
                     <span className="text">Edit</span>
                   </button>
                 </div>
@@ -224,9 +265,9 @@ const SellerProducts = () => {
 
       {showEditModal && editProduct && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content modern-edit-modal">
             <h2>Edit Product</h2>
-            <form onSubmit={handleSaveEdit}>
+            <form onSubmit={handleSaveEdit} className="modern-edit-form">
               <div className="form-group">
                 <label htmlFor="editCategory">Category</label>
                 <select
@@ -246,6 +287,34 @@ const SellerProducts = () => {
                 </select>
               </div>
               <div className="form-group">
+                <label htmlFor="editPrice">Price</label>
+                <input
+                  id="editPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  required
+                  className="modern-input"
+                  placeholder="Enter price"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="editStock">Stock</label>
+                <input
+                  id="editStock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={editStock}
+                  onChange={(e) => setEditStock(e.target.value)}
+                  required
+                  className="modern-input"
+                  placeholder="Enter stock quantity"
+                />
+              </div>
+              <div className="form-group">
                 <label htmlFor="editStatus">Status</label>
                 <select
                   id="editStatus"
@@ -262,7 +331,10 @@ const SellerProducts = () => {
                 </select>
               </div>
               <div className="modal-actions">
-                <button type="submit" className="btn btn-medium btn-primary save-btn">
+                <button
+                  type="submit"
+                  className="btn btn-medium btn-primary save-btn"
+                >
                   <span className="text">Save Changes</span>
                 </button>
                 <button

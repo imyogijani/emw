@@ -24,7 +24,7 @@
 }
 
 .admin-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -85,9 +85,7 @@
 }
 
 .product-cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  display: block;
 }
 
 .product-card {
@@ -293,7 +291,6 @@
     padding: 20px;
   }
 }
-}
 
 .form-group input:focus,
 .form-group select:focus,
@@ -374,7 +371,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -386,12 +383,18 @@
   padding: 2rem 1.5rem;
   min-width: 320px;
   max-width: 95vw;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   animation: fadeInModal 0.2s;
 }
 @keyframes fadeInModal {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .modal-content h2 {
   margin-top: 0;
@@ -486,4 +489,245 @@
   }
 }
 
+/* Seller Horizontal Grid Layout */
+.seller-horizontal-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px 32px;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+.seller-horizontal-grid .product-card {
+  flex: 0 1 340px;
+  max-width: 340px;
+  min-width: 300px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(60, 72, 88, 0.1);
+  border: 1.5px solid #e3e8ee;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.seller-horizontal-grid .product-card:hover {
+  box-shadow: 0 8px 32px rgba(60, 72, 88, 0.16);
+  transform: translateY(-4px) scale(1.02);
+}
+.seller-horizontal-grid .product-card-header {
+  padding: 18px 18px 0 18px;
+  background: #f6f8fa;
+  border-radius: 16px 16px 0 0;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.seller-horizontal-grid .product-card-image {
+  width: 100%;
+  height: 160px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  border: 1.5px solid #f0f0f0;
+  margin-bottom: 8px;
+}
+.seller-horizontal-grid .product-card-name {
+  font-weight: 700;
+  font-size: 20px;
+  margin: 12px 0 0 0;
+  color: #1a237e;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+}
+.seller-horizontal-grid .product-card-body {
+  padding: 18px;
+  flex: 1;
+}
+.seller-horizontal-grid .product-card-detail {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: #444;
+}
+.seller-horizontal-grid .status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.95em;
+  font-weight: 600;
+  background: #e6f4ea;
+  color: #067d62;
+  margin-left: 8px;
+}
+.seller-horizontal-grid .status-badge.out-of-stock {
+  background: #fbe9e7;
+  color: #d32f2f;
+}
+.seller-horizontal-grid .status-badge.low-stock {
+  background: #fff3e0;
+  color: #f57c00;
+}
+.seller-horizontal-grid .product-card-actions {
+  padding: 16px 18px 18px 18px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  background: #f6f8fa;
+  border-radius: 0 0 16px 16px;
+}
+@media (max-width: 900px) {
+  .seller-horizontal-grid {
+    gap: 20px 0;
+  }
+  .seller-horizontal-grid .product-card {
+    flex: 0 1 100%;
+    max-width: 100%;
+    min-width: 220px;
+  }
+}
 
+/* Category Filter Buttons */
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 28px;
+  padding: 0 8px;
+}
+.category-btn {
+  background: linear-gradient(90deg, #f6f8fa 0%, #e3e8ee 100%);
+  color: #1a237e;
+  border: 1.5px solid #e3e8ee;
+  border-radius: 22px;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 8px rgba(60,72,88,0.06);
+  outline: none;
+  margin-bottom: 4px;
+}
+.category-btn.active, .category-btn:focus {
+  background: linear-gradient(90deg, #ff9900 0%, #fc8a06 100%);
+  color: #fff;
+  border-color: #ff9900;
+  box-shadow: 0 4px 16px rgba(255,153,0,0.13);
+}
+.category-btn:hover {
+  background: linear-gradient(90deg, #fc8a06 0%, #ff9900 100%);
+  color: #fff;
+  border-color: #ff9900;
+}
+@media (max-width: 600px) {
+  .category-filter {
+    gap: 8px;
+    padding: 0 2px;
+  }
+  .category-btn {
+    font-size: 0.95rem;
+    padding: 8px 16px;
+  }
+}
+
+/* Modern, elegant edit product modal styles */
+.modern-edit-modal {
+  border-radius: 18px;
+  background: linear-gradient(120deg, #f6f8fa 60%, #e3e8ee 100%);
+  box-shadow: 0 8px 32px rgba(60,72,88,0.18);
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  max-width: 420px;
+  width: 95vw;
+  color: #1a237e;
+  border: 1.5px solid #e3e8ee;
+}
+.modern-edit-modal h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1a237e;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.modern-edit-form .form-group {
+  margin-bottom: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.modern-edit-form label {
+  font-weight: 700;
+  color: #1a237e;
+  margin-bottom: 0.5em;
+  font-size: 1.08rem;
+}
+.modern-edit-form select,
+.modern-edit-form input.modern-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1.8px solid #e3e8ee;
+  font-size: 1.08rem;
+  background: #f6f8fa;
+  color: #222;
+  font-weight: 600;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 0.2em;
+  box-shadow: 0 2px 8px rgba(60,72,88,0.06);
+}
+.modern-edit-form select:focus,
+.modern-edit-form input.modern-input:focus {
+  border-color: #ff9900;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255,153,0,0.13);
+}
+.modern-edit-form .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+.modern-edit-form .save-btn {
+  background: linear-gradient(90deg, #067d62 0%, #38a169 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 22px;
+  box-shadow: 0 2px 8px rgba(6,125,98,0.08);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.08s;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  outline: none;
+}
+.modern-edit-form .save-btn:hover, .modern-edit-form .save-btn:focus {
+  background: linear-gradient(90deg, #38a169 0%, #067d62 100%);
+  box-shadow: 0 4px 12px rgba(6,125,98,0.13);
+  transform: translateY(-1px) scale(1.01);
+}
+.modern-edit-form .cancel-btn {
+  background: linear-gradient(90deg, #e3e8ee 0%, #cfd8dc 100%);
+  color: #1a237e;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 22px;
+  transition: background 0.18s, transform 0.08s;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  outline: none;
+}
+.modern-edit-form .cancel-btn:hover, .modern-edit-form .cancel-btn:focus {
+  background: linear-gradient(90deg, #cfd8dc 0%, #e3e8ee 100%);
+  color: #222;
+  transform: translateY(-1px) scale(1.01);
+}
+@media (max-width: 600px) {
+  .modern-edit-form .save-btn, .modern-edit-form .cancel-btn {
+    padding: 8px 14px;
+    font-size: 0.95rem;
+  }
+}
