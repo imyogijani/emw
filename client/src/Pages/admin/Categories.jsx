@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "./Categories.css"; // Assuming you'll create this CSS file
 import axiosInstance from "../../utils/axios";
 import { processImageUrlUnified } from "../../utils/apiConfig";
-import OptimizedImage from "../../components/common/OptimizedImage";
+import OptimizedImage from "../../Components/common/OptimizedImage";
 
 const Categories = () => {
   const [categoryName, setCategoryName] = useState("");
@@ -484,12 +484,15 @@ const Categories = () => {
     setEditBrandLogo(null);
   };
 
-  // const resetEditState = () => {
-  //   setEditingBrand(null);
-  //   setEditBrandName("");
-  //   setEditBrandDescription("");
-  //   setEditBrandLogo(null);
-  // };
+  const processCategoryImageUrl = (imageUrl) => {
+    if (!imageUrl) {
+      return "/vite.svg"; // Default image
+    }
+    if (imageUrl.startsWith("http")) {
+      return imageUrl;
+    }
+    return `http://localhost:8080/${imageUrl.replace(/\\/g, "/")}`;
+  };
 
   return (
     <div className="categories-container">
