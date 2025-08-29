@@ -498,7 +498,7 @@ const AddProduct = () => {
             </div>
           )}
 
-          <div className="form-group">
+          {/* <div className="form-group">
             <label htmlFor="hsnCode">HSN/SAC Code</label>
             <div
               className="hsn-search-container"
@@ -554,7 +554,7 @@ const AddProduct = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
           <div className="form-group">
             <label htmlFor="price">Price (INR) *</label>
@@ -609,7 +609,8 @@ const AddProduct = () => {
                 readOnly
                 value={
                   technicalDetails
-                    ? `${technicalDetails.title} (${technicalDetails.id})`
+                    ? // ? `${technicalDetails.title} (${technicalDetails.id})`
+                      `${technicalDetails.title}`
                     : "No Technical Details Linked"
                 }
               />

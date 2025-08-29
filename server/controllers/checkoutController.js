@@ -5,10 +5,15 @@ import Deal from "../models/dealModel.js";
 import Offer from "../models/offerModel.js";
 import Seller from "../models/sellerModel.js";
 import Product from "../models/productModel.js";
+// import {
+//   checkServiceability,
+//   getDeliveryCharge,
+// } from "../services/delhiveryService.js";
+
 import {
   checkServiceability,
   getDeliveryCharge,
-} from "../services/delhiveryService.js";
+} from "../controllers/shipmentController.js";
 
 export const checkoutSummary = asyncHandler(async (req, res) => {
   const userId = req.user._id;

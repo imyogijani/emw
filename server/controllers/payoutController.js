@@ -198,7 +198,6 @@ export const settleOrderPayout = asyncHandler(async (req, res) => {
     return res.status(200).json({ message: "Payouts attempted", results });
 });
 
-
 //  RazorpayX Payout Setup with Auto Seller Payouts
 
 // import asyncHandler from "express-async-handler";

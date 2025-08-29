@@ -118,12 +118,12 @@ export const getSellerDashboard = async (req, res) => {
     const ratingGrowth = monthlyReviews;
 
     // Get system settings for onboarding
-    const Settings = (await import('../models/settingsModel.js')).default;
+    const Settings = (await import("../models/settingsModel.js")).default;
     const settings = await Settings.getSettings();
-    
+
     // Get user for onboarding status
     const user = await User.findById(userId);
-    
+
     // Final response
     res.json({
       todaySales,
@@ -140,18 +140,22 @@ export const getSellerDashboard = async (req, res) => {
       averageRating,
       monthlyReviews,
       ratingGrowth,
-      
+
       // Onboarding and access information
       onboardingSettings: {
         enabled: settings.onboardingEnabled,
-        requiredSteps: settings.onboardingRequiredSteps || ['shopTiming', 'shopDetails', 'legalDocuments']
+        requiredSteps: settings.onboardingRequiredSteps || [
+          "shopTiming",
+          "shopDetails",
+          "legalDocuments",
+        ],
       },
       userOnboardingStatus: {
         isComplete: user.isOnboardingComplete,
         currentStep: seller.onboardingStep,
-        demoAccess: user.demoAccess || false
+        demoAccess: user.demoAccess || false,
       },
-      dashboardAccess: req.dashboardAccess || 'full'
+      dashboardAccess: req.dashboardAccess || "full",
     });
   } catch (err) {
     console.error("Dashboard Error:", err);
@@ -1042,6 +1046,75 @@ export const updateSellerGST = async (req, res) => {
   }
 };
 
+// Update Bank Details
+export const updateBankDetails = async (req, res) => {
+  try {
+    const { beneficiaryName, accountNumber, ifscCode } = req.body;
+
+    // === Validations ===
+    if (!beneficiaryName || beneficiaryName.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Beneficiary name must be at least 3 characters",
+      });
+    }
+
+    const nameRegex = /^[A-Za-z ]+$/;
+    if (!nameRegex.test(beneficiaryName)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Beneficiary (Account holder) name should contain only alphabets and spaces",
+      });
+    }
+
+    if (!accountNumber || !/^[0-9]{9,18}$/.test(accountNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Account number must be 9-18 digits",
+      });
+    }
+
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    if (!ifscCode || !ifscRegex.test(ifscCode)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid IFSC code format (e.g. HDFC0001234)",
+      });
+    }
+
+    // === Find Seller linked to logged-in user ===
+    const seller = await Seller.findOne({ user: req.user._id });
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found",
+      });
+    }
+
+    // === Save Bank Details ===
+    seller.bankDetails = {
+      beneficiary_name: beneficiaryName.trim(),
+      account_number: accountNumber,
+      ifsc: ifscCode.toUpperCase(),
+    };
+
+    await seller.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Bank details updated successfully",
+      bankDetails: seller.bankDetails,
+    });
+  } catch (error) {
+    console.error("Bank details update error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 export const getOnboardingStep = async (req, res) => {
   try {
     const seller = await Seller.findOne({ user: req.user._id }); // user id from token
@@ -1050,22 +1123,26 @@ export const getOnboardingStep = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Seller not found" });
     }
-    
+
     const user = await User.findById(req.user._id);
-    
+
     // Get system settings for onboarding
-    const Settings = (await import('../models/settingsModel.js')).default;
+    const Settings = (await import("../models/settingsModel.js")).default;
     const settings = await Settings.getSettings();
-    
+
     res.json({
       success: true,
       step: seller.onboardingStep,
       isComplete: user.isOnboardingComplete,
       onboardingSettings: {
         enabled: settings.onboardingEnabled,
-        requiredSteps: settings.onboardingRequiredSteps || ['shopTiming', 'shopDetails', 'legalDocuments']
+        requiredSteps: settings.onboardingRequiredSteps || [
+          "shopTiming",
+          "shopDetails",
+          "legalDocuments",
+        ],
       },
-      demoAccess: user.demoAccess || false
+      demoAccess: user.demoAccess || false,
     });
   } catch (err) {
     res

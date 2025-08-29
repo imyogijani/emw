@@ -117,16 +117,17 @@ const productSchema = new mongoose.Schema(
       enum: ["auto", "manual", "category_default"],
       default: "auto",
     },
-    // Store original suggested HSN code for reference
-    suggestedHsnCode: {
-      type: String,
-      trim: true,
-    },
-    // Flag to indicate if seller confirmed the HSN code change
+    // // Store original suggested HSN code for reference
+    // suggestedHsnCode: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // // Flag to indicate if seller confirmed the HSN code change
     hsnCodeConfirmed: {
       type: Boolean,
       default: false,
     },
+    commissionRate: { type: Number, default: 4 },
   },
   {
     timestamps: true,
@@ -137,6 +138,13 @@ productSchema.index({ createdAt: -1 });
 productSchema.pre("save", function (next) {
   this.finalPrice = this.price - (this.price * this.discount) / 100;
   // console.log("Produc schema", this.finalPrice);
+
+  // Auto commission calculation
+  if (this.finalPrice >= 10000) {
+    this.commissionRate = 4;
+  } else {
+    this.commissionRate = 7;
+  }
   next();
 });
 
@@ -161,6 +169,11 @@ productSchema.pre("findOneAndUpdate", function (next) {
     }
 
     update.$set.finalPrice = final;
+    if (final >= 10000) {
+      update.$set.commissionRate = 4;
+    } else {
+      update.$set.commissionRate = 7;
+    }
   }
 
   if (stock !== undefined) {

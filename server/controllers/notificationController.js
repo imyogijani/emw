@@ -4,7 +4,6 @@ import User from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js"; // tumhara nodemailer function
 import { sendPushNotification } from "../utils/sendPush.js"; // firebase wali file
 
-
 export const createNotification = async ({
   recipient,
   title,
@@ -179,8 +178,6 @@ export const getUnreadCount = async (req, res) => {
 //     throw error;
 //   }
 // };
-
-
 
 export const sendSubscriptionChangeNotification = async ({
   userId,

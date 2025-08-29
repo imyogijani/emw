@@ -14,7 +14,7 @@ const sellerSchema = new mongoose.Schema(
     },
     shopImage: {
       type: String, // Main shop image
-      default: null,      
+      default: null,
     },
     shopImages: {
       type: [String], // Optional: Array of additional shop images

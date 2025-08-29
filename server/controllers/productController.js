@@ -29,10 +29,10 @@ export const addProduct = async (req, res) => {
       brand,
       variants,
       technicalDetailsId,
-      hsnCode,
-      hsnCodeSource,
-      suggestedHsnCode,
-      hsnCodeConfirmed,
+      // hsnCode,
+      // hsnCodeSource,
+      // suggestedHsnCode,
+      // hsnCodeConfirmed,
       // isPremium,
     } = req.body;
 
@@ -97,6 +97,13 @@ export const addProduct = async (req, res) => {
 
       if (seller.kycVerified && seller.gstNumber) {
         gstPercentage = subDoc.gstPercentage || 0;
+      }
+
+      //  Auto fetch HSN code from subcategory
+      if (subDoc.defaultHsnCode) {
+        req.body.hsnCode = subDoc.defaultHsnCode; // Auto set
+        req.body.hsnCodeSource = "category_default"; // Mark source
+        req.body.hsnCodeConfirmed = false; // Seller can override later
       }
     }
 
@@ -238,10 +245,10 @@ export const addProduct = async (req, res) => {
       technicalDetails: techRef,
       isPremium: allowPremium,
       gstPercentage,
-      hsnCode: hsnCode || undefined,
-      hsnCodeSource: hsnCodeSource || "manual",
-      suggestedHsnCode: suggestedHsnCode || undefined,
-      hsnCodeConfirmed: hsnCodeConfirmed || false,
+      // hsnCode: hsnCode || undefined,
+      // hsnCodeSource: hsnCodeSource || "manual",
+      // suggestedHsnCode: suggestedHsnCode || undefined,
+      // hsnCodeConfirmed: hsnCodeConfirmed || false,
       location: locationData,
     });
 
