@@ -372,7 +372,7 @@ const Products = () => {
           {products.map((product) => {
             return (
               <div key={product._id} className="product-card">
-                <div className="product-card-header">
+                <div className="product-card-image-container">
                   <OptimizedImage
                     src={product.image}
                     alt={product.name}
@@ -380,48 +380,69 @@ const Products = () => {
                     className="product-card-image"
                     showRetryButton={false}
                   />
-                  <h3 className="product-card-name">{product.name}</h3>
-                </div>
-                <div className="product-card-body">
-                  <p className="product-card-detail">
-                    <strong>Category:</strong> {product.category?.name}
-                    {product.subcategory?.name &&
-                      ` (${product.subcategory.name})`}
-                  </p>
-                  <p className="product-card-detail">
-                    <strong>Price:</strong> ₹{product.price?.toFixed(2)}
-                  </p>
-                  <p className="product-card-detail">
-                    <strong>Stock:</strong> {product.stock}
-                  </p>
-                  <p className="product-card-detail">
-                    <strong>Status:</strong>
-                    <span className={`status ${product.status?.toLowerCase()}`}>
-                      {product.status}
-                    </span>
-                  </p>
-                  <div className="product-card-detail">
-                    <strong>Shop:</strong>
-                    <div className="shop-info">
-                      <FaStore className="shop-icon" />
-                      <span>{product.shopName}</span>
+                  <div className="product-overlay">
+                    <div className="quick-actions">
+                      <button
+                        className="quick-action-btn view-btn"
+                        onClick={() => handleRowClick(product)}
+                        title="View Details"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        className="quick-action-btn delete-btn"
+                        onClick={() => handleDeleteProduct(product._id)}
+                        title="Delete Product"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
                   </div>
+                  <div className="product-badges">
+                    {product.stock === 0 && (
+                      <span className="badge out-of-stock">Out of Stock</span>
+                    )}
+                    {product.stock > 0 && product.stock < 10 && (
+                      <span className="badge low-stock">Low Stock</span>
+                    )}
+                    {product.stock >= 10 && (
+                      <span className="badge in-stock">In Stock</span>
+                    )}
+                  </div>
                 </div>
-                <div className="product-card-actions">
-                  <button
-                    className="view-product-btn"
-                    onClick={() => handleRowClick(product)}
-                  >
-                    <FaEdit /> View Details
-                  </button>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDeleteProduct(product._id)}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    <FaTrash /> Delete
-                  </button>
+                <div className="product-card-content">
+                  <div className="product-header">
+                    <h3 className="product-name">{product.name}</h3>
+                    <div className="product-category">
+                      {product.category?.name || "Uncategorized"}
+                      {product.subcategory?.name &&
+                        ` (${product.subcategory.name})`}
+                    </div>
+                  </div>
+                  <div className="product-details">
+                    <div className="price-section">
+                      <span className="price">₹{product.price?.toFixed(2)}</span>
+                      <span className="stock-count">{product.stock} units</span>
+                    </div>
+                    <div className="shop-info">
+                      <FaStore className="shop-icon" />
+                      <span className="shop-name">{product.shopName || "Unknown Shop"}</span>
+                    </div>
+                  </div>
+                  <div className="product-actions">
+                    <button
+                      className="action-btn primary"
+                      onClick={() => handleRowClick(product)}
+                    >
+                      <FaEdit /> View Details
+                    </button>
+                    <button
+                      className="action-btn danger"
+                      onClick={() => handleDeleteProduct(product._id)}
+                    >
+                      <FaTrash /> Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             );
