@@ -29,7 +29,7 @@ const payoutLogSchema = new mongoose.Schema(
       type: Date,
     },
     status: { type: String, enum: ["success", "failed"], required: true },
-    cashfreeReferenceId: { type: String },
+    // cashfreeReferenceId: { type: String },
     reason: { type: String },
     payoutAt: { type: Date, default: Date.now },
   },

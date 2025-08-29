@@ -178,11 +178,11 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ userId: 1 });
-orderSchema.index({ "items.sellerId": 1 });
+orderSchema.index({ "items.sellerId": 1, "items.isSettledToSeller": 1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ "items.variantId": 1 });
-orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ deliveredAt: 1, paymentStatus: 1 });
 
 const Order = mongoose.model("orders", orderSchema);
 export default Order;

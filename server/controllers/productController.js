@@ -29,10 +29,7 @@ export const addProduct = async (req, res) => {
       brand,
       variants,
       technicalDetailsId,
-      // hsnCode,
-      // hsnCodeSource,
-      // suggestedHsnCode,
-      // hsnCodeConfirmed,
+
       // isPremium,
     } = req.body;
 
@@ -84,6 +81,9 @@ export const addProduct = async (req, res) => {
     }
 
     let gstPercentage = 0;
+    let hsnCode = null;
+    let hsnCodeSource = "manual";
+    let hsnCodeConfirmed = false;
     // Validate subcategory
     if (subcategory) {
       const subDoc = await Category.findById(subcategory);
@@ -101,9 +101,9 @@ export const addProduct = async (req, res) => {
 
       //  Auto fetch HSN code from subcategory
       if (subDoc.defaultHsnCode) {
-        req.body.hsnCode = subDoc.defaultHsnCode; // Auto set
-        req.body.hsnCodeSource = "category_default"; // Mark source
-        req.body.hsnCodeConfirmed = false; // Seller can override later
+        hsnCode = subDoc.defaultHsnCode;
+        hsnCodeSource = "category_default";
+        hsnCodeConfirmed = false;
       }
     }
 
@@ -245,6 +245,9 @@ export const addProduct = async (req, res) => {
       technicalDetails: techRef,
       isPremium: allowPremium,
       gstPercentage,
+      hsnCode,
+      hsnCodeSource,
+      hsnCodeConfirmed,
       // hsnCode: hsnCode || undefined,
       // hsnCodeSource: hsnCodeSource || "manual",
       // suggestedHsnCode: suggestedHsnCode || undefined,

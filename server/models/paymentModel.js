@@ -134,13 +134,13 @@ const paymentSchema = new mongoose.Schema(
     gateway: {
       type: String,
       enum: ["Cashfree", "Razorpay", "COD"],
-      default: "Cashfree",
+      default: "Razorpay",
     },
     providerOrderId: {
       type: String, // Cashfree or Razorpay Order ID
     },
     providerPaymentId: {
-      type: String, // Cashfree or Razorpay Payment ID
+      type: String, // Cashfree or Razorpay Payment ID   (means transaction uniq ID )
     },
     upiId: {
       type: String, // Optional - customer UPI

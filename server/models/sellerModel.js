@@ -95,6 +95,7 @@ const sellerSchema = new mongoose.Schema(
     },
 
     razorpayAccountId: String, // Routes Account ID
+    //  razorpayFundAccountId: { type: String, default: null }, // 🔑 payout ke liye
     bankDetails: {
       beneficiary_name: String,
       account_number: String,

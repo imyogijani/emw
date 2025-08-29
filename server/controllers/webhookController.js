@@ -1,5 +1,7 @@
 // controllers/webhookController.js
 import Order from "../models/orderModel.js";
+import crypto from "crypto";
+import PayoutTransaction from "../models/payoutTransactionModel.js";
 
 export const delhiveryWebhook = async (req, res) => {
   try {
@@ -89,6 +91,60 @@ export const delhiveryWebhook = async (req, res) => {
     return res.json({ ok: true });
   } catch (err) {
     console.error("❌ Webhook error:", err);
+    return res.status(500).json({ ok: false, message: err.message });
+  }
+};
+
+export const razorpayWebhook = async (req, res) => {
+  try {
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+    // 🔐 Verify Razorpay signature
+    const shasum = crypto.createHmac("sha256", secret);
+    shasum.update(JSON.stringify(req.body));
+    const digest = shasum.digest("hex");
+
+    if (digest !== req.headers["x-razorpay-signature"]) {
+      console.log("⚠️ Invalid Razorpay webhook signature");
+      return res.status(401).json({ ok: false, message: "Invalid signature" });
+    }
+
+    const event = req.body.event;
+    const payout = req.body.payload?.payout?.entity;
+
+    if (!payout) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "No payout entity found" });
+    }
+
+    const razorpayPayoutId = payout.id;
+    const status = payout.status; // processed, failed, queued, reversed
+
+    // 🔄 Update PayoutTransaction
+    const updated = await PayoutTransaction.findOneAndUpdate(
+      { providerPayoutId: razorpayPayoutId },
+      {
+        $set: {
+          status: status === "processed" ? "completed" : status,
+          providerResponse: payout,
+          settledAt: status === "processed" ? new Date() : null,
+          utr: payout.utr || null,
+          failure_reason: payout.failure_reason || null,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      console.warn("⚠️ Webhook for unknown payoutId:", razorpayPayoutId);
+    } else {
+      console.log(`✅ Payout updated: ${razorpayPayoutId} → ${status}`);
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Razorpay webhook error:", err);
     return res.status(500).json({ ok: false, message: err.message });
   }
 };
