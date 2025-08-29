@@ -154,7 +154,7 @@ export default function Home() {
     if (userId?._id) {
       requestPushPermission(userId._id);
     }
-  }, [userId]);
+  }, [userId, userId?._id]);
 
   useEffect(() => {
     trackEvent("home_page_view", {
