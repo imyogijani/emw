@@ -395,7 +395,7 @@
 }
 
 .products-container {
-  display: grid;
+  /* display: grid; */
   gap: 30px;
   justify-items: center;
 }

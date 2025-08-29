@@ -29,6 +29,9 @@ export const createVariant = async (req, res) => {
     });
 
     await variant.save();
+    await Product.findByIdAndUpdate(productId, {
+      $push: { variants: variant._id },
+    });
 
     res.status(201).json({
       success: true,

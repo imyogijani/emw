@@ -90,6 +90,7 @@ export const deleteBrandController = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 export const getProductsByBrand = async (req, res) => {
   try {
     const { brandId } = req.params;
@@ -136,7 +137,6 @@ export const getProductsByBrand = async (req, res) => {
   }
 };
 
-
 export const getFilteredProducts = async (req, res) => {
   try {
     const { categoryId, subcategoryId, brandId } = req.query;
@@ -177,6 +177,44 @@ export const getFilteredProducts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while fetching filtered products",
+    });
+  }
+};
+
+export const getSubcategoryWithBrands = async (req, res) => {
+  try {
+    const { subcategoryId } = req.params;
+
+    // 1. Subcategory find karo aur uske brands populate karo
+    const subcategory = await Category.findById(subcategoryId).populate(
+      "brands"
+    );
+
+    if (!subcategory) {
+      return res.status(404).json({
+        success: false,
+        message: "Subcategory not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      subcategory: {
+        id: subcategory._id,
+        name: subcategory.name,
+        brands: subcategory.brands.map((brand) => ({
+          id: brand._id,
+          name: brand.name,
+          logo: brand.logo,
+          description: brand.description,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error in getSubcategoryWithBrands:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching subcategory with brands",
     });
   }
 };

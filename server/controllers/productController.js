@@ -36,6 +36,8 @@ export const addProduct = async (req, res) => {
       // isPremium,
     } = req.body;
 
+    console.log("Product Req Body Data : ", req.body);
+
     // Get seller and user info
     const seller = await Seller.findOne({ user: req.userId }).populate(
       "user",
