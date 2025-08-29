@@ -320,19 +320,65 @@ export const createOrder = asyncHandler(async (req, res) => {
     (subTotal + totalGST + deliveryCharge - couponDiscount).toFixed(2)
   );
 
-  const orderItems = items.map((item) => ({
-    productId: item.productId,
-    variantId: item.variantId || null,
-    sellerId: item.sellerId,
-    quantity: item.quantity,
-    price: item.price,
-    finalPrice: item.finalPrice,
-    discount: item.discount,
-    deliveryStatus: "processing",
-    deliveryPartner,
-    deliveryCharge: 0,
-    commission: 0,
-  }));
+  // const orderItems = items.map((item) => ({
+  //   productId: item.productId,
+  //   variantId: item.variantId || null,
+  //   sellerId: item.sellerId,
+  //   quantity: item.quantity,
+  //   price: item.price,
+  //   finalPrice: item.finalPrice,
+  //   discount: item.discount,
+  //   deliveryStatus: "processing",
+  //   deliveryPartner,
+  //   deliveryCharge: 0,
+  //   commission: 0,
+  // }));
+
+  const orderItems = await Promise.all(
+    items.map(async (item) => {
+      let commissionRate = 0;
+      let itemPrice = 0;
+
+      // Agar variant selected hai
+      if (item.variantId) {
+        const variant = await Variant.findById(item.variantId);
+        if (!variant) {
+          throw new Error(`Variant not found for ID: ${item.variantId}`);
+        }
+
+        // Variant ka price aur commission rate lo
+        itemPrice = variant.finalPrice || item.finalPrice; // fallback agar DB me finalPrice na ho
+        commissionRate = variant.commissionRate || item.commissionRate || 0;
+      } else {
+        // Agar variant nahi hai to product ka data lo
+        const product = await Product.findById(item.productId);
+        if (!product) {
+          throw new Error(`Product not found for ID: ${item.productId}`);
+        }
+
+        itemPrice = product.finalPrice || item.finalPrice;
+        commissionRate = product.commissionRate || 0;
+      }
+
+      // Commission calculate
+      const commissionValue =
+        (itemPrice * item.quantity * commissionRate) / 100;
+
+      return {
+        productId: item.productId,
+        variantId: item.variantId || null,
+        sellerId: item.sellerId,
+        quantity: item.quantity,
+        price: item.price,
+        finalPrice: item.finalPrice,
+        discount: item.discount,
+        deliveryStatus: "processing",
+        deliveryPartner,
+        deliveryCharge: 0,
+        commission: commissionValue, //  now commission auto stored
+      };
+    })
+  );
 
   for (const item of orderItems) {
     if (item.variantId) {
@@ -389,7 +435,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   //  Ab order ke liye shipment process karo
   console.log("Check Order Id =--=-=", order._id);
-  await processShipmentsForOrder(order._id);
+  // await processShipmentsForOrder(order._id);
 
   // await createNotification({
   //   recipient: userId,

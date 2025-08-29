@@ -83,9 +83,9 @@ app.post("/webhook", (req, res) => {
 app.use((req, res, next) => {
   // For CSS and JS files
   if (req.url.match(/\.(css|js)$/)) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
   }
   next();
 });
@@ -175,6 +175,9 @@ import invoiceRoutes from "./routes/invoiceRoutes.js";
 import imageRoutes from "./routes/imageRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import wayBillRoutes from "./routes/wayBillRoutes.js";
+import shipmentRoutes from "./routes/shipmentRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
+
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
@@ -209,6 +212,8 @@ app.use("/api/shop", shopCategoryRoutes);
 app.use("/api/seller-documents", sellerDocumentRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/waybills", wayBillRoutes);
+app.use("/api/shipments", shipmentRoutes);
+app.use("/api/webhook", webhookRoutes);
 //app.use("/api/payment", paymentRoutes);
 // app.use("/api/payout", payoutRoutes);
 app.use("/api/checkout", checkoutRoutes);

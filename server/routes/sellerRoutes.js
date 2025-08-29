@@ -10,6 +10,7 @@ import {
   getSellerOrdersAnalytics,
   updateSellerGST,
   getOnboardingStep,
+  updateBankDetails,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -20,7 +21,7 @@ import preventDemoSellerModification from "../middlewares/demoSellerMiddleware.j
 import {
   checkOnboardingSettings,
   checkDashboardAccess,
-  getOnboardingSettings
+  getOnboardingSettings,
 } from "../middlewares/onboardingMiddleware.js";
 
 import { createCashfreeBeneficiary } from "../controllers/createCashfreeBeneficiary.js";
@@ -33,41 +34,17 @@ router.use(authenticateToken, authorizeSeller, preventDemoSellerModification);
 // Dashboard endpoints - allow access but with appropriate restrictions
 router.get("/dashboard-stats", checkDashboardAccess, getSellerDashboard);
 
-router.get(
-  "/recent-orders",
-  checkDashboardAccess,
-  getRecentOrdersForSeller
-);
+router.get("/recent-orders", checkDashboardAccess, getRecentOrdersForSeller);
 
 router.get("/sale-data", checkDashboardAccess, getSalesData);
-router.get(
-  "/seller-history",
-  checkDashboardAccess,
-  getSellerOrderHistory
-);
+router.get("/seller-history", checkDashboardAccess, getSellerOrderHistory);
 
-router.get(
-  "/seller-customer",
-  checkDashboardAccess,
-  getSellerCustomer
-);
+router.get("/seller-customer", checkDashboardAccess, getSellerCustomer);
 
-router.get(
-  "/customer-orders",
-  checkDashboardAccess,
-  getCustomerOrdersBySeller
-);
+router.get("/customer-orders", checkDashboardAccess, getCustomerOrdersBySeller);
 
-router.get(
-  "/sales-overview",
-  checkDashboardAccess,
-  getSellerSalesOverview
-);
-router.get(
-  "/orders-analytics",
-  checkDashboardAccess,
-  getSellerOrdersAnalytics
-);
+router.get("/sales-overview", checkDashboardAccess, getSellerSalesOverview);
+router.get("/orders-analytics", checkDashboardAccess, getSellerOrdersAnalytics);
 // router.post(
 //   "/create-cashfree-beneficiary",
 //   authenticateToken,
@@ -75,19 +52,23 @@ router.get(
 //   createCashfreeBeneficiary
 // );
 
-router.post(
-  "/gst-number",
-  fetchUser,
-  checkOnboardingSettings,
-  updateSellerGST
-);
+router.post("/gst-number", fetchUser, checkOnboardingSettings, updateSellerGST);
 
 router.get(
   "/onboarding-status",
   authenticateToken,
   authorizeSeller,
   fetchUser,
-  getOnboardingStep
+  getOnboardingStep 
+);
+
+// bank details :
+router.post(
+  "/bank-details",
+  authenticateToken,
+  authorizeSeller,
+  fetchUser,
+  updateBankDetails
 );
 
 export default router;

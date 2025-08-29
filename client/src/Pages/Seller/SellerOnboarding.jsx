@@ -1,12 +1,21 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "../../utils/axios";
-import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/errorHandler";
+import {
+  showErrorToast,
+  showSuccessToast,
+  showInfoToast,
+} from "../../utils/errorHandler";
 import { useNavigate } from "react-router-dom";
 import "./OnboardingForms.css?v=1.0.0";
 import "./GSTForm.css?v=1.0.0";
 import { FaSignOutAlt, FaRegClock, FaForward } from "react-icons/fa";
-import { getSystemSettings, isOnboardingEnabled, getRequiredOnboardingSteps, STEP_MAPPING } from "../../utils/systemSettings";
+import {
+  getSystemSettings,
+  isOnboardingEnabled,
+  getRequiredOnboardingSteps,
+  STEP_MAPPING,
+} from "../../utils/systemSettings";
 
 const SellerOnboarding = () => {
   // -------------------- STATE --------------------
@@ -38,13 +47,13 @@ const SellerOnboarding = () => {
         // Fetch system settings first
         const settings = await getSystemSettings();
         setSystemSettings(settings);
-        
+
         const onboardingEnabled = await isOnboardingEnabled();
         const steps = await getRequiredOnboardingSteps();
-        
+
         setRequiredSteps(steps);
         setOnboardingDisabled(!onboardingEnabled);
-        
+
         // If onboarding is disabled, redirect to dashboard with toast
         if (!onboardingEnabled) {
           showInfoToast(
@@ -54,7 +63,7 @@ const SellerOnboarding = () => {
           navigate("/seller/dashboard");
           return;
         }
-        
+
         // Fetch current onboarding step
         const response = await axios.get("/api/sellers/onboarding-status");
         if (response.data.success) {
@@ -154,11 +163,30 @@ const SellerOnboarding = () => {
   // Doc types as per backend schema
   const docTypes = {
     // Identity documents
-    identity: ["aadhaar", "pan", "drivingLicense", "voterId", "passport", "governmentIdCard"],
+    identity: [
+      "aadhaar",
+      "pan",
+      "drivingLicense",
+      "voterId",
+      "passport",
+      "governmentIdCard",
+    ],
     // Address proof documents
-    address: ["aadhaar", "electricityBill", "telephoneBill", "rentAgreement", "passbook"],
+    address: [
+      "aadhaar",
+      "electricityBill",
+      "telephoneBill",
+      "rentAgreement",
+      "passbook",
+    ],
     // Business documents
-    business: ["gst", "udyam", "certificateOfIncorporation", "partnershipDeed", "trustDeed"],
+    business: [
+      "gst",
+      "udyam",
+      "certificateOfIncorporation",
+      "partnershipDeed",
+      "trustDeed",
+    ],
     // Bank related documents
     bank: ["bankPassbook", "bankStatement"],
   };
@@ -182,6 +210,36 @@ const SellerOnboarding = () => {
     "trustDeed",
   ];
 
+  const documentCategoriesMap = {
+    aadhaar: ["identity", "address"],
+    pan: ["identity"],
+    gst: ["business"],
+    udyam: ["business"],
+    drivingLicense: ["identity", "address"],
+    voterId: ["identity", "address"],
+    electricityBill: ["address"],
+    passport: ["identity", "address"],
+    rentAgreement: ["address"],
+    bankPassbook: ["bank", "address"],
+    telephoneBill: ["address"],
+    bankAccountStatement: ["bank", "address"],
+    certificateOfIncorporation: ["business"],
+    memorandumOfAssociation: ["business"],
+    partnershipDeed: ["business"],
+    trustDeed: ["business"],
+    lastIssuedPassport: ["identity"],
+    birthCertificate: ["identity"],
+    gasConnection: ["address"],
+    incomeTaxOrder: ["identity", "business"],
+    rationCard: ["identity", "address"],
+    governmentIdCard: ["identity"],
+    pensionDocuments: ["identity", "bank"],
+    certificateFromEmployer: ["identity", "business"],
+  };
+
+  const getAvailableCategories = (docType) => {
+    return documentCategoriesMap[docType] || [];
+  };
   // Logout handler
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -200,30 +258,35 @@ const SellerOnboarding = () => {
 
     const currentStepKey = getStepKey(step);
     const stepLabels = {
-      basicDetails: 'Basic Details',
-      shopTiming: 'Shop Timing',
-      legalDocuments: 'Legal Documents',
-      subscription: 'Subscription'
+      basicDetails: "Basic Details",
+      shopTiming: "Shop Timing",
+      legalDocuments: "Legal Documents",
+      subscription: "Subscription",
     };
-    
+
     // Store skipped step in localStorage for dashboard reminders
-    const existingSkippedSteps = JSON.parse(localStorage.getItem('skippedOnboardingSteps') || '[]');
+    const existingSkippedSteps = JSON.parse(
+      localStorage.getItem("skippedOnboardingSteps") || "[]"
+    );
     if (!existingSkippedSteps.includes(currentStepKey)) {
       existingSkippedSteps.push(currentStepKey);
-      localStorage.setItem('skippedOnboardingSteps', JSON.stringify(existingSkippedSteps));
+      localStorage.setItem(
+        "skippedOnboardingSteps",
+        JSON.stringify(existingSkippedSteps)
+      );
     }
-    
+
     showInfoToast(
       `${stepLabels[currentStepKey]} step skipped. You can complete it later from your dashboard.`,
       "Step Skipped"
     );
-    
+
     // Find next required step
     let nextStep = step + 1;
     while (nextStep <= 4 && !isStepRequired(nextStep)) {
       nextStep++;
     }
-    
+
     // If we've passed all steps, go to dashboard
     if (nextStep > 4) {
       navigate("/seller/dashboard");
@@ -241,7 +304,9 @@ const SellerOnboarding = () => {
   // Get step key from step number
   const getStepKey = (stepNumber) => {
     const stepKeys = Object.keys(STEP_MAPPING);
-    return stepKeys.find(key => STEP_MAPPING[key] === stepNumber) || 'basicDetails';
+    return (
+      stepKeys.find((key) => STEP_MAPPING[key] === stepNumber) || "basicDetails"
+    );
   };
 
   // ================== 1. Load States ==================
@@ -455,7 +520,7 @@ const SellerOnboarding = () => {
     if (!isCurrentStepRequired()) {
       return true;
     }
-    
+
     switch (step) {
       case 1:
         if (!formData.shopName) {
@@ -505,7 +570,10 @@ const SellerOnboarding = () => {
         }
 
         // If has GST, validate GST number
-        if (formData.hasGST === true && (!formData.gstNumber || formData.gstNumber.trim().length !== 15)) {
+        if (
+          formData.hasGST === true &&
+          (!formData.gstNumber || formData.gstNumber.trim().length !== 15)
+        ) {
           showErrorToast(
             "Please enter a valid 15-character GST number",
             "Seller Onboarding - Step 3 Validation"
@@ -515,7 +583,10 @@ const SellerOnboarding = () => {
 
         // Validate bank details
         const bankDetails = formData.bankDetails;
-        if (!bankDetails.beneficiaryName || bankDetails.beneficiaryName.trim() === '') {
+        if (
+          !bankDetails.beneficiaryName ||
+          bankDetails.beneficiaryName.trim() === ""
+        ) {
           showErrorToast(
             "Please enter the account holder name",
             "Seller Onboarding - Step 3 Validation"
@@ -523,7 +594,10 @@ const SellerOnboarding = () => {
           return false;
         }
 
-        if (!bankDetails.accountNumber || bankDetails.accountNumber.trim() === '') {
+        if (
+          !bankDetails.accountNumber ||
+          bankDetails.accountNumber.trim() === ""
+        ) {
           showErrorToast(
             "Please enter the bank account number",
             "Seller Onboarding - Step 3 Validation"
@@ -531,7 +605,10 @@ const SellerOnboarding = () => {
           return false;
         }
 
-        if (!bankDetails.ifscCode || !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankDetails.ifscCode)) {
+        if (
+          !bankDetails.ifscCode ||
+          !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankDetails.ifscCode)
+        ) {
           showErrorToast(
             "Please enter a valid IFSC code",
             "Seller Onboarding - Step 3 Validation"
@@ -541,9 +618,12 @@ const SellerOnboarding = () => {
 
         // Validate documents based on GST status
         const requiredDocsCount = formData.hasGST === false ? 2 : 0;
-        const validDocuments = documents.filter(doc => 
-          doc.docType && doc.number && doc.file &&
-          (!formData.hasGST || ["aadhaar", "pan"].includes(doc.docType))
+        const validDocuments = documents.filter(
+          (doc) =>
+            doc.docType &&
+            doc.number &&
+            doc.file &&
+            (!formData.hasGST || ["aadhaar", "pan"].includes(doc.docType))
         );
 
         if (validDocuments.length < requiredDocsCount) {
@@ -577,23 +657,24 @@ const SellerOnboarding = () => {
     }
 
     try {
-      // Only submit if step is required
-      if (isCurrentStepRequired()) {
+      if (step === 2) {
+        // Step 2 ke liye hamesha submitStep2 call hoga
+        await submitStep2();
+      } else if (isCurrentStepRequired()) {
+        // Required steps ke liye
         if (step === 1) {
           await submitStep1();
-        } else if (step === 2) {
-          await submitStep2();
         } else if (step === 3) {
           await submitStep3();
         }
       } else {
-        // For optional steps, show skip message
+        // Optional steps ke liye skip message
         const currentStepKey = getStepKey(step);
         const stepLabels = {
-          basicDetails: 'Basic Details',
-          shopTiming: 'Shop Timing',
-          legalDocuments: 'Legal Documents',
-          subscription: 'Subscription'
+          basicDetails: "Basic Details",
+          shopTiming: "Shop Timing",
+          legalDocuments: "Legal Documents",
+          subscription: "Subscription",
         };
         showInfoToast(
           `${stepLabels[currentStepKey]} step is optional and was skipped.`,
@@ -601,12 +682,14 @@ const SellerOnboarding = () => {
         );
       }
 
-      // Only advance step if we reach this point (no errors thrown)
+      // Agar sab thik raha to next step me jao
       setStep(step + 1);
     } catch (error) {
-      // Do not advance step if error
       console.error("Step submission error:", error);
-      showErrorToast(error.response?.data?.message || "Step submission failed", "Seller Onboarding");
+      showErrorToast(
+        error.response?.data?.message || "Step submission failed",
+        "Seller Onboarding"
+      );
     }
   };
 
@@ -643,7 +726,7 @@ const SellerOnboarding = () => {
       await axios.post("/api/seller/start-free-trial");
 
       // Clear skipped steps from localStorage since onboarding is now complete
-      localStorage.removeItem('skippedOnboardingSteps');
+      localStorage.removeItem("skippedOnboardingSteps");
 
       showSuccessToast(
         "🎉 Profile completed! Your 7-day free trial has started!",
@@ -774,6 +857,7 @@ const SellerOnboarding = () => {
         shopTimings: convertedTimings,
         incrementOnboarding: true,
       };
+      console.log("ShopTiming --- Data --- ", data);
 
       const response = await axios.post(`/api/shop-timing/${sellerId}`, data);
       showSuccessToast(
@@ -826,11 +910,17 @@ const SellerOnboarding = () => {
   // Document change (single file each type)
   const handleDocChange = (index, field, value) => {
     const updated = [...documents];
-    updated[index] = {
-      ...updated[index],
-      [field]: value,
-      categories: field === "docType" ? [] : updated[index].categories || []
-    };
+    // updated[index] = {
+    //   ...updated[index],
+    //   [field]: value,
+    //   categories: field === "docType" ? [] : updated[index].categories || [],
+    // };
+    updated[index][field] = value;
+
+    // If document type changes, reset categories and auto-select all available categories
+    if (field === "docType") {
+      updated[index].categories = getAvailableCategories(value);
+    }
     setDocuments(updated);
   };
   const handleFileChange = (index, file) => {
@@ -843,7 +933,8 @@ const SellerOnboarding = () => {
   const addDocumentRow = () => {
     setDocuments((prev) => [
       ...prev,
-      { docType: "", file: null, preview: null, number: "" },
+      // { docType: "", file: null, preview: null, number: "" },
+      { docType: "", file: null, preview: null, number: "", categories: [] },
     ]);
   };
 
@@ -868,7 +959,7 @@ const SellerOnboarding = () => {
       // Create form data for document upload
       const fd = new FormData();
       fd.append("sellerId", sellerId);
-      fd.append("bankDetails", JSON.stringify(formData.bankDetails));
+      // fd.append("bankDetails", JSON.stringify(formData.bankDetails));
       fd.append("incrementOnboarding", "true");
 
       documents.forEach((doc) => {
@@ -897,10 +988,35 @@ const SellerOnboarding = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      if (formData.hasGST === true) {
+        // Call GST API only if GST is provided
+        await axios.post("/api/sellers/gst-number", {
+          gstNumber: formData.gstNumber,
+        });
+      } else {
+        // Skip GST API, directly continue with documents/bank details upload
+        console.log("No GST, skipping GST API call");
+      }
+
+      // ---------- 3. Bank Details API ----------
+      const bankDetails = {
+        beneficiaryName: formData.bankDetails.beneficiaryName,
+        accountNumber: formData.bankDetails.accountNumber,
+        ifscCode: formData.bankDetails.ifscCode,
+      };
+
+      const bankRes = await axios.post(
+        `/api/sellers/bank-details`,
+        bankDetails
+      );
+
+      console.log("Documents response:", response.data);
+      console.log("Bank response:", bankRes.data);
+
       console.log("Upload response:", response.data);
       showSuccessToast(
-        "Documents uploaded successfully 🎉",
-        "Seller Onboarding - Documents"
+        "Documents & Bank Details uploaded successfully 🎉",
+        "Seller Onboarding"
       );
     } catch (err) {
       // Only show error, do not advance step
@@ -1571,12 +1687,17 @@ const SellerOnboarding = () => {
   };
 
   const renderGSTForm = () => {
-    const requiredDocTypes = formData.hasGST === false ? ["aadhaar", "pan", "bankStatement"] : docOptions;
+    const requiredDocTypes =
+      formData.hasGST === false
+        ? ["aadhaar", "pan", "bankStatement"]
+        : docOptions;
 
     return (
       <div className="form-step">
         <h2 className="step-title">GST & Identity Verification</h2>
-        <p className="step-description">Please provide your business registration details</p>
+        <p className="step-description">
+          Please provide your business registration details
+        </p>
 
         {/* GST Section */}
         <div className="form-section">
@@ -1586,14 +1707,18 @@ const SellerOnboarding = () => {
             <div className="gst-options">
               <button
                 type="button"
-                className={`gst-option ${formData.hasGST === true ? 'selected' : ''}`}
+                className={`gst-option ${
+                  formData.hasGST === true ? "selected" : ""
+                }`}
                 onClick={() => setFormData({ ...formData, hasGST: true })}
               >
                 Yes, I have GST
               </button>
               <button
                 type="button"
-                className={`gst-option ${formData.hasGST === false ? 'selected' : ''}`}
+                className={`gst-option ${
+                  formData.hasGST === false ? "selected" : ""
+                }`}
                 onClick={() => setFormData({ ...formData, hasGST: false })}
               >
                 No, I don't have GST
@@ -1611,7 +1736,7 @@ const SellerOnboarding = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    gstNumber: e.target.value.toUpperCase()
+                    gstNumber: e.target.value.toUpperCase(),
                   })
                 }
                 placeholder="Enter your GST number"
@@ -1624,18 +1749,25 @@ const SellerOnboarding = () => {
         {/* Bank Account Section */}
         <div className="form-section">
           <h3>Bank Account Details</h3>
-          <p className="section-note">This account will be used to receive your payments from sales</p>
+          <p className="section-note">
+            This account will be used to receive your payments from sales
+          </p>
 
           <div className="form-group">
             <label className="form-label">Account Holder Name *</label>
             <input
               type="text"
               className="form-input"
-              value={formData.bankDetails.beneficiaryName || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                bankDetails: { ...formData.bankDetails, beneficiaryName: e.target.value }
-              })}
+              value={formData.bankDetails.beneficiaryName || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  bankDetails: {
+                    ...formData.bankDetails,
+                    beneficiaryName: e.target.value,
+                  },
+                })
+              }
               placeholder="Enter account holder name"
               required
             />
@@ -1646,11 +1778,16 @@ const SellerOnboarding = () => {
             <input
               type="text"
               className="form-input"
-              value={formData.bankDetails.accountNumber || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                bankDetails: { ...formData.bankDetails, accountNumber: e.target.value }
-              })}
+              value={formData.bankDetails.accountNumber || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  bankDetails: {
+                    ...formData.bankDetails,
+                    accountNumber: e.target.value,
+                  },
+                })
+              }
               placeholder="Enter account number"
               required
             />
@@ -1661,11 +1798,16 @@ const SellerOnboarding = () => {
             <input
               type="text"
               className="form-input"
-              value={formData.bankDetails.ifscCode || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                bankDetails: { ...formData.bankDetails, ifscCode: e.target.value.toUpperCase() }
-              })}
+              value={formData.bankDetails.ifscCode || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  bankDetails: {
+                    ...formData.bankDetails,
+                    ifscCode: e.target.value.toUpperCase(),
+                  },
+                })
+              }
               placeholder="Enter IFSC code"
               required
             />
@@ -1677,7 +1819,9 @@ const SellerOnboarding = () => {
           <h3>Identity Verification</h3>
           {formData.hasGST === false ? (
             <>
-              <p className="section-note">Please provide any two documents for verification:</p>
+              <p className="section-note">
+                Please provide any two documents for verification:
+              </p>
               <ul className="document-list">
                 <li>Aadhaar Card</li>
                 <li>PAN Card</li>
@@ -1685,7 +1829,9 @@ const SellerOnboarding = () => {
               </ul>
             </>
           ) : (
-            <p className="section-note">Additional verification documents (optional)</p>
+            <p className="section-note">
+              Additional verification documents (optional)
+            </p>
           )}
 
           {documents.map((doc, index) => (
@@ -1695,17 +1841,45 @@ const SellerOnboarding = () => {
                 <select
                   className="form-input"
                   value={doc.docType}
-                  onChange={(e) => handleDocChange(index, "docType", e.target.value)}
+                  onChange={(e) =>
+                    handleDocChange(index, "docType", e.target.value)
+                  }
                   required={formData.hasGST === false && index < 2}
                 >
                   <option value="">Select Document Type</option>
                   {requiredDocTypes.map((option) => (
                     <option key={option} value={option}>
-                      {option.charAt(0).toUpperCase() + option.slice(1).replace(/([A-Z])/g, ' $1')}
+                      {option.charAt(0).toUpperCase() +
+                        option.slice(1).replace(/([A-Z])/g, " $1")}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {/* Categories */}
+              <select
+                className="form-input"
+                multiple
+                value={doc.categories}
+                onChange={(e) =>
+                  handleDocChange(
+                    index,
+                    "categories",
+                    Array.from(e.target.selectedOptions, (o) => o.value)
+                  )
+                }
+                disabled={!doc.docType}
+              >
+                {doc.docType ? (
+                  getAvailableCategories(doc.docType).map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Select document type first</option>
+                )}
+              </select>
 
               {doc.docType && (
                 <>
@@ -1715,8 +1889,12 @@ const SellerOnboarding = () => {
                       type="text"
                       className="form-input"
                       value={doc.number}
-                      onChange={(e) => handleDocChange(index, "number", e.target.value)}
-                      placeholder={`Enter ${doc.docType.replace(/([A-Z])/g, ' $1').toLowerCase()} number`}
+                      onChange={(e) =>
+                        handleDocChange(index, "number", e.target.value)
+                      }
+                      placeholder={`Enter ${doc.docType
+                        .replace(/([A-Z])/g, " $1")
+                        .toLowerCase()} number`}
                       required={formData.hasGST === false && index < 2}
                     />
                   </div>
@@ -1726,7 +1904,9 @@ const SellerOnboarding = () => {
                     <input
                       type="file"
                       accept="image/*,.pdf"
-                      onChange={(e) => handleFileChange(index, e.target.files[0])}
+                      onChange={(e) =>
+                        handleFileChange(index, e.target.files[0])
+                      }
                       required={formData.hasGST === false && index < 2}
                     />
                     {doc.preview && (
@@ -1770,7 +1950,7 @@ const SellerOnboarding = () => {
                     file: null,
                     preview: null,
                     number: "",
-                  }
+                  },
                 ])
               }
             >
@@ -1781,110 +1961,130 @@ const SellerOnboarding = () => {
       </div>
     );
   };
-          
 
-      {/* Dynamic Document Upload Rows */}
-      {documents.map((doc, idx) => (
-        <div key={idx} className="form-group doc-upload-box">
-          <label className="form-label">Document {idx + 1}</label>
-          <div className="doc-row">
-            {/* Document Type */}
-            <select
-              className="form-input"
-              value={doc.docType}
-              onChange={(e) => handleDocChange(idx, "docType", e.target.value)}
-            >
-              <option value="">Select Document Type</option>
-              {docOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+  {
+    /* Dynamic Document Upload Rows */
+  }
+  {
+    documents.map((doc, idx) => (
+      <div key={idx} className="form-group doc-upload-box">
+        <label className="form-label">Document {idx + 1}</label>
+        <div className="doc-row">
+          {/* Document Type */}
+          <select
+            className="form-input"
+            value={doc.docType}
+            onChange={(e) => handleDocChange(idx, "docType", e.target.value)}
+          >
+            <option value="">Select Document Type</option>
+            {docOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
 
-            {/* Document Number */}
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Enter Document Number"
-              value={doc.number}
-              onChange={(e) => handleDocChange(idx, "number", e.target.value)}
-            />
+          {/* Document Number */}
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Enter Document Number"
+            value={doc.number}
+            onChange={(e) => handleDocChange(idx, "number", e.target.value)}
+          />
 
-
-
-            {/* File Upload */}
-            <div className="file-upload">
+          {/* Document Number */}
+          {doc.docType && (
+            <div className="form-group">
+              <label className="form-label">Document Number *</label>
               <input
-                type="file"
-                id={`file-${idx}`}
-                accept="image/*,application/pdf"
-                onChange={(e) => handleFileChange(idx, e.target.files[0])}
-                style={{ display: "none" }}
+                type="text"
+                className="form-input"
+                value={doc.number}
+                onChange={(e) => handleDocChange(idx, "number", e.target.value)}
+                placeholder={`Enter ${doc.docType} number`}
+                required
               />
-              <label htmlFor={`file-${idx}`} className="logo-upload-btn">
-                Choose File
-              </label>
-              {doc.file && <span className="file-name">{doc.file.name}</span>}
-              {doc.preview && (
-                <img
-                  src={doc.preview}
-                  alt="preview"
-                  style={{
-                    width: 50,
-                    height: 50,
-                    objectFit: "cover",
-                    marginLeft: 8,
-                    borderRadius: 6,
-                    border: "1px solid #ccc",
-                  }}
-                />
-              )}
             </div>
+          )}
+
+          {/* File Upload */}
+          <div className="file-upload">
+            <input
+              type="file"
+              id={`file-${idx}`}
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(idx, e.target.files[0])}
+              style={{ display: "none" }}
+            />
+            <label htmlFor={`file-${idx}`} className="logo-upload-btn">
+              Choose File
+            </label>
+            {doc.file && <span className="file-name">{doc.file.name}</span>}
+            {doc.preview && (
+              <img
+                src={doc.preview}
+                alt="preview"
+                style={{
+                  width: 50,
+                  height: 50,
+                  objectFit: "cover",
+                  marginLeft: 8,
+                  borderRadius: 6,
+                  border: "1px solid #ccc",
+                }}
+              />
+            )}
           </div>
         </div>
-      ))}
-
-      {/* Validation Error */}
-      {formData.error && (
-        <p style={{ color: "red", marginTop: 8 }}>{formData.error}</p>
-      )}
-
-      {/* Add More Button */}
-      <div className="form-actions">
-        <button
-          type="button"
-          className="secondary-btn"
-          onClick={addDocumentRow}
-        >
-          + Add Document
-        </button>
       </div>
+    ));
+  }
 
-      {/* Submit */}
-      <div className="form-actions">
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            // Validation: At least one document with a file required
-            const hasFile = documents.some((doc) => doc.file);
-            if (!hasFile) {
-              setFormData({
-                ...formData,
-                error: "Please upload at least one document.",
-              });
-              return;
-            }
+  {
+    /* Validation Error */
+  }
+  {
+    formData.error && (
+      <p style={{ color: "red", marginTop: 8 }}>{formData.error}</p>
+    );
+  }
 
-            // Clear error and proceed
-            setFormData({ ...formData, error: "" });
-            submitStep3();
-            // setStep(4);
-          }}
-        >
-          Save & Continue
-        </button>
-      </div>
+  {
+    /* Add More Button */
+  }
+  <div className="form-actions">
+    <button type="button" className="secondary-btn" onClick={addDocumentRow}>
+      + Add Document
+    </button>
+  </div>;
+
+  {
+    /* Submit */
+  }
+  <div className="form-actions">
+    <button
+      className="btn btn-primary"
+      onClick={() => {
+        // Validation: At least one document with a file required
+        const hasFile = documents.some((doc) => doc.file);
+        if (!hasFile) {
+          setFormData({
+            ...formData,
+            error: "Please upload at least one document.",
+          });
+          return;
+        }
+
+        // Clear error and proceed
+        setFormData({ ...formData, error: "" });
+        submitStep3();
+        // setStep(4);
+      }}
+    >
+      Save & Continue
+    </button>
+  </div>;
 
   if (loading) {
     return (
@@ -1913,39 +2113,67 @@ const SellerOnboarding = () => {
             style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
-        
+
         {/* Step indicators */}
         <div className="step-indicators">
           <div className="step-labels">
-            <div className={`step-label ${step === 1 ? 'active' : step > 1 ? 'completed' : ''}`}>
+            <div
+              className={`step-label ${
+                step === 1 ? "active" : step > 1 ? "completed" : ""
+              }`}
+            >
               <span className="step-number">1</span>
               <span className="step-name">Basic Details</span>
-              {!requiredSteps.includes('basicDetails') && <span className="optional-badge">Optional</span>}
+              {!requiredSteps.includes("basicDetails") && (
+                <span className="optional-badge">Optional</span>
+              )}
             </div>
-            <div className={`step-label ${step === 2 ? 'active' : step > 2 ? 'completed' : ''}`}>
+            <div
+              className={`step-label ${
+                step === 2 ? "active" : step > 2 ? "completed" : ""
+              }`}
+            >
               <span className="step-number">2</span>
               <span className="step-name">Shop Timing</span>
-              {!requiredSteps.includes('shopTiming') && <span className="optional-badge">Optional</span>}
+              {!requiredSteps.includes("shopTiming") && (
+                <span className="optional-badge">Optional</span>
+              )}
             </div>
-            <div className={`step-label ${step === 3 ? 'active' : step > 3 ? 'completed' : ''}`}>
+            <div
+              className={`step-label ${
+                step === 3 ? "active" : step > 3 ? "completed" : ""
+              }`}
+            >
               <span className="step-number">3</span>
               <span className="step-name">Legal Documents</span>
-              {!requiredSteps.includes('legalDocuments') && <span className="optional-badge">Optional</span>}
+              {!requiredSteps.includes("legalDocuments") && (
+                <span className="optional-badge">Optional</span>
+              )}
             </div>
-            <div className={`step-label ${step === 4 ? 'active' : step > 4 ? 'completed' : ''}`}>
+            <div
+              className={`step-label ${
+                step === 4 ? "active" : step > 4 ? "completed" : ""
+              }`}
+            >
               <span className="step-number">4</span>
               <span className="step-name">Subscription</span>
-              {!requiredSteps.includes('subscription') && <span className="optional-badge">Optional</span>}
+              {!requiredSteps.includes("subscription") && (
+                <span className="optional-badge">Optional</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Step rendering */}
-        {step === 1 ? renderBasicDetailsForm() :
-         step === 2 ? renderTimingForm() :
-         step === 3 ? renderGSTForm() :
-         step === 4 ? renderSubscriptionForm() :
-         null}
+        {step === 1
+          ? renderBasicDetailsForm()
+          : step === 2
+          ? renderTimingForm()
+          : step === 3
+          ? renderGSTForm()
+          : step === 4
+          ? renderSubscriptionForm()
+          : null}
 
         <div className="form-actions">
           {step > 1 && (
@@ -1958,7 +2186,7 @@ const SellerOnboarding = () => {
               Back
             </button>
           )}
-          
+
           {/* Skip button for optional steps */}
           {step < 4 && !isCurrentStepRequired() && (
             <button
@@ -1966,22 +2194,22 @@ const SellerOnboarding = () => {
               className="btn btn-outline"
               onClick={handleSkipStep}
               disabled={loading}
-              style={{ marginLeft: '10px' }}
+              style={{ marginLeft: "10px" }}
             >
-              <FaForward style={{ marginRight: '5px' }} />
+              <FaForward style={{ marginRight: "5px" }} />
               Skip This Step
             </button>
           )}
-          
+
           {step < 4 ? (
             <button
               type="button"
               className="btn btn-primary"
               onClick={handleNext}
               disabled={loading}
-              style={{ marginLeft: '10px' }}
+              style={{ marginLeft: "10px" }}
             >
-              {isCurrentStepRequired() ? 'Next' : 'Continue'}
+              {isCurrentStepRequired() ? "Next" : "Continue"}
             </button>
           ) : (
             <button
@@ -1989,7 +2217,7 @@ const SellerOnboarding = () => {
               className="btn btn-primary"
               onClick={handleSubmit}
               disabled={loading}
-              style={{ marginLeft: '10px' }}
+              style={{ marginLeft: "10px" }}
             >
               {loading ? "Starting Trial..." : "Start 7-Day Free Trial"}
             </button>

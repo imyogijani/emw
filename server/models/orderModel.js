@@ -34,9 +34,17 @@ const orderItemSchema = new mongoose.Schema({
     enum: ["Shiprocket", "Delhivery", "Shadowfax", "Manual"],
     default: "Manual",
   },
+  shipmentStatus: {
+    type: String,
+    enum: ["pending", "success", "failed"],
+    default: "pending",
+  },
   deliveryTrackingId: { type: String, default: null }, // AWB or tracking number
   deliveryTrackingURL: { type: String, default: null }, // user can click and track
   deliveryCharge: { type: Number, default: 0 },
+  labelPath: { type: String, default: null }, // local file path
+  labelUrl: { type: String, default: null }, // public URL if you upload to S3, etc.
+  shippedAt: { type: Date, default: null },
   expectedDeliveryDate: {
     type: Date,
     default: null,
@@ -59,6 +67,10 @@ const orderItemSchema = new mongoose.Schema({
   settledAt: {
     type: Date,
     default: null,
+  },
+  commission: {
+    type: Number,
+    required: true,
   },
 });
 
