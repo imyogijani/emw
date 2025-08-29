@@ -66,8 +66,8 @@ export const processImageUrl = (image) => {
         return `${baseURL}/${img}`;
       }
 
-      // If it's just a filename, assume it's in uploads
-      return `${baseURL}/uploads/${img}`;
+      // If it's just a filename, assume it's in uploads/products
+      return `${baseURL}/uploads/products/${img}`;
     };
 
     // Handle array of images
@@ -87,17 +87,56 @@ export const processImageUrl = (image) => {
   }
 };
 
+// Enhanced image loading utility with retry logic
+export const loadImageWithRetry = (src, maxRetries = 3, delay = 1000) => {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    
+    const tryLoad = () => {
+      const img = new Image();
+      
+      img.onload = () => resolve(src);
+      
+      img.onerror = () => {
+        attempts++;
+        if (attempts < maxRetries) {
+          setTimeout(tryLoad, delay * attempts);
+        } else {
+          reject(new Error(`Failed to load image after ${maxRetries} attempts`));
+        }
+      };
+      
+      img.src = src;
+    };
+    
+    tryLoad();
+  });
+};
+
+// Utility to get fallback image based on context
+export const getFallbackImage = (context = 'product') => {
+  const fallbacks = {
+    product: '/images/offer1.png',
+    category: '/vite.svg',
+    store: 'https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg',
+    user: '/images/MaleUser.png',
+    default: '/images/offer1.png'
+  };
+  
+  return fallbacks[context] || fallbacks.default;
+};
+
 // Specific utility for category images
 export const processCategoryImageUrl = (image) => {
   try {
     if (!image || typeof image !== "string") {
-      return "/vite.svg"; // Category-specific fallback
+      return getFallbackImage('category'); // Category-specific fallback
     }
 
     // Trim whitespace
     image = image.trim();
 
-    if (!image) return "/vite.svg";
+    if (!image) return getFallbackImage('category');
 
     const baseURL = getApiBaseUrl();
 
@@ -120,7 +159,59 @@ export const processCategoryImageUrl = (image) => {
     return `${baseURL}/uploads/categories/${image}`;
   } catch (error) {
     console.error("❌ Error processing category image URL:", error);
-    return "/vite.svg";
+    return getFallbackImage('category');
+  }
+};
+
+// Unified image processing function that handles all image types
+export const processImageUrlUnified = (image, type = 'product') => {
+  try {
+    if (!image || (typeof image !== "string" && !Array.isArray(image))) {
+      return getFallbackImage(type);
+    }
+
+    // Handle array of images
+    if (Array.isArray(image)) {
+      if (image.length === 0) return getFallbackImage(type);
+      image = image[0];
+    }
+
+    // Ensure it's a string and trim whitespace
+    image = String(image).trim();
+    if (!image) return getFallbackImage(type);
+
+    const baseURL = getApiBaseUrl();
+
+    // If image already starts with http/https, return as is
+    if (image.startsWith("http://") || image.startsWith("https://")) {
+      return image;
+    }
+
+    // If image starts with /uploads, prepend base URL
+    if (image.startsWith("/uploads")) {
+      return `${baseURL}${image}`;
+    }
+
+    // If it starts with uploads (without slash), add slash
+    if (image.startsWith("uploads/")) {
+      return `${baseURL}/${image}`;
+    }
+
+    // If it's just a filename, determine the folder based on type
+    const folderMap = {
+      product: 'products',
+      category: 'categories',
+      brand: 'brands',
+      store: 'shopowner',
+      user: 'avatars',
+      avatar: 'avatars'
+    };
+    
+    const folder = folderMap[type] || 'products';
+    return `${baseURL}/uploads/${folder}/${image}`;
+  } catch (error) {
+    console.error(`❌ Error processing ${type} image URL:`, error);
+    return getFallbackImage(type);
   }
 };
 

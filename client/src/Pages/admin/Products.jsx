@@ -12,7 +12,8 @@ import {
 import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
-import { processImageUrl } from "../../utils/apiConfig";
+import { processImageUrlUnified } from "../../utils/apiConfig";
+import OptimizedImage from "../../components/common/OptimizedImage";
 import "./Products.css";
 import { useNavigate } from "react-router-dom";
 

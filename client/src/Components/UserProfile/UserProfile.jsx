@@ -4,7 +4,8 @@ import { toast } from "react-toastify";
 import "./UserProfile.css";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
-import { processImageUrl } from "../../utils/apiConfig";
+import { processImageUrlUnified } from "../../utils/apiConfig";
+import OptimizedImage from "../common/OptimizedImage";
 import JumpingLoader from "../JumpingLoader";
 import {
   FaUser,

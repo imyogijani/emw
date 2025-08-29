@@ -22,7 +22,8 @@ import {
   Clock,
 } from "lucide-react";
 import axios from "../../utils/axios";
-import { processImageUrl } from "../../utils/apiConfig";
+import { processImageUrlUnified } from "../../utils/apiConfig";
+import OptimizedImage from "../../components/common/OptimizedImage";
 import { fetchStores } from "../../api/storeApi";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
 import { trackEvent } from "../../analytics/trackEvent";
@@ -441,25 +442,7 @@ export default function Shops() {
   // Modern ProductCard component with unified design system
   const ProductCard = ({ product }) => {
     const navigate = useNavigate();
-    const [imageError, setImageError] = useState(false);
-    const [imageLoading, setImageLoading] = useState(true);
-
-    const handleImageLoad = () => {
-      setImageLoading(false);
-      setImageError(false);
-    };
-
-    const handleImageError = () => {
-      setImageLoading(false);
-      setImageError(true);
-    };
-
-    const getImageSrc = () => {
-      if (imageError) {
-        return "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
-      }
-      return processImageUrl(product.image) || "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
-    };
+    // Removed individual image state management - now handled by OptimizedImage
 
     const handleProductClick = async () => {
       // Track the click event
@@ -502,18 +485,15 @@ export default function Shops() {
         onClick={handleProductClick}
         style={{ cursor: 'pointer' }}
       >
-        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`}>
-          <img
-            src={getImageSrc()}
+        <div className="card-image-container">
+          <OptimizedImage
+            src={product.image}
+            type="product"
             alt={product.name}
             className="card-image"
-            loading="lazy"
-            style={{
-              objectFit: "cover",
-              display: imageLoading ? "none" : "block",
-            }}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+            customFallback="https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg"
+            lazy={true}
+            showRetryButton={false}
           />
           {product.discount && (
             <div className="card-badge discount pulse">-{product.discount}%</div>

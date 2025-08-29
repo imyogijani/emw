@@ -1,11 +1,12 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaChevronRight, FaEye, FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import "./Categories.css"; // Assuming you'll create this CSS file
 import axiosInstance from "../../utils/axios";
-import { processCategoryImageUrl } from "../../utils/apiConfig";
+import { processImageUrlUnified } from "../../utils/apiConfig";
+import OptimizedImage from "../../components/common/OptimizedImage";
 
 const Categories = () => {
   const [categoryName, setCategoryName] = useState("");
@@ -50,6 +51,13 @@ const Categories = () => {
   const [selectedSubBrands, setSelectedSubBrands] = useState([]);
   const [selectedSubBrandDetails, setSelectedSubBrandDetails] = useState([]);
   const [newBrandName, setNewBrandName] = useState("");
+
+  // View modal states
+  const [showViewCategoryModal, setShowViewCategoryModal] = useState(false);
+  const [viewingCategory, setViewingCategory] = useState(null);
+  const [showViewSubcategoryModal, setShowViewSubcategoryModal] = useState(false);
+  const [viewingSubcategory, setViewingSubcategory] = useState(null);
+  const [subcategoryBrands, setSubcategoryBrands] = useState([]);
 
   // const [loading, setLoading] = useState(false);
 
@@ -441,6 +449,33 @@ const Categories = () => {
     }
   };
 
+  // View handlers
+  const handleViewCategory = (category) => {
+    setViewingCategory(category);
+    setShowViewCategoryModal(true);
+  };
+
+  const handleViewSubcategory = async (subcategory) => {
+    setViewingSubcategory(subcategory);
+    // Fetch brands for this subcategory
+    try {
+      const response = await axiosInstance.get(`/brands/subcategory/${subcategory._id}`);
+      setSubcategoryBrands(response.data.brands || []);
+    } catch (error) {
+      console.error('Error fetching subcategory brands:', error);
+      setSubcategoryBrands([]);
+    }
+    setShowViewSubcategoryModal(true);
+  };
+
+  const closeViewModals = () => {
+    setShowViewCategoryModal(false);
+    setShowViewSubcategoryModal(false);
+    setViewingCategory(null);
+    setViewingSubcategory(null);
+    setSubcategoryBrands([]);
+  };
+
   // Set edit mode
   const startEdit = (brand) => {
     setEditingBrand(brand);
@@ -647,10 +682,10 @@ const Categories = () => {
         {loading && <p>Loading categories...</p>}
         {error && <p className="error-message">Error: {error.message}</p>}
         {!loading && categories.length === 0 && <p>No categories found.</p>}
-        <div className="category-list enhanced-category-list">
+        <div className="category-list">
           {categories.map((cat) => (
-            <div key={cat._id} className="card-base card-medium admin-card">
-              <div className="card-image-container">
+            <div key={cat._id} className="enhanced-category-card">
+              <div className="category-image-wrapper">
                 <img
                   src={processCategoryImageUrl(cat.image)}
                   alt={cat.name}
@@ -658,51 +693,34 @@ const Categories = () => {
                     e.target.onerror = null;
                     e.target.src = "/vite.svg";
                   }}
-                  className="card-image"
-                  style={{ objectFit: 'cover' }}
+                  className="category-image"
                 />
               </div>
-              <div className="card-content">
-                <h3 className="card-title">{cat.name}</h3>
-                <div className="card-actions">
+              <div className="category-info">
+                <h3 className="category-title">{cat.name}</h3>
+                <div className="category-actions">
                   <button
-                    className="card-action secondary"
+                    className="btn btn-secondary"
+                    onClick={() => handleViewCategory(cat)}
+                    title="View Category"
+                  >
+                    <FaEye />
+                  </button>
+                  <button
+                    className="btn btn-edit"
                     onClick={() => handleUpdateCategory(cat)}
+                    title="Edit Category"
                   >
                     <FaEdit />
-                    Edit
                   </button>
                   <button
-                    className="card-action danger"
+                    className="btn btn-delete"
                     onClick={() => handleDeleteCategory(cat)}
+                    title="Delete Category"
                   >
                     <FaTrashAlt />
-                    Delete
                   </button>
                 </div>
-                {cat.children?.length > 0 && (
-                  <div className="subcategory-list">
-                    {cat.children.map((subCat) => (
-                      <div key={subCat._id} className="subcategory-item">
-                        <span>{subCat.name}</span>
-                        <div className="subcategory-actions">
-                          <button
-                            className="btn btn-edit"
-                            onClick={() => handleUpdateSubCategory(subCat)}
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            className="btn btn-delete"
-                            onClick={() => handleDeleteSubCategory(subCat)}
-                          >
-                            <FaTrashAlt />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -890,6 +908,195 @@ const Categories = () => {
                 onClick={() => setShowConfirmDeleteModal(false)}
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Category Modal */}
+      {showViewCategoryModal && viewingCategory && (
+        <div className="modal-overlay">
+          <div className="modal-content view-modal">
+            <div className="modal-header">
+              <h2>Category: {viewingCategory.name}</h2>
+              <button className="btn btn-close" onClick={closeViewModals}>×</button>
+            </div>
+            
+            <div className="category-details">
+              <div className="category-image-section">
+                <img
+                  src={processCategoryImageUrl(viewingCategory.image)}
+                  alt={viewingCategory.name}
+                  className="modal-category-image"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/vite.svg";
+                  }}
+                />
+              </div>
+              
+              <div className="subcategories-section">
+                <div className="section-header">
+                  <h3>Subcategories ({viewingCategory.children?.length || 0})</h3>
+                </div>
+                
+                {viewingCategory.children?.length > 0 ? (
+                  <div className="subcategory-grid">
+                    {viewingCategory.children.map((subCat) => (
+                      <div key={subCat._id} className="subcategory-card">
+                        <div className="subcategory-card-header">
+                          <h4>{subCat.name}</h4>
+                          <div className="subcategory-card-actions">
+                            <button
+                              className="btn btn-view-sm"
+                              onClick={() => handleViewSubcategory(subCat)}
+                              title="View Brands"
+                            >
+                              <FaEye />
+                            </button>
+                            <button
+                              className="btn btn-edit-sm"
+                              onClick={() => {
+                                closeViewModals();
+                                handleUpdateSubCategory(subCat);
+                              }}
+                              title="Edit Subcategory"
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              className="btn btn-delete-sm"
+                              onClick={() => {
+                                closeViewModals();
+                                handleDeleteSubCategory(subCat);
+                              }}
+                              title="Delete Subcategory"
+                            >
+                              <FaTrashAlt />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="subcategory-info">
+                          {subCat.gstPercentage && (
+                            <span className="gst-badge">GST: {subCat.gstPercentage}%</span>
+                          )}
+                          {subCat.defaultHsnCode && (
+                            <span className="hsn-badge">HSN: {subCat.defaultHsnCode}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="no-data">No subcategories found for this category.</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={closeViewModals}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Subcategory Modal */}
+      {showViewSubcategoryModal && viewingSubcategory && (
+        <div className="modal-overlay">
+          <div className="modal-content view-modal">
+            <div className="modal-header">
+              <h2>Subcategory: {viewingSubcategory.name}</h2>
+              <button className="btn btn-close" onClick={closeViewModals}>×</button>
+            </div>
+            
+            <div className="subcategory-details">
+              <div className="subcategory-info-section">
+                <div className="info-grid">
+                  {viewingSubcategory.gstPercentage && (
+                    <div className="info-item">
+                      <label>GST Percentage:</label>
+                      <span className="gst-badge">{viewingSubcategory.gstPercentage}%</span>
+                    </div>
+                  )}
+                  {viewingSubcategory.defaultHsnCode && (
+                    <div className="info-item">
+                      <label>Default HSN Code:</label>
+                      <span className="hsn-badge">{viewingSubcategory.defaultHsnCode}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="brands-section">
+                <div className="section-header">
+                  <h3>Associated Brands ({subcategoryBrands.length})</h3>
+                  <button 
+                    className="btn btn-add-brand"
+                    onClick={() => {
+                      closeViewModals();
+                      handleUpdateSubCategory(viewingSubcategory);
+                    }}
+                  >
+                    <FaPlus /> Add Brand
+                  </button>
+                </div>
+                
+                {subcategoryBrands.length > 0 ? (
+                  <div className="brands-grid">
+                    {subcategoryBrands.map((brand) => (
+                      <div key={brand._id} className="brand-card">
+                        <div className="brand-info">
+                          <h4>{brand.name}</h4>
+                          {brand.description && (
+                            <p className="brand-description">{brand.description}</p>
+                          )}
+                        </div>
+                        <div className="brand-actions">
+                          <button
+                            className="btn btn-edit-sm"
+                            onClick={() => startEdit(brand)}
+                            title="Edit Brand"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            className="btn btn-delete-sm"
+                            onClick={() => {
+                              // Handle brand deletion
+                              console.log('Delete brand:', brand._id);
+                            }}
+                            title="Delete Brand"
+                          >
+                            <FaTrashAlt />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-data">
+                    <p>No brands associated with this subcategory.</p>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => {
+                        closeViewModals();
+                        handleUpdateSubCategory(viewingSubcategory);
+                      }}
+                    >
+                      <FaPlus /> Add First Brand
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={closeViewModals}>
+                Close
               </button>
             </div>
           </div>
