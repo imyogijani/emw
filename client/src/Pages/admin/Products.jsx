@@ -12,7 +12,7 @@ import {
 import JumpingLoader from "../../Components/JumpingLoader";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
-import { processImageUrlUnified } from "../../utils/apiConfig";
+
 import OptimizedImage from "../../Components/common/OptimizedImage";
 import "./Products.css";
 import { useNavigate } from "react-router-dom";
@@ -370,17 +370,16 @@ const Products = () => {
       <div className="products-grid-container">
         <div className="product-cards-container">
           {products.map((product) => {
-            const imageUrl = processImageUrl(product.image);
             return (
               <div key={product._id} className="product-card">
                 <div className="product-card-header">
-                  {imageUrl && (
-                    <img
-                      src={imageUrl}
-                      alt={product.name}
-                      className="product-card-image"
-                    />
-                  )}
+                  <OptimizedImage
+                    src={product.image}
+                    alt={product.name}
+                    type="product"
+                    className="product-card-image"
+                    showRetryButton={false}
+                  />
                   <h3 className="product-card-name">{product.name}</h3>
                 </div>
                 <div className="product-card-body">

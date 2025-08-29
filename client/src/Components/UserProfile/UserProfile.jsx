@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import "./UserProfile.css";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
-import { processImageUrlUnified } from "../../utils/apiConfig";
+
 import OptimizedImage from "../common/OptimizedImage";
 import JumpingLoader from "../JumpingLoader";
 import {
@@ -170,7 +170,7 @@ const UserProfile = ({ onClose }) => {
     }
   };
 
-  // processImageUrl is now imported from utils
+  
 
   if (loading) {
     return (
@@ -201,12 +201,13 @@ const UserProfile = ({ onClose }) => {
           </div>
           <div className="avatar-section">
             <div className="avatar-container">
-              <img
-                src={
-                  formData.avatar ? processImageUrl(formData.avatar) : MaleUser
-                }
+              <OptimizedImage
+                src={formData.avatar}
                 alt="Profile"
+                type="avatar"
+                fallback={MaleUser}
                 className={`profile-avatar ${isLoading ? "loading" : ""}`}
+                showRetryButton={false}
               />
               {isEditing && (
                 <label className="avatar-upload-label">
