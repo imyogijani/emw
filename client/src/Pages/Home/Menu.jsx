@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import axios from "../../utils/axios";
 import { processImageUrlUnified } from "../../utils/apiConfig";
-import OptimizedImage from "../../components/common/OptimizedImage";
+import OptimizedImage from "../../Components/common/OptimizedImage";
 import { addToCartAPI } from "../../api/cartApi/cartApi";
 import { trackEvent } from "../../analytics/trackEvent";
 
