@@ -1,0 +1,21 @@
+{
+  "name": "emall-world",
+  "version": "1.0.0",
+  "description": "E-Mall World - E-commerce Platform",
+  "main": "git-log.js",
+  "scripts": {
+    "git-log": "node git-log.js",
+    "git-log-watch": "node git-log.js --watch",
+    "start": "npm run git-log"
+  },
+  "keywords": [
+    "ecommerce",
+    "mall",
+    "git-logging"
+  ],
+  "author": "E-Mall World Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -30,7 +30,7 @@ const EnhancedSellerOnboarding = () => {
         setLoading(true);
         
         // Fetch onboarding configuration
-        const configResponse = await axios.get('/api/admin/onboarding/config');
+        const configResponse = await axios.get('/api/seller/onboarding/config');
         const config = configResponse.data.config;
         
         if (!config.isEnabled) {
@@ -89,7 +89,7 @@ const EnhancedSellerOnboarding = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/api/categories');
+      const response = await axios.get('/api/category/get-category');
       setCategories(response.data.categories || []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);

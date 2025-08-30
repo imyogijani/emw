@@ -18,6 +18,7 @@ import {
   completeDocumentStep,
   completeSubscriptionStep,
 } from "../controllers/onBoardingController.js";
+import { getOnboardingConfig } from "../controllers/onboardingConfigController.js";
 
 const router = express.Router();
 
@@ -139,6 +140,14 @@ router.post(
   fetchUser,
   getOnboardingSettings,
   completeSubscriptionStep
+);
+
+// Public route for getting onboarding configuration (no admin auth required)
+router.get(
+  "/onboarding/config",
+  authenticateToken,
+  fetchUser,
+  getOnboardingConfig
 );
 
 export default router;
