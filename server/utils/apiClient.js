@@ -1,5 +1,5 @@
 import axios from "axios";
-console.log("process.env.DELHIVERY_API_TOKEN", process.env.DELHIVERY_API_TOKEN);
+// console.log("process.env.DELHIVERY_API_TOKEN", process.env.DELHIVERY_API_TOKEN);
 
 const apiClient = axios.create({
   baseURL: "https://staging-express.delhivery.com",

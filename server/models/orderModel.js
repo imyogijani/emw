@@ -42,8 +42,8 @@ const orderItemSchema = new mongoose.Schema({
   deliveryTrackingId: { type: String, default: null }, // AWB or tracking number
   deliveryTrackingURL: { type: String, default: null }, // user can click and track
   deliveryCharge: { type: Number, default: 0 },
-  labelPath: { type: String, default: null }, // local file path
-  labelUrl: { type: String, default: null }, // public URL if you upload to S3, etc.
+  labelPath: { type: String, default: null }, // local file path : PDF file ka path server ke andar (e.g., /labels/123456.pdf).
+  labelUrl: { type: String, default: null }, // public URL if you upload to S3, etc.   : Agar tumne S3 ya CDN upload kiya ho to public URL (optional).
   shippedAt: { type: Date, default: null },
   expectedDeliveryDate: {
     type: Date,

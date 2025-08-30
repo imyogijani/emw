@@ -79,7 +79,10 @@ export default function CartModal({ open, onClose }) {
 
     if (!token || !user || user.role !== "client") {
       console.log("Auth failed, redirecting to login");
-      showErrorToast("Please login as a customer to checkout.", "Cart - Authentication");
+      showErrorToast(
+        "Please login as a customer to checkout.",
+        "Cart - Authentication"
+      );
       onClose();
       navigate("/login", {
         state: { returnUrl: "/checkout", customerOnly: true },
@@ -136,11 +139,21 @@ export default function CartModal({ open, onClose }) {
         if (freshCart?.success) {
           setCartData(freshCart); //  Update with accurate backend state
         } else {
-          showErrorToast("Failed to refresh cart from server.", "Cart Update", { operation: "updateQuantity", productId, variantId, newQuantity });
+          showErrorToast("Failed to refresh cart from server.", "Cart Update", {
+            operation: "updateQuantity",
+            productId,
+            variantId,
+            newQuantity,
+          });
         }
       } catch (err) {
         console.error("Failed to update cart:", err);
-        showErrorToast(err, "Failed to update quantity", { operation: "updateCartItem", productId, variantId, newQuantity });
+        showErrorToast(err, "Failed to update quantity", {
+          operation: "updateCartItem",
+          productId,
+          variantId,
+          newQuantity,
+        });
       }
     },
     [userId]
@@ -162,7 +175,10 @@ export default function CartModal({ open, onClose }) {
       }));
     } catch (err) {
       console.error("Failed to clear cart:", err);
-      showErrorToast(err, "Failed to clear cart", { operation: "clearCart", userId });
+      showErrorToast(err, "Failed to clear cart", {
+        operation: "clearCart",
+        userId,
+      });
     }
   }, [userId]);
 

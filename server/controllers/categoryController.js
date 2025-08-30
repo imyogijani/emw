@@ -29,7 +29,7 @@ export const createCategoryController = async (req, res) => {
     let imageId = null;
 
     if (req.file && req.imageRecord) {
-      console.log("Category image upload:", req.file);
+      // console.log("Category image upload:", req.file);
       image = req.imageRecord.url;
       imageId = req.imageRecord._id;
 
@@ -37,7 +37,7 @@ export const createCategoryController = async (req, res) => {
       // This will be done after category creation
     } else if (req.file) {
       // Fallback to old method if database save failed
-      console.log("Category image upload (fallback):", req.file);
+      // console.log("Category image upload (fallback):", req.file);
       image = `/uploads/categories/${req.file.filename}`;
     } else {
       console.log("[DEBUG] No file received for category image upload");
@@ -235,6 +235,7 @@ export const categoryController = async (req, res) => {
 // };
 
 // Get subcategories with brand names
+
 export const getSubcategoriesController = async (req, res) => {
   try {
     const { parentId } = req.params;

@@ -25,6 +25,11 @@ const sellerLinks = [
   { name: "Deals", path: "/seller/deals", icon: <FaBox /> },
   { name: "Customers", path: "/seller/customers", icon: <FaUsers /> },
   { name: "Profile", path: "/seller/profile", icon: <FaUsers /> },
+  // {
+  //   name: "SellerShipments",
+  //   path: "/seller/sellershipments",
+  //   icon: <FaUsers />,
+  // },
 ];
 
 const SellerSidebar = ({ onClose }) => {

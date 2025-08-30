@@ -1,6 +1,12 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { FaEdit, FaTrashAlt, FaChevronRight, FaEye, FaPlus } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaChevronRight,
+  FaEye,
+  FaPlus,
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import "./Categories.css"; // Assuming you'll create this CSS file
@@ -55,7 +61,8 @@ const Categories = () => {
   // View modal states
   const [showViewCategoryModal, setShowViewCategoryModal] = useState(false);
   const [viewingCategory, setViewingCategory] = useState(null);
-  const [showViewSubcategoryModal, setShowViewSubcategoryModal] = useState(false);
+  const [showViewSubcategoryModal, setShowViewSubcategoryModal] =
+    useState(false);
   const [viewingSubcategory, setViewingSubcategory] = useState(null);
   const [subcategoryBrands, setSubcategoryBrands] = useState([]);
 
@@ -71,6 +78,8 @@ const Categories = () => {
         setCategories([]);
         console.warn("Invalid API response format:", response.data);
       }
+
+      // console.log("Admin categories data print : ", response.data.categories);
     } catch (err) {
       setError(err);
       toast.error("Failed to load categories.");
@@ -101,9 +110,13 @@ const Categories = () => {
 
       // HSN codes are now handled only at subcategory level
       // Debug: log the file
-      console.log("Uploading category image:", categoryImage);
+      // console.log("Uploading category image:", categoryImage);
       // Use your custom axios instance
-      const { data } = await axiosInstance.post("/api/category", formData);
+      const { data } = await axiosInstance.post("/api/category", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       setCategoryName("");
       setCategoryImage(null);
       setSelectedBrands([]); // Clear selected brands after adding category
@@ -239,9 +252,14 @@ const Categories = () => {
         console.log("FormData:", key, value);
       }
 
-      await axiosInstance.post(
+      await axiosInstance.patch(
         `/api/category/update-category/${editingCategory._id}`,
-        formData
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       toast.success("Category updated successfully.");
@@ -459,10 +477,12 @@ const Categories = () => {
     setViewingSubcategory(subcategory);
     // Fetch brands for this subcategory
     try {
-      const response = await axiosInstance.get(`/brands/subcategory/${subcategory._id}`);
+      const response = await axiosInstance.get(
+        `/brands/subcategory/${subcategory._id}`
+      );
       setSubcategoryBrands(response.data.brands || []);
     } catch (error) {
-      console.error('Error fetching subcategory brands:', error);
+      console.error("Error fetching subcategory brands:", error);
       setSubcategoryBrands([]);
     }
     setShowViewSubcategoryModal(true);
@@ -923,9 +943,11 @@ const Categories = () => {
           <div className="modal-content view-modal">
             <div className="modal-header">
               <h2>Category: {viewingCategory.name}</h2>
-              <button className="btn btn-close" onClick={closeViewModals}>×</button>
+              <button className="btn btn-close" onClick={closeViewModals}>
+                ×
+              </button>
             </div>
-            
+
             <div className="category-details">
               <div className="category-image-section">
                 <img
@@ -938,12 +960,14 @@ const Categories = () => {
                   }}
                 />
               </div>
-              
+
               <div className="subcategories-section">
                 <div className="section-header">
-                  <h3>Subcategories ({viewingCategory.children?.length || 0})</h3>
+                  <h3>
+                    Subcategories ({viewingCategory.children?.length || 0})
+                  </h3>
                 </div>
-                
+
                 {viewingCategory.children?.length > 0 ? (
                   <div className="subcategory-grid">
                     {viewingCategory.children.map((subCat) => (
@@ -980,24 +1004,30 @@ const Categories = () => {
                             </button>
                           </div>
                         </div>
-                        
+
                         <div className="subcategory-info">
                           {subCat.gstPercentage && (
-                            <span className="gst-badge">GST: {subCat.gstPercentage}%</span>
+                            <span className="gst-badge">
+                              GST: {subCat.gstPercentage}%
+                            </span>
                           )}
                           {subCat.defaultHsnCode && (
-                            <span className="hsn-badge">HSN: {subCat.defaultHsnCode}</span>
+                            <span className="hsn-badge">
+                              HSN: {subCat.defaultHsnCode}
+                            </span>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="no-data">No subcategories found for this category.</p>
+                  <p className="no-data">
+                    No subcategories found for this category.
+                  </p>
                 )}
               </div>
             </div>
-            
+
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={closeViewModals}>
                 Close
@@ -1013,31 +1043,37 @@ const Categories = () => {
           <div className="modal-content view-modal">
             <div className="modal-header">
               <h2>Subcategory: {viewingSubcategory.name}</h2>
-              <button className="btn btn-close" onClick={closeViewModals}>×</button>
+              <button className="btn btn-close" onClick={closeViewModals}>
+                ×
+              </button>
             </div>
-            
+
             <div className="subcategory-details">
               <div className="subcategory-info-section">
                 <div className="info-grid">
                   {viewingSubcategory.gstPercentage && (
                     <div className="info-item">
                       <label>GST Percentage:</label>
-                      <span className="gst-badge">{viewingSubcategory.gstPercentage}%</span>
+                      <span className="gst-badge">
+                        {viewingSubcategory.gstPercentage}%
+                      </span>
                     </div>
                   )}
                   {viewingSubcategory.defaultHsnCode && (
                     <div className="info-item">
                       <label>Default HSN Code:</label>
-                      <span className="hsn-badge">{viewingSubcategory.defaultHsnCode}</span>
+                      <span className="hsn-badge">
+                        {viewingSubcategory.defaultHsnCode}
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
-              
+
               <div className="brands-section">
                 <div className="section-header">
                   <h3>Associated Brands ({subcategoryBrands.length})</h3>
-                  <button 
+                  <button
                     className="btn btn-add-brand"
                     onClick={() => {
                       closeViewModals();
@@ -1047,7 +1083,7 @@ const Categories = () => {
                     <FaPlus /> Add Brand
                   </button>
                 </div>
-                
+
                 {subcategoryBrands.length > 0 ? (
                   <div className="brands-grid">
                     {subcategoryBrands.map((brand) => (
@@ -1055,7 +1091,9 @@ const Categories = () => {
                         <div className="brand-info">
                           <h4>{brand.name}</h4>
                           {brand.description && (
-                            <p className="brand-description">{brand.description}</p>
+                            <p className="brand-description">
+                              {brand.description}
+                            </p>
                           )}
                         </div>
                         <div className="brand-actions">
@@ -1070,7 +1108,7 @@ const Categories = () => {
                             className="btn btn-delete-sm"
                             onClick={() => {
                               // Handle brand deletion
-                              console.log('Delete brand:', brand._id);
+                              console.log("Delete brand:", brand._id);
                             }}
                             title="Delete Brand"
                           >
@@ -1083,7 +1121,7 @@ const Categories = () => {
                 ) : (
                   <div className="no-data">
                     <p>No brands associated with this subcategory.</p>
-                    <button 
+                    <button
                       className="btn btn-primary"
                       onClick={() => {
                         closeViewModals();
@@ -1096,7 +1134,7 @@ const Categories = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={closeViewModals}>
                 Close

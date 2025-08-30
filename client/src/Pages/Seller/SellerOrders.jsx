@@ -55,6 +55,8 @@ const SellerOrders = () => {
           },
         });
 
+        console.log("Response fetch order seller : ", res.data.orders);
+
         const mapped = res.data.orders.map((o) => ({
           id: o.orderId,
           customer: o.customer.name,
@@ -336,9 +338,7 @@ const SellerOrders = () => {
             </select>
           </div>
 
-          <div className="filter-actions"
-          style={{ marginBottom: "23px"}}
-          >
+          <div className="filter-actions" style={{ marginBottom: "23px" }}>
             <button className="apply-btn" onClick={applyFilters}>
               Apply Filters
             </button>
