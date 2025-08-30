@@ -14,11 +14,7 @@ import {
   onboardingStep1,
   completeOnboarding,
   startFreeTrial,
-  completeShopTimingStep,
-  completeDocumentStep,
-  completeSubscriptionStep,
 } from "../controllers/onBoardingController.js";
-import { getOnboardingConfig } from "../controllers/onboardingConfigController.js";
 
 const router = express.Router();
 
@@ -112,42 +108,6 @@ router.post(
   authorizeSeller,
   fetchUser,
   startFreeTrial
-);
-
-// Enhanced onboarding step completion routes
-router.post(
-  "/onboarding/complete-shop-timing",
-  authenticateToken,
-  authorizeSeller,
-  fetchUser,
-  getOnboardingSettings,
-  completeShopTimingStep
-);
-
-router.post(
-  "/onboarding/complete-documents",
-  authenticateToken,
-  authorizeSeller,
-  fetchUser,
-  getOnboardingSettings,
-  completeDocumentStep
-);
-
-router.post(
-  "/onboarding/complete-subscription",
-  authenticateToken,
-  authorizeSeller,
-  fetchUser,
-  getOnboardingSettings,
-  completeSubscriptionStep
-);
-
-// Public route for getting onboarding configuration (no admin auth required)
-router.get(
-  "/onboarding/config",
-  authenticateToken,
-  fetchUser,
-  getOnboardingConfig
 );
 
 export default router;

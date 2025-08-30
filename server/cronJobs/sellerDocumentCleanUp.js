@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
-import { logger } from "../utils/logger.js"; // your custom logger
+import logger from "../utils/logger.js"; // your custom logger
 
 const TEMP_FOLDER = "storage/temp_uploads";
 

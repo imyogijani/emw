@@ -679,7 +679,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     .populate("items.productId", "name image")
     .populate("items.variantId", "size color price finalPrice stock")
     .select(
-      "userId items totalAmount paymentStatus orderStatus createdAt shippingAddress orderId"
+      "userId items totalAmount paymentStatus orderStatus createdAt shippingAddress"
     );
 
   const formattedOrders = [];
@@ -696,8 +696,7 @@ export const getSellerOrderHistory = asyncHandler(async (req, res) => {
     );
 
     const formattedOrder = {
-      orderId: order.orderId || order._id.toString(),
-      // orderId: order._id,
+      orderId: order._id,
       customer: {
         name: order.userId?.names || "N/A",
         email: order.userId?.email || "N/A",

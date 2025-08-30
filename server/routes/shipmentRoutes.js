@@ -32,7 +32,7 @@ router.get("/label/:waybill", authenticateToken, downloadLabel);
 // });
 
 // Improve logic : Cron job - daily check any seller forget manually  not pickup request sends .
-router.post("/request-pickup", authenticateToken, fetchUser, requestPickup);
+router.post("/pickup", authenticateToken, fetchUser, requestPickup);
 
 // Track
 router.get("/track/:waybill", authenticateToken, async (req, res) => {

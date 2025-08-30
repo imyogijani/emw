@@ -1,7 +1,7 @@
 import UserSubscription from "../models/userSubscriptionModel.js";
 import User from "../models/userModel.js";
 import Seller from "../models/sellerModel.js";
-import { logger } from "../utils/logger.js";
+import logger from "../utils/logger.js";
 import cron from "node-cron";
 
 const checkExpiredSubscriptions = cron.schedule("0 * * * *", async () => {

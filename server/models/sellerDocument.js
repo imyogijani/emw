@@ -59,7 +59,6 @@ const sellerDocumentSchema = new mongoose.Schema({
     enum: ["pending", "verified", "rejected"],
     default: "pending",
   },
-  originalExt: { type: String, required: false },
   uploadedAt: { type: Date, default: Date.now },
 });
 

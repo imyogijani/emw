@@ -6,7 +6,10 @@ import "./products-slider.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
-import { processImageUrl, processCategoryImageUrl } from "../../utils/apiConfig";
+import {
+  processImageUrl,
+  processCategoryImageUrl,
+} from "../../utils/apiConfig";
 import { toast } from "react-toastify";
 import BottomCard from "./BottomCard";
 import { useCart } from "../../context/CartContext";
@@ -77,9 +80,7 @@ export default function Home() {
 
   const fetchDeals = React.useCallback(async () => {
     try {
-      const [dealsRes] = await Promise.all([
-        axios.get("/api/deals/active"),
-      ]);
+      const [dealsRes] = await Promise.all([axios.get("/api/deals/active")]);
 
       const deals = dealsRes?.data?.deals || [];
       setDeals([...deals]);
@@ -282,12 +283,25 @@ export default function Home() {
     };
 
     return (
-      <div 
-        className="card-base card-medium product-card" 
+      <div
+        className="card-base card-medium product-card"
         onClick={handleProductClick}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: "pointer" }}
       >
-        <div className={`card-image-container ${imageLoading ? 'loading' : ''}`} style={{height: 200, background: 'linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderTopLeftRadius: 18, borderTopRightRadius: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.04)'}}>
+        <div
+          className={`card-image-container ${imageLoading ? "loading" : ""}`}
+          style={{
+            height: 200,
+            background: "linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+          }}
+        >
           <img
             src={getImageSrc()}
             alt={product.name}
@@ -295,47 +309,138 @@ export default function Home() {
             loading="lazy"
             style={{
               objectFit: "contain",
-              width: '90%',
-              height: '90%',
+              width: "90%",
+              height: "90%",
               maxHeight: 160,
               maxWidth: 160,
               display: imageLoading ? "none" : "block",
-              background: 'white',
+              background: "white",
               borderRadius: 12,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
             }}
             onLoad={handleImageLoad}
             onError={handleImageError}
           />
           <ProductBadges product={product} />
         </div>
-        <div className="card-content" style={{display: 'flex', flexDirection: 'column', height: '100%', padding: '18px 16px 0 16px', gap: 8}}>
-          <h3 className="card-title" style={{fontSize: 18, fontWeight: 700, margin: 0, color: '#1a202c', lineHeight: 1.2, minHeight: 24, letterSpacing: 0.1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>{product.name}</h3>
+        <div
+          className="card-content"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            padding: "18px 16px 0 16px",
+            gap: 8,
+          }}
+        >
+          <h3
+            className="card-title"
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              margin: 0,
+              color: "#1a202c",
+              lineHeight: 1.2,
+              minHeight: 24,
+              letterSpacing: 0.1,
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {product.name}
+          </h3>
           <ProductRating product={product} renderStars={renderStars} />
-          <p className="card-description" style={{flexGrow: 1, fontSize: 14, color: '#444', margin: '4px 0 0 0', minHeight: 32, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: 40}}>
-            {product.description || "Premium quality product with excellent features and reliable performance."}
+          <p
+            className="card-description"
+            style={{
+              flexGrow: 1,
+              fontSize: 14,
+              color: "#444",
+              margin: "4px 0 0 0",
+              minHeight: 32,
+              lineHeight: 1.5,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxHeight: 40,
+            }}
+          >
+            {product.description ||
+              "Premium quality product with excellent features and reliable performance."}
           </p>
-          <div style={{flexGrow: 1}} />
-          <div className="card-price-container" style={{marginTop: 10, paddingTop: 10, borderTop: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, fontWeight: 800, color: '#067d62', justifyContent: 'flex-start'}}>
+          <div style={{ flexGrow: 1 }} />
+          <div
+            className="card-price-container"
+            style={{
+              marginTop: 10,
+              paddingTop: 10,
+              borderTop: "1px solid #f0f0f0",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#067d62",
+              justifyContent: "flex-start",
+            }}
+          >
             <span className="current-price">{product.price}</span>
             {product.originalPrice && (
-              <span className="original-price" style={{fontSize: 14, color: '#888', textDecoration: 'line-through', marginLeft: 8}}>{product.originalPrice}</span>
+              <span
+                className="original-price"
+                style={{
+                  fontSize: 14,
+                  color: "#888",
+                  textDecoration: "line-through",
+                  marginLeft: 8,
+                }}
+              >
+                {product.originalPrice}
+              </span>
             )}
             {product.discount && (
-              <span className="discount-percentage" style={{fontSize: 14, color: '#d9534f', fontWeight: 700, marginLeft: 8}}>({product.discount}% off)</span>
+              <span
+                className="discount-percentage"
+                style={{
+                  fontSize: 14,
+                  color: "#d9534f",
+                  fontWeight: 700,
+                  marginLeft: 8,
+                }}
+              >
+                ({product.discount}% off)
+              </span>
             )}
           </div>
-          <div className="card-actions" style={{marginTop: 14, display: 'flex', justifyContent: 'flex-end'}}>
+          <div
+            className="card-actions"
+            style={{
+              marginTop: 14,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
             <button
               className="card-action"
-              style={{background: 'linear-gradient(135deg,#067d62 0%,#38a169 100%)', color: '#fff', borderRadius: 16, padding: '8px 18px', fontWeight: 700, fontSize: 14, border: 'none', boxShadow: '0 2px 8px rgba(6,125,98,0.08)', cursor: 'pointer', letterSpacing: 0.2}}
+              style={{
+                background: "linear-gradient(135deg,#067d62 0%,#38a169 100%)",
+                color: "#fff",
+                borderRadius: 16,
+                padding: "8px 18px",
+                fontWeight: 700,
+                fontSize: 14,
+                border: "none",
+                boxShadow: "0 2px 8px rgba(6,125,98,0.08)",
+                cursor: "pointer",
+                letterSpacing: 0.2,
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 handleAddToCart(e, product);
               }}
               title="Add to Cart"
             >
-              <ShoppingCart size={15} style={{marginRight: 6}} />
+              <ShoppingCart size={15} style={{ marginRight: 6 }} />
               Add to Cart
             </button>
           </div>
@@ -347,11 +452,10 @@ export default function Home() {
   return (
     <div className="amazon-home-container">
       <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      {/* <FeaturedCategories categories={categories} /> */}
+      <div style={{ height: 80 }} /> {/* Placeholder for spacing where FeaturedCategories was */}
       <TrustBadges />
-      <CategoriesSection
-        categories={categories}
-        setActiveCategory={setActiveCategory}
-      />
+      <ShopByCategory categories={categories} />
       <FilterSortBar
         categories={categories}
         activeCategory={activeCategory}
@@ -558,55 +662,28 @@ const TrustBadges = () => (
   </div>
 );
 
-const CategoriesSection = ({ categories, setActiveCategory }) => (
-  <div className="categories-section">
-    <h2
-      style={{
-        fontWeight: "bold",
-        borderBottom: "2px solid #232f3e",
-        paddingBottom: "10px",
-        display: "block",
-        width: "fit-content",
-        textAlign: "center",
-        margin: "0 auto 30px",
-      }}
+// Horizontally scrollable Shop by Category section (no image, just name and shop count)
+const ShopByCategory = ({ categories }) => (
+  <section className="categories-section-horizontal">
+    <div className="section-header">
+      <h2>Shop by Category</h2>
+      <p>Browse all categories and discover stores in each.</p>
+    </div>
+    <div
+      className="categories-horizontal-scroll"
+      tabIndex={0}
+      aria-label="Shop by Category"
     >
-      Shop by Category
-    </h2>
-    <div className="cards-grid cards-grid-medium">
-      {categories.map((cat) => (
-        <CategoryCard
-          key={cat._id}
-          category={cat}
-          setActiveCategory={setActiveCategory}
-        />
+      {categories.map((cat, idx) => (
+        <div className="category-horizontal-card" key={cat._id || idx}>
+          <span className="category-horizontal-name">{cat.name}</span>
+          <span className="category-horizontal-count">
+            {cat.shopCount || cat.stores || 0} Shops
+          </span>
+        </div>
       ))}
     </div>
-  </div>
-);
-
-const CategoryCard = ({ category, setActiveCategory }) => (
-  <div
-    className="card-base category-card"
-    onClick={() => setActiveCategory(category.name)}
-  >
-    <div className="card-image-container">
-      <img
-        src={processCategoryImageUrl(category.image) || "https://images.pexels.com/photos/11077404/pexels-photo-11077404.jpeg"}
-        alt={category.name}
-        className="card-image"
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src =
-            "https://images.pexels.com/photos/11077404/pexels-photo-11077404.jpeg";
-        }}
-      />
-    </div>
-    <div className="card-content">
-      <h3 className="category-card-title">{category.name}</h3>
-      <p className="card-subtitle">{category.shopCount || 0} stores</p>
-    </div>
-  </div>
+  </section>
 );
 
 const FilterSortBar = ({
@@ -616,36 +693,39 @@ const FilterSortBar = ({
   sortBy,
   setSortBy,
 }) => (
-  <div className="filter-sort-bar">
-    <div className="filter-options">
-      <Filter size={18} />
-      <span>Filter by:</span>
-      <select
-        value={activeCategory}
-        onChange={(e) => setActiveCategory(e.target.value)}
-        className="filter-select"
-      >
-        <option value="">All Categories</option>
-        {categories.map((cat) => (
-          <option key={cat._id} value={cat.name}>
-            {cat.name}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    <div className="sort-options">
-      <span>Sort by:</span>
-      <select
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
-        className="sort-select"
-      >
-        <option value="">Relevance</option>
-        <option value="low">Price: Low to High</option>
-        <option value="high">Price: High to Low</option>
-        <option value="rating">Customer Rating</option>
-      </select>
+  <div className="filter-sort-bar-modern">
+    <div className="filter-sort-bar-inner">
+      <div className="filter-group">
+        {/* <Filter size={20} className="filter-icon" /> */}
+        <label htmlFor="category-select" className="filter-label">Category</label>
+        <select
+          id="category-select"
+          value={activeCategory}
+          onChange={(e) => setActiveCategory(e.target.value)}
+          className="filter-select-modern"
+        >
+          <option value="">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="filter-group">
+        <label htmlFor="sort-select" className="filter-label">Sort by</label>
+        <select
+          id="sort-select"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="filter-select-modern"
+        >
+          <option value="">Relevance</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+          <option value="rating">Customer Rating</option>
+        </select>
+      </div>
     </div>
   </div>
 );
@@ -680,9 +760,7 @@ const DealsSection = ({ deals }) => (
       {deals.length === 0 ? (
         <EmptyState />
       ) : (
-        deals.map((deal) => (
-          <DealCard key={deal._id} deal={deal} />
-        ))
+        deals.map((deal) => <DealCard key={deal._id} deal={deal} />)
       )}
     </div>
   </div>
@@ -703,9 +781,7 @@ const DealCard = ({ deal }) => (
       <div className="card-badge discount pulse">
         {deal.discountPercentage ? `-${deal.discountPercentage}%` : "DEAL"}
       </div>
-      {deal.isOffer && (
-        <div className="card-badge featured">TODAY'S OFFER</div>
-      )}
+      {deal.isOffer && <div className="card-badge featured">TODAY'S OFFER</div>}
     </div>
     <div className="card-content">
       <h4 className="card-title">{deal.title || deal.name}</h4>

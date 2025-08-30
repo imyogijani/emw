@@ -99,48 +99,46 @@ export const handleRazorpayWebhook = asyncHandler(async (req, res) => {
     );
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    // // Assume seller info from first item (or store per order)    // Comment for not auto transfre for each order
-    // const seller = await Seller.findById(order.items[0].productId.sellerId);
-    // if (!seller) return res.status(404).json({ message: "Seller not found" });
+    // Assume seller info from first item (or store per order)
+    const seller = await Seller.findById(order.items[0].productId.sellerId);
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
 
-    // // Create Transfer to seller's Razorpay Sub-Account
-    // const capturedPayment = await razorpay.payments.fetch(paymentEntity.id);
+    // Create Transfer to seller's Razorpay Sub-Account
+    const capturedPayment = await razorpay.payments.fetch(paymentEntity.id);
 
-    // const transfers = [];
+    const transfers = [];
 
-    // for (const item of order.items) {
-    //   const seller = await Seller.findById(item.productId.sellerId);
-    //   if (!seller || !seller.razorpayAccountId) continue;
+    for (const item of order.items) {
+      const seller = await Seller.findById(item.productId.sellerId);
+      if (!seller || !seller.razorpayAccountId) continue;
 
-    //   const amount = Math.round(item.finalPrice * item.quantity * 100);
+      const amount = Math.round(item.finalPrice * item.quantity * 100);
 
-    //   transfers.push({
-    //     account: seller.razorpayAccountId,
-    //     amount: amount,
-    //     currency: "INR",
-    //     notes: {
-    //       orderId: order._id.toString(),
-    //       itemId: item._id.toString(),
-    //     },
-    //     on_hold: false,
-    //   });
-    // }
+      transfers.push({
+        account: seller.razorpayAccountId,
+        amount: amount,
+        currency: "INR",
+        notes: {
+          orderId: order._id.toString(),
+          itemId: item._id.toString(),
+        },
+        on_hold: false,
+      });
+    }
 
-    // // Now make all transfers in 1 call
-    // const transferResponse = await razorpay.payments.transfer(
-    //   paymentEntity.id,
-    //   {
-    //     transfers,
-    //   }
-    // );
+    // Now make all transfers in 1 call
+    const transferResponse = await razorpay.payments.transfer(
+      paymentEntity.id,
+      {
+        transfers,
+      }
+    );
 
-    // console.log("Transfer success:", transferResponse);  // Comment for not auto transfre for each order
+    console.log("Transfer success:", transferResponse);
 
     payment.status = "success";
-    payment.providerPaymentId = paymentEntity.id; // Razorpay transaction uniq ID
-    payment.paymentGatewayResponse = paymentEntity; // full payload for safety
+    payment.providerPaymentId = paymentEntity.id;
     payment.paidAt = new Date();
-    await payment.save();
     // payment.transferId = transferRes.data.id;
     await payment.save();
 
@@ -183,83 +181,9 @@ export const handleRazorpayWebhook = asyncHandler(async (req, res) => {
       payment.status = "failed";
       payment.failureReason =
         paymentEntity.error_description || "Payment failed";
-      payment.paymentGatewayResponse = paymentEntity;
       await payment.save();
-    }
-
-    const order = await Order.findById(payment?.orderId);
-    if (order) {
-      order.paymentStatus = "failed";
-      order.isPaid = false;
-      order.orderStatus = "cancelled";
-      order.timeline.push({ status: "cancelled", time: new Date() });
-      await order.save();
     }
   }
 
   res.status(200).send("Webhook handled");
 });
-
-// Without Auto trnsfrer each seller payment for order
-
-// export const handleRazorpayWebhook = asyncHandler(async (req, res) => {
-//   const sig = req.headers["x-razorpay-signature"];
-//   const body = JSON.stringify(req.body);
-
-//   const expected = crypto
-//     .createHmac("sha256", process.env.RP_WEBHOOK_SECRET)
-//     .update(body)
-//     .digest("hex");
-
-//   if (sig !== expected) return res.status(400).send("Invalid signature");
-
-//   const { event, payload } = req.body;
-
-//   if (event === "payment.captured") {
-//     const paymentEntity = payload.payment.entity;
-
-//     const payment = await Payment.findOne({
-//       providerOrderId: paymentEntity.order_id,
-//     });
-//     if (!payment) return res.status(404).send("Payment record not found");
-
-//     payment.status = "success";
-//     payment.providerPaymentId = paymentEntity.id; // unique txn ID
-//     payment.paymentGatewayResponse = paymentEntity; // full object store
-//     payment.paidAt = new Date();
-//     await payment.save();
-
-//     const order = await Order.findById(payment.orderId);
-//     if (order) {
-//       order.paymentStatus = "paid";
-//       order.isPaid = true;
-//       order.orderStatus = "confirmed";
-//       order.timeline.push({ status: "confirmed", time: new Date() });
-//       await order.save();
-//     }
-//   } else if (event === "payment.failed") {
-//     const paymentEntity = payload.payment.entity;
-//     const payment = await Payment.findOne({
-//       providerOrderId: paymentEntity.order_id,
-//     });
-//     if (payment) {
-//       payment.status = "failed";
-//       payment.failureReason =
-//         paymentEntity.error_description || "Payment failed";
-//       payment.paymentGatewayResponse = paymentEntity;
-//       await payment.save();
-
-//       const order = await Order.findById(payment.orderId);
-//       if (order) {
-//         order.paymentStatus = "failed";
-//         order.isPaid = false;
-//         order.orderStatus = "cancelled";
-//         order.timeline.push({ status: "cancelled", time: new Date() });
-//         await order.save();
-//       }
-//     }
-//   }
-
-//   res.status(200).send("Webhook handled");
-// });
-

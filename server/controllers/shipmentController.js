@@ -5,7 +5,6 @@ import Order from "../models/orderModel.js";
 import Seller from "../models/sellerModel.js";
 import { backendClient } from "../utils/backendApi.js";
 import { sendShipmentLabelEmail } from "../utils/sendEmail.js";
-// import { generateLabel } from "../utils/labelPdfGenerator.js";
 
 export const checkServiceability = async (pincode) => {
   console.log("🔍 Checking Serviceability for:", pincode);
@@ -101,7 +100,7 @@ const getOrCreateWaybill = async (sellerId, orderId) => {
     console.log("Seller ID:", sellerId);
     console.log("Order ID:", orderId);
 
-    //  Check if already exists in DB
+    // 1️⃣ Check if already exists in DB
     console.log("🔍 Checking if waybill already exists in backend DB...");
     const existing = await backendClient.get(
       `/api/waybills?sellerId=${sellerId}&orderId=${orderId}`
@@ -116,7 +115,7 @@ const getOrCreateWaybill = async (sellerId, orderId) => {
       console.log("❌ No existing waybill found in DB.");
     }
 
-    //  Generate new waybill from Delhivery
+    // 2️⃣ Generate new waybill from Delhivery
     console.log("⚡ Generating new waybill from Delhivery...");
     const res = await apiClient.get("/waybill/api/fetch/json/?count=1");
 
@@ -271,26 +270,7 @@ export const processShipmentsForOrder = async (orderId) => {
 // System auto Delhivery ko request bhej dega.
 
 //  Generate Label (PDF)
-// export const generateLabel = async (waybill) => {
-//   try {
-//     const res = await apiClient.get(
-//       `/api/p/packing_slip?wbns=${waybill}&pdf=true`,
-//       {
-//         responseType: "arraybuffer",
-//       }
-//     );
-//     const dir = path.join(process.cwd(), "labels");
-//     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-//     const filePath = path.join(dir, `${waybill}.pdf`);
-//     fs.writeFileSync(filePath, res.data);
-//     return filePath;
-//   } catch (err) {
-//     console.error("❌ Label Generation Failed:", err.message);
-//     return null;
-//   }
-// };
-
-export const generateLabel = async (waybill, orderId, sellerId) => {
+export const generateLabel = async (waybill) => {
   try {
     const res = await apiClient.get(
       `/api/p/packing_slip?wbns=${waybill}&pdf=true`,
@@ -298,23 +278,42 @@ export const generateLabel = async (waybill, orderId, sellerId) => {
         responseType: "arraybuffer",
       }
     );
-
     const dir = path.join(process.cwd(), "labels");
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    //  Unique filename banate hain
-    const timestamp = Date.now();
-    const fileName = `${sellerId}_${orderId}_${waybill}_${timestamp}.pdf`;
-    const filePath = path.join(dir, fileName);
-
+    const filePath = path.join(dir, `${waybill}.pdf`);
     fs.writeFileSync(filePath, res.data);
-
-    return filePath; // DB me save karna hoga agar future me access chahiye
+    return filePath;
   } catch (err) {
     console.error("❌ Label Generation Failed:", err.message);
     return null;
   }
 };
+
+// export const createPickupRequest = async (pickupLocation) => {
+//   try {
+//     console.log("🚚 Creating Pickup Request...");
+
+//     const payload = {
+//       pickup_location: {
+//         name: pickupLocation.name,
+//         city: pickupLocation.city,
+//         state: pickupLocation.state,
+//         country: "India",
+//         phone: pickupLocation.phone,
+//         pin: pickupLocation.pincode,
+//         address: pickupLocation.address,
+//       },
+//     };
+
+//     const res = await apiClient.post("/api/cmu/pickup", payload);
+
+//     console.log("✅ Pickup Request Created:", res.data);
+//     return res.data;
+//   } catch (err) {
+//     console.error("❌ Pickup Request Failed:", err.message);
+//     return null;
+//   }
+// };
 
 export const requestPickup = async (req, res) => {
   try {
@@ -449,7 +448,7 @@ export const generateShipmentsForOrder = async (req, res) => {
       }
 
       // Generate Label PDF
-      const labelPath = await generateLabel(apiWaybill, orderId, seller._id);
+      const labelPath = await generateLabel(apiWaybill);
 
       // Update item shipment fields
       item.deliveryPartner = "Delhivery";

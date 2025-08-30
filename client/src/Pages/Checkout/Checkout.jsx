@@ -2,12 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import {
-  showErrorToast,
-  showSuccessToast,
-  showInfoToast,
-  validateForm,
-} from "../../utils/errorHandler";
+import { showErrorToast, showSuccessToast, showInfoToast, validateForm } from "../../utils/errorHandler";
 import {
   ShoppingCart,
   CreditCard,
@@ -23,61 +18,35 @@ import {
   Receipt,
 } from "lucide-react";
 import "./Checkout.css";
-import axios from "../../utils/axios";
 
 export default function Checkout() {
   const navigate = useNavigate();
   const location = useLocation();
-  // const { cartItems, getTotalPrice, clearCart } = useCart();
-  const [cartItems, setCartItems] = useState([]);
+  const { cartItems, getTotalPrice, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showCouponInput, setShowCouponInput] = useState(false);
-  const [summaryData, setSummaryData] = useState(null); // backend summary
-  const [loadingSummary, setLoadingSummary] = useState(false);
-  const [userData, setUserData] = useState({
-    code: "",
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    shippingAddress: {
-      name: "N/A",
-      phone: "N/A",
-      email: "N/A",
-      addressLine1: "N/A",
-      addressLine2: "N/A",
-      city: "N/A",
-      pincode: "N/A",
-      country: "N/A",
-      state: "N/A",
-    },
-  });
 
   // Check authentication on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      showErrorToast(
-        "Please login to proceed with checkout",
-        "Checkout - Authentication"
-      );
+      showErrorToast("Please login to proceed with checkout", "Checkout - Authentication");
       navigate("/login", { state: { returnUrl: location.pathname } });
       return;
     }
 
-    // if (cartItems.length === 0) {
-    //   showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
-    //   navigate("/");
-    //   return;
-    // }
-  }, [navigate, location.pathname]);
+    if (cartItems.length === 0) {
+      showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
+      navigate("/");
+      return;
+    }
+  }, [cartItems.length, navigate, location.pathname]);
 
   // Try to pre-fill user details from localStorage if available
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    console.log("User Details --- ", JSON.stringify(user));
     if (user) {
       setBillingDetails((prev) => ({
         ...prev,
@@ -86,51 +55,7 @@ export default function Checkout() {
         email: user.email || "",
         phone: user.phone || "",
       }));
-
-      setUserData((prev) => ({
-        ...prev,
-        firstName: user.firstName || user.names?.split(" ")[0] || "",
-        lastName: user.lastName || user.names?.split(" ")[1] || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        shippingAddress: {
-          ...prev.shippingAddress,
-          name: user?.firstName + user?.lastName,
-          phone: user?.phone,
-          email: user?.email,
-        },
-      }));
     }
-  }, []);
-
-  useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        // localStorage se token uthao
-        const token = localStorage.getItem("token");
-
-        // API call karo
-        const res = await axios.get("/api/users/address");
-
-        console.log("Address  Checkout :", res);
-
-        if (res.data.success) {
-          setUserData((prevData) => ({
-            ...prevData, // purana userData copy
-            shippingAddress: {
-              ...prevData.shippingAddress,
-              ...res.data.address,
-            },
-          }));
-        }
-      } catch (err) {
-        console.error("Error fetching address", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAddress();
   }, []);
 
   // Billing Details State
@@ -155,15 +80,15 @@ export default function Checkout() {
   ];
 
   // Redirect if cart is empty
-  // useEffect(() => {
-  //   if (cartItems.length === 0) {
-  //     showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
-  //     navigate("/");
-  //   }
-  // }, [cartItems.length, navigate]);
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
+      navigate("/");
+    }
+  }, [cartItems.length, navigate]);
 
   // Calculate pricing
-  const subtotal = 100;
+  const subtotal = getTotalPrice();
   const gstRate = 0.18; // 18% GST
   const gstAmount = subtotal * gstRate;
   const deliveryCharge = subtotal > 500 ? 0 : 40;
@@ -184,123 +109,55 @@ export default function Checkout() {
   const grandTotal =
     totalBeforeTax + finalGstAmount + deliveryCharge + packagingCharge;
 
-  // useEffect(() => {
-  //   fetchCheckoutSummary();
-  // }, []);
-
-  useEffect(() => {
-    if (userData.shippingAddress && userData.shippingAddress.pincode) {
-      // summary call sirf tab hogi jab pincode (or required field) aaya ho
-      fetchCheckoutSummary(userData.shippingAddress);
-    }
-  }, [userData.shippingAddress]);
-
-  const fetchCheckoutSummary = async () => {
-    try {
-      setLoadingSummary(true);
-
-      const resp = await axios.post("/api/checkout/summary", {
-        shippingAddress: userData.shippingAddress,
-      });
-
-      if (resp.data.success) {
-        setSummaryData(resp.data);
-      } else {
-        showErrorToast(
-          resp.data.message || "Failed to fetch summary",
-          "Checkout"
-        );
-      }
-    } catch (err) {
-      showErrorToast(err.response?.data?.message || err.message, "Checkout");
-    } finally {
-      setLoadingSummary(false);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const updated = { ...billingDetails, [name]: value };
-    setBillingDetails(updated);
-
-    // re-fetch summary if key fields changed
-    if (["pincode", "city", "state", "address"].includes(name)) {
-      fetchCheckoutSummary(updated);
-    }
+    setBillingDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const applyCoupon = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const resp = await axios.post(
-        "/api/checkout/apply-coupon",
-        { code: couponCode, summary: summaryData }, // send coupon + current summary
-        { headers: { Authorization: `Bearer ${token}` } }
+  const applyCoupon = () => {
+    const coupon = availableCoupons.find(
+      (c) => c.code.toLowerCase() === couponCode.toLowerCase(),
+    );
+    if (!coupon) {
+      showErrorToast("Invalid coupon code!", "Checkout - Coupon Validation");
+      return;
+    }
+    if (subtotal < coupon.minOrder) {
+      showErrorToast(
+        `Minimum order amount ₹${coupon.minOrder} required for this coupon!`,
+        "Checkout - Coupon Validation"
       );
-
-      if (resp.data.success) {
-        setAppliedCoupon(resp.data.coupon);
-        setSummaryData(resp.data.updatedSummary); // backend recalculates totals
-        showSuccessToast(
-          `Coupon applied: ${resp.data.coupon.code}`,
-          "Checkout"
-        );
-      } else {
-        showErrorToast(resp.data.message, "Coupon");
-      }
-    } catch (err) {
-      showErrorToast(err.response?.data?.message || err.message, "Coupon");
+      return;
     }
+    setAppliedCoupon(coupon);
+    showSuccessToast(`Coupon "${coupon.code}" applied successfully!`, "Checkout - Coupon Applied");
+    setShowCouponInput(false);
+    setCouponCode("");
   };
-
-  // const applyCoupon = () => {
-  //   const coupon = availableCoupons.find(
-  //     (c) => c.code.toLowerCase() === couponCode.toLowerCase()
-  //   );
-  //   if (!coupon) {
-  //     showErrorToast("Invalid coupon code!", "Checkout - Coupon Validation");
-  //     return;
-  //   }
-  //   if (subtotal < coupon.minOrder) {
-  //     showErrorToast(
-  //       `Minimum order amount ₹${coupon.minOrder} required for this coupon!`,
-  //       "Checkout - Coupon Validation"
-  //     );
-  //     return;
-  //   }
-  //   setAppliedCoupon(coupon);
-  //   showSuccessToast(
-  //     `Coupon "${coupon.code}" applied successfully!`,
-  //     "Checkout - Coupon Applied"
-  //   );
-  //   setShowCouponInput(false);
-  //   setCouponCode("");
-  // };
-
-  // const removeCoupon = () => {
-  //   setAppliedCoupon(null);
-  //   showInfoToast("Coupon removed", "Checkout - Coupon Management");
-  // };
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
-    fetchCheckoutSummary(billingDetails); // refresh without coupon
+    showInfoToast("Coupon removed", "Checkout - Coupon Management");
   };
+
   const validateCheckoutForm = () => {
     const validationRules = {
       firstName: {
         required: true,
-        requiredMessage: "First name is required",
+        requiredMessage: "First name is required"
       },
       lastName: {
         required: true,
-        requiredMessage: "Last name is required",
+        requiredMessage: "Last name is required"
       },
       email: {
         required: true,
         requiredMessage: "Email is required",
         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        patternMessage: "Please enter a valid email address",
+        patternMessage: "Please enter a valid email address"
       },
       phone: {
         required: true,
@@ -308,19 +165,19 @@ export default function Checkout() {
         minLength: 10,
         maxLength: 10,
         minLengthMessage: "Please enter a valid 10-digit phone number",
-        maxLengthMessage: "Please enter a valid 10-digit phone number",
+        maxLengthMessage: "Please enter a valid 10-digit phone number"
       },
       address: {
         required: true,
-        requiredMessage: "Address is required",
+        requiredMessage: "Address is required"
       },
       city: {
         required: true,
-        requiredMessage: "City is required",
+        requiredMessage: "City is required"
       },
       state: {
         required: true,
-        requiredMessage: "State is required",
+        requiredMessage: "State is required"
       },
       pincode: {
         required: true,
@@ -328,8 +185,8 @@ export default function Checkout() {
         minLength: 6,
         maxLength: 6,
         minLengthMessage: "Please enter a valid 6-digit pincode",
-        maxLengthMessage: "Please enter a valid 6-digit pincode",
-      },
+        maxLengthMessage: "Please enter a valid 6-digit pincode"
+      }
     };
 
     const { isValid } = validateForm(billingDetails, validationRules);
@@ -362,23 +219,23 @@ export default function Checkout() {
     navigate("/");
   };
 
-  // if (cartItems.length === 0) {
-  //   return (
-  //     <div className="checkout-empty">
-  //       <div className="empty-cart-icon">
-  //         <ShoppingCart size={64} />
-  //       </div>
-  //       <h2>Your cart is empty</h2>
-  //       <p>Add some items to your cart to proceed with checkout</p>
-  //       <button
-  //         className="continue-shopping-btn"
-  //         onClick={handleContinueShopping}
-  //       >
-  //         Continue Shopping
-  //       </button>
-  //     </div>
-  //   );
-  // }
+  if (cartItems.length === 0) {
+    return (
+      <div className="checkout-empty">
+        <div className="empty-cart-icon">
+          <ShoppingCart size={64} />
+        </div>
+        <h2>Your cart is empty</h2>
+        <p>Add some items to your cart to proceed with checkout</p>
+        <button
+          className="continue-shopping-btn"
+          onClick={handleContinueShopping}
+        >
+          Continue Shopping
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="checkout-container">
@@ -409,7 +266,7 @@ export default function Checkout() {
           <div className="billing-section">
             <h2 className="section-title">
               <User size={20} />
-              Billing & Delivery Address Details
+              Billing Details
             </h2>
             <div className="billing-form">
               <div className="form-row">
@@ -613,7 +470,7 @@ export default function Checkout() {
               {cartItems.map((item) => {
                 const itemId = item.id || item._id;
                 const itemPrice = parseFloat(
-                  item.price?.toString().replace(/[^0-9.]/g, "") || 0
+                  item.price?.toString().replace(/[^0-9.]/g, "") || 0,
                 );
                 return (
                   <div key={itemId} className="order-item">

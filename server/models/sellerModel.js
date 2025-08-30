@@ -77,10 +77,6 @@ const sellerSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // jab tak sab steps complete nahi hote
     },
-    completedOnboardingSteps: {
-      type: [String],
-      default: [], // Array of completed step IDs
-    },
     averageRating: {
       type: Number,
       default: 0,

@@ -297,7 +297,7 @@ const Users = () => {
         {/* Search and View Toggle Row */}
         <div className="search-row">
           <div className="search-box">
-            {/* <FaSearch /> */}
+            <FaSearch />
             <input
               type="text"
               placeholder="Search..."

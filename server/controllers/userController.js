@@ -83,33 +83,3 @@ export const getCustomerWithOrderSummary = async (req, res) => {
     });
   }
 };
-
-export const getUserAddress = async (req, res) => {
-  try {
-    const userId = req.user.id; // user.id JWT middleware se aayega
-    const user = await User.findById(userId).select(
-      "address names phone email"
-    );
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      name: user.names,
-      phone: user.phone,
-      email: user.email,
-      address: user.address,
-    });
-  } catch (error) {
-    console.error("Error fetching address:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while fetching address",
-    });
-  }
-};

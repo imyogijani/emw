@@ -223,8 +223,6 @@
 }
 
 .profile-button {
-  font-size: 35px;
-  color: var(--primary-color);
   background: none;
   border: 3px solid var(--light-gray);
   border-radius: 50%;
@@ -241,8 +239,6 @@
 }
 
 .profile-button::before {
-  font-size: 35px;
-
   content: "";
   position: absolute;
   top: -50%;
@@ -356,15 +352,6 @@
   opacity: 0.9;
   margin: 0;
   font-weight: 500;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: var(--primary-color);
-  font-weight: 600;
-  margin: 2px 0 0 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .menu-divider {

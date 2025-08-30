@@ -61,7 +61,7 @@ router.patch(
 );
 
 // Add this POST route for file upload updates
-router.patch(
+router.post(
   "/update-category/:id",
   authenticateToken,
   authorizeAdmin,
@@ -97,6 +97,7 @@ router.get("/hsn-suggestions", getHsnSuggestionsController);
 router.get("/gst-rate/:hsnCode", getGSTRateByHSN);
 
 // Brands :
+
 router.get("/:subcategoryId/brands", getSubcategoryWithBrands);
 
 export default router;

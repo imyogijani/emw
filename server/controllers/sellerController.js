@@ -1126,43 +1126,21 @@ export const getOnboardingStep = async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    // Get onboarding configuration
-    const OnboardingConfig = (await import("../models/onboardingConfigModel.js")).default;
-    let config = await OnboardingConfig.findOne();
-    
-    if (!config) {
-      // Create default configuration if none exists
-      config = new OnboardingConfig();
-      await config.save();
-    }
-
-    // Get seller's completed steps from their profile
-    const completedSteps = seller.completedOnboardingSteps || [];
-    
-    // Calculate current step based on completed steps and configuration
-    const activeSteps = config.steps.filter(step => step.isActive);
-    let currentStepIndex = 0;
-    
-    for (let i = 0; i < activeSteps.length; i++) {
-      const step = activeSteps[i];
-      if (!completedSteps.includes(step.stepId)) {
-        currentStepIndex = i;
-        break;
-      }
-    }
+    // Get system settings for onboarding
+    const Settings = (await import("../models/settingsModel.js")).default;
+    const settings = await Settings.getSettings();
 
     res.json({
       success: true,
-      step: seller.onboardingStep, // Keep for backward compatibility
-      currentStepIndex,
-      completedSteps,
+      step: seller.onboardingStep,
       isComplete: user.isOnboardingComplete,
-      onboardingConfig: {
-        isEnabled: config.isEnabled,
-        allowSkipping: config.allowSkipping,
-        requireDocumentVerification: config.requireDocumentVerification,
-        steps: activeSteps,
-        documentVerification: config.documentVerification
+      onboardingSettings: {
+        enabled: settings.onboardingEnabled,
+        requiredSteps: settings.onboardingRequiredSteps || [
+          "shopTiming",
+          "shopDetails",
+          "legalDocuments",
+        ],
       },
       demoAccess: user.demoAccess || false,
     });

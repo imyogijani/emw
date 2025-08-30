@@ -58,11 +58,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (!isAuthenticated) {
-    // Store current path for post-login redirect (exclude login/register pages)
-    const currentPath = location.pathname + location.search;
-    if (currentPath !== '/login' && currentPath !== '/register') {
-      setReturnUrl(currentPath);
-    }
+    // Store current path for post-login redirect
+    setReturnUrl(location.pathname + location.search);
     return <Navigate to="/login" replace />;
   }
 

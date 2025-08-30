@@ -2124,9 +2124,7 @@ const SellerOnboarding = () => {
             >
               <span className="step-number">1</span>
               <span className="step-name">Basic Details</span>
-              {requiredSteps.includes("basicDetails") ? (
-                <span className="required-badge">Required</span>
-              ) : (
+              {!requiredSteps.includes("basicDetails") && (
                 <span className="optional-badge">Optional</span>
               )}
             </div>
@@ -2137,9 +2135,7 @@ const SellerOnboarding = () => {
             >
               <span className="step-number">2</span>
               <span className="step-name">Shop Timing</span>
-              {requiredSteps.includes("shopTiming") ? (
-                <span className="required-badge">Required</span>
-              ) : (
+              {!requiredSteps.includes("shopTiming") && (
                 <span className="optional-badge">Optional</span>
               )}
             </div>
@@ -2150,9 +2146,7 @@ const SellerOnboarding = () => {
             >
               <span className="step-number">3</span>
               <span className="step-name">Legal Documents</span>
-              {requiredSteps.includes("legalDocuments") ? (
-                <span className="required-badge">Required</span>
-              ) : (
+              {!requiredSteps.includes("legalDocuments") && (
                 <span className="optional-badge">Optional</span>
               )}
             </div>
@@ -2163,9 +2157,7 @@ const SellerOnboarding = () => {
             >
               <span className="step-number">4</span>
               <span className="step-name">Subscription</span>
-              {requiredSteps.includes("subscription") ? (
-                <span className="required-badge">Required</span>
-              ) : (
+              {!requiredSteps.includes("subscription") && (
                 <span className="optional-badge">Optional</span>
               )}
             </div>

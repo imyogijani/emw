@@ -253,11 +253,6 @@ const Login = () => {
           "Login - Success"
         );
 
-        // After successful login
-        // if (response.data.user.role === "shopowner") {
-        //   navigate("/seller/dashboard");
-        //   return; // stop further navigation
-        // }
         // Admin redirect
         if (response.data.redirectToAdminDashboard) {
           navigate("/admin/dashboard");
@@ -286,14 +281,6 @@ const Login = () => {
         //   return;
         // }
         // Onboarding redirect for non-demo users
-
-        // if (
-        //   response.data.user.isOnboardingComplete &&
-        //   response.data.user.role === "shopowner"
-        // ) {
-        //   navigate("/dashboard");
-        // }
-
         if (response.data.requiresOnboarding) {
           navigateWithTransition(navigate, "/onboarding", { replace: true });
           return;

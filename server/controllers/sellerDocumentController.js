@@ -87,9 +87,6 @@ export const uploadDocuments = async (req, res) => {
           file.filename + ".enc"
         );
         fs.writeFileSync(encryptedFilePath, encrypted);
-        // get original extension
-        const originalExt = path.extname(file.originalname);
-        console.log("Upload doc : ", originalExt);
 
         const doc = await SellerDocument.create({
           seller: sellerId,
@@ -100,7 +97,6 @@ export const uploadDocuments = async (req, res) => {
           iv,
           salt,
           authTag,
-          originalExt,
         });
 
         uploadedDocs.push(doc);
@@ -129,55 +125,20 @@ export const uploadDocuments = async (req, res) => {
 };
 
 // Download / View document
-// export const viewDocument = async (req, res) => {
-//   try {
-//     const { docId } = req.params;
-//     const doc = await SellerDocument.findById(docId);
-//     if (!doc) return res.status(404).json({ message: "Document not found" });
-
-//     // Access control
-//     if (
-//       req.user.role !== "admin" &&
-//       (!req.user.sellerId ||
-//         doc.seller.toString() !== req.user.sellerId.toString())
-//     ) {
-//       return res.status(403).json({ message: "Unauthorized" });
-//     }
-
-//     const encryptedBuffer = fs.readFileSync(doc.filePath);
-//     const decrypted = decryptFile(
-//       encryptedBuffer,
-//       doc.iv,
-//       doc.salt,
-//       doc.authTag
-//     );
-
-//     const ext = path.extname(doc.filePath).replace(".enc", "").toLowerCase();
-//     let mimeType = "application/pdf";
-//     if (ext === ".jpg" || ext === ".jpeg") mimeType = "image/jpeg";
-//     else if (ext === ".png") mimeType = "image/png";
-//     else if (ext === ".pdf") mimeType = "application/pdf";
-
-//     res.setHeader("Content-Type", mimeType);
-//     res.setHeader(
-//       "Content-Disposition",
-//       `inline; filename="${doc.docType}${ext}"`
-//     );
-
-//     res.send(decrypted);
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to view document", error: error.message });
-//   }
-// };
-
 export const viewDocument = async (req, res) => {
   try {
     const { docId } = req.params;
     const doc = await SellerDocument.findById(docId);
     if (!doc) return res.status(404).json({ message: "Document not found" });
+
+    // Access control
+    if (
+      req.user.role !== "admin" &&
+      (!req.user.sellerId ||
+        doc.seller.toString() !== req.user.sellerId.toString())
+    ) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
 
     const encryptedBuffer = fs.readFileSync(doc.filePath);
     const decrypted = decryptFile(
@@ -187,73 +148,27 @@ export const viewDocument = async (req, res) => {
       doc.authTag
     );
 
-    // set correct MIME type
-    let mimeType = "application/octet-stream";
-    if (doc.originalExt === ".pdf") mimeType = "application/pdf";
-    else if (doc.originalExt === ".jpg" || doc.originalExt === ".jpeg")
+    // 🔑 Detect mime-type dynamically
+    let mimeType = "application/pdf";
+    if (doc.docType.endsWith(".jpg") || doc.docType.endsWith(".jpeg"))
       mimeType = "image/jpeg";
-    else if (doc.originalExt === ".png") mimeType = "image/png";
+    else if (doc.docType.endsWith(".png")) mimeType = "image/png";
 
     res.setHeader("Content-Type", mimeType);
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${doc.docType}${doc.originalExt}"`
-    );
+
+    // 🟢 inline show in browser (not download)
+    res.setHeader("Content-Disposition", `inline; filename="${doc.docType}"`);
 
     res.send(decrypted);
-  } catch (err) {
-    console.error("View error:", err);
-    res.status(500).json({ message: "Error viewing file" });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Failed to view document", error: error.message });
   }
 };
 
 // DOWNLOAD Document (force download)
-// export const downloadDocument = async (req, res) => {
-//   try {
-//     const { docId } = req.params;
-//     const doc = await SellerDocument.findById(docId);
-//     if (!doc) return res.status(404).json({ message: "Document not found" });
-
-//     // Access control
-//     if (
-//       req.user.role !== "admin" &&
-//       (!req.user.sellerId ||
-//         doc.seller.toString() !== req.user.sellerId.toString())
-//     ) {
-//       return res.status(403).json({ message: "Unauthorized" });
-//     }
-
-//     const encryptedBuffer = fs.readFileSync(doc.filePath);
-//     const decrypted = decryptFile(
-//       encryptedBuffer,
-//       doc.iv,
-//       doc.salt,
-//       doc.authTag
-//     );
-
-//     // detect mime type
-//     let mimeType = "application/pdf";
-//     if (doc.docType.endsWith(".jpg") || doc.docType.endsWith(".jpeg"))
-//       mimeType = "image/jpeg";
-//     else if (doc.docType.endsWith(".png")) mimeType = "image/png";
-
-//     res.setHeader("Content-Type", mimeType);
-
-//     // ⬇️ force download
-//     res.setHeader(
-//       "Content-Disposition",
-//       `attachment; filename="${doc.docType}"`
-//     );
-
-//     res.send(decrypted);
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to download document", error: error.message });
-//   }
-// };
-
 export const downloadDocument = async (req, res) => {
   try {
     const { docId } = req.params;
@@ -277,19 +192,18 @@ export const downloadDocument = async (req, res) => {
       doc.authTag
     );
 
-    //  detect mime type from originalExt
-    let mimeType = "application/octet-stream";
-    if (doc.originalExt === ".pdf") mimeType = "application/pdf";
-    else if (doc.originalExt === ".jpg" || doc.originalExt === ".jpeg")
+    // detect mime type
+    let mimeType = "application/pdf";
+    if (doc.docType.endsWith(".jpg") || doc.docType.endsWith(".jpeg"))
       mimeType = "image/jpeg";
-    else if (doc.originalExt === ".png") mimeType = "image/png";
+    else if (doc.docType.endsWith(".png")) mimeType = "image/png";
 
     res.setHeader("Content-Type", mimeType);
 
-    //  force download with correct extension
+    // ⬇️ force download
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${doc.docType}${doc.originalExt}"`
+      `attachment; filename="${doc.docType}"`
     );
 
     res.send(decrypted);
@@ -340,7 +254,6 @@ export const updateDocuments = async (req, res) => {
           "storage/private_docs",
           file.filename + ".enc"
         );
-
         fs.writeFileSync(encryptedFilePath, encrypted);
 
         // DB me sirf latest wala save
