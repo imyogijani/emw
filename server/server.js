@@ -12,6 +12,7 @@ import { exec } from "child_process";
 import crypto from "crypto";
 
 import { expireDeals } from "./cronExpireDeals.js";
+import { requestLogger } from "./utils/logger.js";
 // import { importGujaratPincodes } from "./importHSN.js";
 // import crypto from "crypto";
 
@@ -106,6 +107,7 @@ app.use(
   })
 );
 app.use(morgan("dev"));
+app.use(requestLogger);
 
 // Static files for uploads
 app.use(
@@ -174,6 +176,7 @@ import checkoutRoutes from "./routes/checkoutRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import imageRoutes from "./routes/imageRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import onboardingConfigRoutes from "./routes/onboardingConfigRoutes.js";
 import wayBillRoutes from "./routes/wayBillRoutes.js";
 import shipmentRoutes from "./routes/shipmentRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
@@ -211,6 +214,7 @@ app.use("/api/seller", sellerOnboardingRoutes);
 app.use("/api/shop", shopCategoryRoutes);
 app.use("/api/seller-documents", sellerDocumentRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/admin/onboarding", onboardingConfigRoutes);
 app.use("/api/waybills", wayBillRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/webhook", webhookRoutes);

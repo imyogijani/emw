@@ -153,7 +153,12 @@ export const onboardingStep1 = async (req, res) => {
     seller.brands = parsedBrands || [];
 
     if (incrementOnboarding) {
-      // seller.onboardingStep = seller.onboardingStep + 1;
+      // Mark basic_details step as completed
+      if (!seller.completedOnboardingSteps.includes('basic_details')) {
+        seller.completedOnboardingSteps.push('basic_details');
+      }
+      
+      // Keep backward compatibility
       seller.onboardingStep = 2;
     }
 
@@ -175,6 +180,190 @@ export const onboardingStep1 = async (req, res) => {
 };
 
 // Start free trial for new sellers
+// Handle shop timing step completion
+export const completeShopTimingStep = async (req, res) => {
+  try {
+    const { sellerId } = req.body;
+    
+    if (!sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "sellerId is required",
+      });
+    }
+
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found",
+      });
+    }
+
+    // Mark shop_timing step as completed
+    if (!seller.completedOnboardingSteps.includes('shop_timing')) {
+      seller.completedOnboardingSteps.push('shop_timing');
+    }
+    
+    // Update onboarding step for backward compatibility
+    if (seller.onboardingStep < 3) {
+      seller.onboardingStep = 3;
+    }
+
+    await seller.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Shop timing step completed successfully",
+      completedSteps: seller.completedOnboardingSteps,
+    });
+  } catch (error) {
+    console.error("Shop timing step error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error completing shop timing step",
+      error: error.message,
+    });
+  }
+};
+
+// Handle document verification step completion
+export const completeDocumentStep = async (req, res) => {
+  try {
+    const { sellerId } = req.body;
+    
+    if (!sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "sellerId is required",
+      });
+    }
+
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found",
+      });
+    }
+
+    // Mark document_verification step as completed
+    if (!seller.completedOnboardingSteps.includes('document_verification')) {
+      seller.completedOnboardingSteps.push('document_verification');
+    }
+    
+    // Update onboarding step for backward compatibility
+    if (seller.onboardingStep < 4) {
+      seller.onboardingStep = 4;
+    }
+
+    await seller.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Document verification step completed successfully",
+      completedSteps: seller.completedOnboardingSteps,
+    });
+  } catch (error) {
+    console.error("Document verification step error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error completing document verification step",
+      error: error.message,
+    });
+  }
+};
+
+// Handle subscription step completion
+export const completeSubscriptionStep = async (req, res) => {
+  try {
+    const { sellerId, subscriptionPlan } = req.body;
+    
+    if (!sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "sellerId is required",
+      });
+    }
+
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found",
+      });
+    }
+
+    // Handle subscription logic if provided
+    if (subscriptionPlan) {
+      const subscription = await Subscription.findById(subscriptionPlan);
+      if (subscription) {
+        // Create user subscription record
+        const userSubscription = new UserSubscription({
+          user: seller.user,
+          subscription: subscription._id,
+          startDate: new Date(),
+          endDate: new Date(Date.now() + (subscription.durationInMonths * 30 * 24 * 60 * 60 * 1000)),
+          status: 'active',
+          billingCycle: 'monthly'
+        });
+        await userSubscription.save();
+      }
+    }
+
+    // Mark subscription step as completed
+    if (!seller.completedOnboardingSteps.includes('subscription')) {
+      seller.completedOnboardingSteps.push('subscription');
+    }
+    
+    // Check if all required steps are completed
+    const OnboardingConfig = (await import("../models/onboardingConfigModel.js")).default;
+    const config = await OnboardingConfig.findOne();
+    
+    if (config) {
+      const requiredSteps = config.steps
+        .filter(step => step.isRequired && step.isActive)
+        .map(step => step.stepId);
+      
+      const allRequiredCompleted = requiredSteps.every(stepId => 
+        seller.completedOnboardingSteps.includes(stepId)
+      );
+      
+      if (allRequiredCompleted) {
+        seller.isOnboardingComplete = true;
+        
+        // Update user onboarding status
+        const user = await User.findById(seller.user);
+        if (user) {
+          user.isOnboardingComplete = true;
+          await user.save();
+        }
+      }
+    }
+    
+    // Update onboarding step for backward compatibility
+    seller.onboardingStep = 5;
+
+    await seller.save();
+
+    return res.status(200).json({
+      success: true,
+      message: seller.isOnboardingComplete ? 
+        "Onboarding completed successfully!" : 
+        "Subscription step completed successfully",
+      completedSteps: seller.completedOnboardingSteps,
+      isOnboardingComplete: seller.isOnboardingComplete,
+    });
+  } catch (error) {
+    console.error("Subscription step error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error completing subscription step",
+      error: error.message,
+    });
+  }
+};
+
 export const startFreeTrial = async (req, res) => {
   try {
     const userId = req.user._id;

@@ -96,9 +96,9 @@ const Register = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      showErrorToast("Password must be at least 6 characters long");
-      setError("Password must be at least 6 characters long");
+    if (formData.password.length < 8) {
+      showErrorToast("Password must be at least 8 characters long");
+      setError("Password must be at least 8 characters long");
       setIsLoading(false);
       return;
     }

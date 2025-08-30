@@ -6,12 +6,15 @@ import {
   FaSignOutAlt,
   FaSignInAlt,
   FaShoppingCart,
+  FaUser,
+  FaTachometerAlt,
+  FaCreditCard,
+  FaClipboardList,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import axios from "../utils/axios";
 import "../Components/Navbar.css";
 import UserProfile from "./UserProfile/UserProfile";
-import MaleUser from "../images/MaleUser.png";
 import mallimage from "../images/Mall1.png";
 
 const navLinks = [
@@ -28,7 +31,6 @@ const Navbar = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [user, setUser] = useState(null);
-  const [avatarError, setAvatarError] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,8 +48,8 @@ const Navbar = () => {
     fetchUserData();
   }, []);
 
-  // Only show user menu/profile for client role
-  const shouldShowUserMenu = user && user.role === "client";
+  // Show user menu for all authenticated users
+  const shouldShowUserMenu = user && localStorage.getItem("token");
 
   // Handle mobile menu and body scroll lock
   useEffect(() => {
@@ -100,10 +102,6 @@ const Navbar = () => {
     navigate(path);
   };
 
-  const handleAvatarError = () => {
-    setAvatarError(true);
-  };
-
   const isActiveLink = (path) => {
     if (path === "/") {
       return location.pathname === path;
@@ -125,7 +123,6 @@ const Navbar = () => {
               alt="E-Mall World"
               style={{ height: "50px" }}
             />
-            {/* <FaStore className="logo-icon" /> */}
             <span className="logo-main">E-Mall</span>
             <span className="logo-uk">World</span>
           </Link>
@@ -153,34 +150,31 @@ const Navbar = () => {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     title={user?.name || "User profile"}
                   >
-                    <img
-                      src={avatarError ? MaleUser : user?.avatar || MaleUser}
-                      alt={user?.name || "User avatar"}
-                      className="user-avatar"
-                      onError={handleAvatarError}
-                    />
+                    <FaUser className="user-avatar-icon" />
                   </button>
                   {showUserMenu && (
                     <div className="user-menu animate-dropdown">
                       <div className="user-info">
-                        <img
-                          src={
-                            avatarError ? MaleUser : user?.avatar || MaleUser
-                          }
-                          alt={user?.name || "User avatar"}
-                          className="menu-avatar"
-                          onError={handleAvatarError}
-                        />
+                        <FaUser className="menu-avatar-icon" />
                         <div className="user-details">
                           <p className="user-name">
-                            {user?.names || user?.shopownerName || "User"}
+                            {user?.role === "shopowner" 
+                              ? (user?.shopownerName || user?.names || "Shopowner")
+                              : (user?.names || "User")
+                            }
                           </p>
                           <p className="user-email">
                             {user?.email || "No email"}
                           </p>
+                          {user?.role === "shopowner" && (
+                            <p className="user-role">
+                              Seller
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="menu-divider"></div>
+                      {/* My Profile - Available for all roles */}
                       <button
                         className="btn btn-small btn-secondary menu-item dashboard-dropdown"
                         onClick={() => {
@@ -188,25 +182,68 @@ const Navbar = () => {
                           setShowProfile(true);
                         }}
                       >
-                        <span className="sparkle"><FaCog /></span>
+                        <span className="sparkle"><FaUser /></span>
                         <span className="text">My Profile</span>
                       </button>
-                      <button
-                        className="btn btn-small btn-secondary menu-item dashboard-dropdown"
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          navigate("/profile-edit"); // Assuming a route for editing profile
-                        }}
-                      >
-                        <span className="sparkle"><FaCog /></span>
-                        <span className="text">Edit Profile</span>
-                      </button>
+
+                      {/* Role-specific menu items */}
+                      {user?.role === "shopowner" && (
+                        <>
+                          <button
+                            className="btn btn-small btn-secondary menu-item dashboard-dropdown"
+                            onClick={() => {
+                              setShowUserMenu(false);
+                              navigate("/seller/dashboard");
+                            }}
+                          >
+                            <span className="sparkle"><FaTachometerAlt /></span>
+                            <span className="text">Dashboard</span>
+                          </button>
+                        </>
+                      )}
+
+                      {user?.role === "client" && (
+                        <>
+                          <button
+                            className="btn btn-small btn-secondary menu-item dashboard-dropdown"
+                            onClick={() => {
+                              setShowUserMenu(false);
+                              navigate("/cart");
+                            }}
+                          >
+                            <span className="sparkle"><FaShoppingCart /></span>
+                            <span className="text">My Cart</span>
+                          </button>
+                          <button
+                            className="btn btn-small btn-secondary menu-item dashboard-dropdown"
+                            onClick={() => {
+                              setShowUserMenu(false);
+                              navigate("/orders");
+                            }}
+                          >
+                            <span className="sparkle"><FaClipboardList /></span>
+                            <span className="text">My Orders</span>
+                          </button>
+                          <button
+                            className="btn btn-small btn-secondary menu-item dashboard-dropdown"
+                            onClick={() => {
+                              setShowUserMenu(false);
+                              navigate("/payment-methods");
+                            }}
+                          >
+                            <span className="sparkle"><FaCreditCard /></span>
+                            <span className="text">My Payment Methods</span>
+                          </button>
+                        </>
+                      )}
+
+                      {/* Logout - Available for all roles */}
                       <button
                         className="btn btn-small btn-danger menu-item dashboard-dropdown logout"
                         onClick={handleLogout}
                       >
                         <span className="sparkle"><FaSignOutAlt /></span>
-                        <span className="text">Logout</span>
+                        <span className="text">Log Out</span>
                       </button>
                     </div>
                   )}
@@ -273,6 +310,7 @@ const Navbar = () => {
         <div className="mobile-nav-actions">
           {localStorage.getItem("token") && shouldShowUserMenu ? (
             <>
+              {/* My Profile - Available for all roles */}
               <button
                 className="btn btn-medium btn-secondary nav-pill-link"
                 onClick={() => {
@@ -280,12 +318,63 @@ const Navbar = () => {
                   setShowProfile(true);
                 }}
               >
-                <span className="sparkle"><FaCog /></span>
-                <span className="text">Profile Settings</span>
+                <span className="sparkle"><FaUser /></span>
+                <span className="text">My Profile</span>
               </button>
+
+              {/* Role-specific mobile menu items */}
+              {user?.role === "shopowner" && (
+                <button
+                  className="btn btn-medium btn-secondary nav-pill-link"
+                  onClick={() => {
+                    closeMobileMenu();
+                    navigate("/seller/dashboard");
+                  }}
+                >
+                  <span className="sparkle"><FaTachometerAlt /></span>
+                  <span className="text">Dashboard</span>
+                </button>
+              )}
+
+              {user?.role === "client" && (
+                <>
+                  <button
+                    className="btn btn-medium btn-secondary nav-pill-link"
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate("/cart");
+                    }}
+                  >
+                    <span className="sparkle"><FaShoppingCart /></span>
+                    <span className="text">My Cart</span>
+                  </button>
+                  <button
+                    className="btn btn-medium btn-secondary nav-pill-link"
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate("/orders");
+                    }}
+                  >
+                    <span className="sparkle"><FaClipboardList /></span>
+                    <span className="text">My Orders</span>
+                  </button>
+                  <button
+                    className="btn btn-medium btn-secondary nav-pill-link"
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate("/payment-methods");
+                    }}
+                  >
+                    <span className="sparkle"><FaCreditCard /></span>
+                    <span className="text">My Payment Methods</span>
+                  </button>
+                </>
+              )}
+
+              {/* Logout - Available for all roles */}
               <button className="btn btn-medium btn-danger nav-pill-link logout" onClick={handleLogout}>
                 <span className="sparkle"><FaSignOutAlt /></span>
-                <span className="text">Logout</span>
+                <span className="text">Log Out</span>
               </button>
             </>
           ) : (

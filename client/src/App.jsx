@@ -60,7 +60,7 @@ import SubscriptionReview from "./Pages/SubscriptionReview";
 import Checkout from "./Pages/Checkout/Checkout";
 import Payment from "./Pages/Payment/Payment";
 import Invoice from "./Pages/Invoice/Invoice";
-import SellerOnboarding from "./Pages/Seller/SellerOnboarding";
+import EnhancedSellerOnboarding from "./Pages/Seller/EnhancedSellerOnboarding";
 import Onboarding from "./Components/Onboarding/Onboarding";
 
 function LayoutWrapper() {
@@ -174,7 +174,7 @@ function LayoutWrapper() {
           path="/seller/onboarding"
           element={
             <ProtectedRoute allowedRoles={["shopowner"]}>
-              <SellerOnboarding />
+              <EnhancedSellerOnboarding />
             </ProtectedRoute>
           }
         />

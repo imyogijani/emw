@@ -98,7 +98,7 @@ export const navigateByRole = (navigate, role, userObj, loginResponse) => {
  * @param {string} url - URL to return to after login
  */
 export const setReturnUrl = (url) => {
-  if (url && url !== '/login' && url !== '/register') {
+  if (url && url !== '/login' && url !== '/register' && !url.startsWith('/login') && !url.startsWith('/register')) {
     sessionStorage.setItem('returnUrl', url);
   }
 };
@@ -124,8 +124,10 @@ export const clearReturnUrl = () => {
  * @param {string} currentPath - Current path to return to
  */
 export const redirectToLogin = (navigate, currentPath) => {
-  // Store current path as return URL
-  setReturnUrl(currentPath);
+  // Store current path as return URL (exclude login/register pages)
+  if (currentPath !== '/login' && currentPath !== '/register') {
+    setReturnUrl(currentPath);
+  }
   
   navigateWithTransition(navigate, '/login', {
     replace: true,
