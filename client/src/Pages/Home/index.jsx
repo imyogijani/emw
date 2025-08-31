@@ -466,154 +466,146 @@ export default function Home() {
       <FeaturedProducts
         loading={loading}
         filteredProducts={filteredProducts}
-        ProductCard={ProductCard}
       />
       <DealsSection deals={deals} />
     </div>
   );
 }
 
-// Updated FeaturedProducts component with slider functionality
-const FeaturedProducts = ({ loading, filteredProducts, ProductCard }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(4);
+// --- Modern UI, Dynamic FilterSortBar ---
+const FilterSortBar = ({
+  categories,
+  activeCategory,
+  setActiveCategory,
+  sortBy,
+  setSortBy,
+}) => (
+  <div className="filter-sort-bar-modern">
+    <div className="filter-sort-bar-inner">
+      <div className="filter-group">
+        <label htmlFor="category-select" className="filter-label">Category</label>
+        <select
+          id="category-select"
+          value={activeCategory}
+          onChange={(e) => setActiveCategory(e.target.value)}
+          className="filter-select-modern"
+        >
+          <option value="">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="filter-group">
+        <label htmlFor="sort-select" className="filter-label">Sort by</label>
+        <select
+          id="sort-select"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="filter-select-modern"
+        >
+          <option value="">Relevance</option>
+          <option value="low">Price: Low to High</option>
+          <option value="high">Price: High to Low</option>
+          <option value="rating">Customer Rating</option>
+        </select>
+      </div>
+    </div>
+  </div>
+);
 
-  useEffect(() => {
-    const updateItemsPerView = () => {
-      if (window.innerWidth < 480) {
-        setItemsPerView(1);
-      } else if (window.innerWidth < 768) {
-        setItemsPerView(2);
-      } else if (window.innerWidth < 1024) {
-        setItemsPerView(3);
-      } else {
-        setItemsPerView(4);
-      }
-    };
+// --- Redesigned FeaturedProducts Section ---
+const FeaturedProducts = ({ loading, filteredProducts }) => {
+  if (loading) {
+    return (
+      <div className="loader-container">
+        <JumpingLoader size="large" />
+        <p>Loading featured products...</p>
+      </div>
+    );
+  }
+  if (filteredProducts.length === 0) {
+    return <EmptyState />;
+  }
+  return (
+    <div className="product-grid-section">
+      <div className="product-grid">
+        {filteredProducts.map((product) => (
+          <ProductCard key={product._id} product={product} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
-    updateItemsPerView();
-    window.addEventListener("resize", updateItemsPerView);
-    return () => window.removeEventListener("resize", updateItemsPerView);
-  }, []);
+// --- Redesigned ProductCard ---
+const ProductCard = ({ product }) => {
+  const [imageError, setImageError] = React.useState(false);
+  const [imageLoading, setImageLoading] = React.useState(true);
+  const navigate = useNavigate();
 
-  const totalSlides = Math.ceil(filteredProducts.length / itemsPerView);
-  const maxSlide = Math.max(0, totalSlides - 1);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev >= maxSlide ? 0 : prev + 1));
+  const handleImageLoad = () => setImageLoading(false);
+  const handleImageError = () => setImageError(true);
+  const getImageSrc = () => {
+    if (imageError) return "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
+    return processImageUrl(product.image) || "https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg";
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev <= 0 ? maxSlide : prev - 1));
+  // Make the whole card clickable except for Add to Cart and Wishlist
+  const handleCardClick = () => {
+    navigate(`/product/${product._id}`);
   };
-
-  const goToSlide = (slideIndex) => {
-    setCurrentSlide(slideIndex);
-  };
-
-  useEffect(() => {
-    if (filteredProducts.length > itemsPerView) {
-      const interval = setInterval(nextSlide, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [filteredProducts.length, itemsPerView, maxSlide]);
 
   return (
-    <div className="products-section">
-      <div className="section-header">
-        <h2
+    <div
+      className="product-card-modern clickable"
+      onClick={handleCardClick}
+      style={{ cursor: "pointer", maxWidth: 320, width: "100%", minWidth: 0 }}
+    >
+      <div className="product-image-wrap" style={{ width: 210, height: 210, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginBottom: 14 }}>
+        {product.tag && (
+          <span className="product-tag">{product.tag}</span>
+        )}
+        <img
+          src={getImageSrc()}
+          alt={product.name}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
           style={{
-            fontWeight: "bold",
-            borderBottom: "2px solid #232f3e",
-            paddingBottom: "10px",
-            display: "block",
-            width: "fit-content",
-            textAlign: "center",
-            margin: "0 auto 30px",
+            display: imageLoading ? "none" : "block",
+            width: "96%",
+            height: "96%",
+            objectFit: "contain",
+            background: "#fff",
+            borderRadius: 10,
+            boxShadow: "0 1px 4px rgba(60,72,88,0.04)",
+            margin: "0 auto"
           }}
-        >
-          Featured Products
-        </h2>
-        <p>Handpicked items just for you</p>
+        />
+        {/* Heart/Wishlist button removed for cleaner look */}
       </div>
-
-      {loading ? (
-        <div className="loader-container">
-          <JumpingLoader size="large" />
-          <p>Loading featured products...</p>
+      <div className="product-info" style={{ width: "100%", padding: 0 }}>
+        <div className="product-title">{product.name}</div>
+        <div className="product-desc">{product.description || "-"}</div>
+        <div className="product-rating">
+          <span className="stars">★★★★★</span>
+          <span className="review-count">({product.totalReviews || 0})</span>
         </div>
-      ) : filteredProducts.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="products-slider-container">
-          {filteredProducts.length > itemsPerView && (
-            <button
-              className="slider-nav-btn slider-prev"
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
-            >
-              <ChevronLeft size={24} />
-            </button>
+        <div className="product-price-row">
+          <span className="product-price">₹{product.price}</span>
+          {product.originalPrice && (
+            <span className="product-old-price">₹{product.originalPrice}</span>
           )}
-
-          <div className="products-slider-wrapper">
-            <div
-              className="products-slider-track"
-              style={{
-                transform: `translateX(-${
-                  currentSlide * (100 / totalSlides)
-                }%)`,
-                width: `${totalSlides * 100}%`,
-              }}
-            >
-              {filteredProducts.map((product) => (
-                <div
-                  key={product._id}
-                  className="slider-item"
-                  style={{ width: `${100 / (totalSlides * itemsPerView)}%` }}
-                >
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {filteredProducts.length > itemsPerView && (
-            <button
-              className="slider-nav-btn slider-next"
-              onClick={nextSlide}
-              disabled={currentSlide === maxSlide}
-            >
-              <ChevronRight size={24} />
-            </button>
-          )}
-
-          {filteredProducts.length > itemsPerView && totalSlides > 1 && (
-            <div className="slider-indicators">
-              {Array.from({ length: totalSlides }).map((_, index) => (
-                <button
-                  key={index}
-                  className={`slider-dot ${
-                    currentSlide === index ? "active" : ""
-                  }`}
-                  onClick={() => goToSlide(index)}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="products-counter">
-            <span>
-              Showing{" "}
-              {Math.min(
-                currentSlide * itemsPerView + itemsPerView,
-                filteredProducts.length
-              )}{" "}
-              of {filteredProducts.length} products
-            </span>
-          </div>
         </div>
-      )}
+        <button
+          className="add-to-cart-btn"
+          onClick={e => { e.stopPropagation(); /* Add to cart logic here if needed */ }}
+        >
+          Add to Cart
+        </button>
+      </div>
     </div>
   );
 };
@@ -684,50 +676,6 @@ const ShopByCategory = ({ categories }) => (
       ))}
     </div>
   </section>
-);
-
-const FilterSortBar = ({
-  categories,
-  activeCategory,
-  setActiveCategory,
-  sortBy,
-  setSortBy,
-}) => (
-  <div className="filter-sort-bar-modern">
-    <div className="filter-sort-bar-inner">
-      <div className="filter-group">
-        {/* <Filter size={20} className="filter-icon" /> */}
-        <label htmlFor="category-select" className="filter-label">Category</label>
-        <select
-          id="category-select"
-          value={activeCategory}
-          onChange={(e) => setActiveCategory(e.target.value)}
-          className="filter-select-modern"
-        >
-          <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat._id} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="filter-group">
-        <label htmlFor="sort-select" className="filter-label">Sort by</label>
-        <select
-          id="sort-select"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="filter-select-modern"
-        >
-          <option value="">Relevance</option>
-          <option value="low">Price: Low to High</option>
-          <option value="high">Price: High to Low</option>
-          <option value="rating">Customer Rating</option>
-        </select>
-      </div>
-    </div>
-  </div>
 );
 
 const EmptyState = () => (
