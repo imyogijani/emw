@@ -2,7 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { showErrorToast, showSuccessToast, showInfoToast, validateForm } from "../../utils/errorHandler";
+import {
+  showErrorToast,
+  showSuccessToast,
+  showInfoToast,
+  validateForm,
+} from "../../utils/errorHandler";
 import {
   ShoppingCart,
   CreditCard,
@@ -18,35 +23,61 @@ import {
   Receipt,
 } from "lucide-react";
 import "./Checkout.css";
+import axios from "../../utils/axios";
 
 export default function Checkout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { cartItems, getTotalPrice, clearCart } = useCart();
+  // const { cartItems, getTotalPrice, clearCart } = useCart();
+  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showCouponInput, setShowCouponInput] = useState(false);
+  const [summaryData, setSummaryData] = useState(null); // backend summary
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [userData, setUserData] = useState({
+    code: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    shippingAddress: {
+      name: "N/A",
+      phone: "N/A",
+      email: "N/A",
+      addressLine1: "N/A",
+      addressLine2: "N/A",
+      city: "N/A",
+      pincode: "N/A",
+      country: "N/A",
+      state: "N/A",
+    },
+  });
 
   // Check authentication on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      showErrorToast("Please login to proceed with checkout", "Checkout - Authentication");
+      showErrorToast(
+        "Please login to proceed with checkout",
+        "Checkout - Authentication"
+      );
       navigate("/login", { state: { returnUrl: location.pathname } });
       return;
     }
 
-    if (cartItems.length === 0) {
-      showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
-      navigate("/");
-      return;
-    }
-  }, [cartItems.length, navigate, location.pathname]);
+    // if (cartItems.length === 0) {
+    //   showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
+    //   navigate("/");
+    //   return;
+    // }
+  }, [navigate, location.pathname]);
 
   // Try to pre-fill user details from localStorage if available
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
+    console.log("User Details --- ", JSON.stringify(user));
     if (user) {
       setBillingDetails((prev) => ({
         ...prev,
@@ -55,7 +86,63 @@ export default function Checkout() {
         email: user.email || "",
         phone: user.phone || "",
       }));
+
+      setUserData((prev) => ({
+        ...prev,
+        firstName: user.firstName || user.names?.split(" ")[0] || "",
+        lastName: user.lastName || user.names?.split(" ")[1] || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        shippingAddress: {
+          ...prev.shippingAddress,
+          name: user?.firstName + user?.lastName,
+          phone: user?.phone,
+          email: user?.email,
+        },
+      }));
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        // localStorage se token uthao
+        const token = localStorage.getItem("token");
+
+        // API call karo
+        const res = await axios.get("/api/users/address");
+
+        console.log("Address  Checkout :", res.data);
+
+        if (res.data.success) {
+          setUserData((prevData) => ({
+            ...prevData, // purana userData copy
+            shippingAddress: {
+              name: res.data.name,
+              phone: res.data.phone,
+              email: res.data.email,
+              addressLine1: res.data.address.addressLine1,
+              addressLine2: res.data.address?.addressLine2 || "",
+              state: res.data.address.state,
+              city: res.data.address.city,
+              pincode: res.data.address.pincode,
+              country: res.data.address.country,
+            },
+          }));
+
+          // Abhi fresh address ke sath summary call karo
+          fetchCheckoutSummary();
+        } else {
+          showErrorToast("No address found!", "Checkout");
+        }
+      } catch (err) {
+        console.error("Error fetching address", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAddress();
   }, []);
 
   // Billing Details State
@@ -80,15 +167,15 @@ export default function Checkout() {
   ];
 
   // Redirect if cart is empty
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
-      navigate("/");
-    }
-  }, [cartItems.length, navigate]);
+  // useEffect(() => {
+  //   if (cartItems.length === 0) {
+  //     showErrorToast("Your cart is empty!", "Checkout - Cart Validation");
+  //     navigate("/");
+  //   }
+  // }, [cartItems.length, navigate]);
 
   // Calculate pricing
-  const subtotal = getTotalPrice();
+  const subtotal = 100;
   const gstRate = 0.18; // 18% GST
   const gstAmount = subtotal * gstRate;
   const deliveryCharge = subtotal > 500 ? 0 : 40;
@@ -109,55 +196,172 @@ export default function Checkout() {
   const grandTotal =
     totalBeforeTax + finalGstAmount + deliveryCharge + packagingCharge;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setBillingDetails((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // useEffect(() => {
+  //   fetchCheckoutSummary();
+  // }, []);
+
+  // useEffect(() => {
+  //   if (userData.shippingAddress && userData.shippingAddress.pincode) {
+  //     // summary call sirf tab hogi jab pincode (or required field) aaya ho
+  //     fetchCheckoutSummary(userData.shippingAddress);
+  //   }
+  // }, [userData.shippingAddress]);
+
+  const buildShippingAddress = (user) => {
+    return {
+      name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+      phone: user.phone || "",
+      email: user.email || "",
+      addressLine1: user.shippingAddress.addressLine1 || "",
+      addressLine2: user.shippingAddress.addressLine2 || "",
+      city: user.shippingAddress.city || "",
+      pincode: user.shippingAddress.pincode || "",
+      country: user.shippingAddress.country || "India",
+      state: user.shippingAddress.state || "",
+    };
   };
 
-  const applyCoupon = () => {
-    const coupon = availableCoupons.find(
-      (c) => c.code.toLowerCase() === couponCode.toLowerCase(),
-    );
-    if (!coupon) {
-      showErrorToast("Invalid coupon code!", "Checkout - Coupon Validation");
-      return;
+  const fetchCheckoutSummary = async (updatedUser = userData) => {
+    try {
+      setLoadingSummary(true);
+
+      const shippingAddress = buildShippingAddress(updatedUser);
+
+      console.log("Checkout Summary Payload ===>", shippingAddress);
+
+      const resp = await axios.post("/api/checkout/summary", {
+        shippingAddress,
+      });
+
+      if (resp.data.success) {
+        setSummaryData(resp.data);
+        console.log("fetchCheckoutSummary ---> ---> ", resp.data.subTotal);
+      } else {
+        showErrorToast(
+          resp.data.message || "Failed to fetch summary",
+          "Checkout"
+        );
+      }
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || err.message, "Checkout");
+    } finally {
+      setLoadingSummary(false);
     }
-    if (subtotal < coupon.minOrder) {
-      showErrorToast(
-        `Minimum order amount ₹${coupon.minOrder} required for this coupon!`,
-        "Checkout - Coupon Validation"
-      );
-      return;
-    }
-    setAppliedCoupon(coupon);
-    showSuccessToast(`Coupon "${coupon.code}" applied successfully!`, "Checkout - Coupon Applied");
-    setShowCouponInput(false);
-    setCouponCode("");
   };
+
+  // const handleInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   const updated = { ...billingDetails, [name]: value };
+  //   setBillingDetails(updated);
+
+  //   // re-fetch summary if key fields changed
+  //   if (["pincode", "city", "state", "address"].includes(name)) {
+  //     fetchCheckoutSummary(updated);
+  //   }
+  // };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    // address related fields
+    if (
+      [
+        "addressLine1",
+        "addressLine2",
+        "city",
+        "state",
+        "pincode",
+        "country",
+      ].includes(name)
+    ) {
+      setUserData((prev) => ({
+        ...prev,
+        shippingAddress: {
+          ...prev.shippingAddress,
+          [name]: value,
+        },
+      }));
+    } else {
+      // top level fields
+      setUserData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const applyCoupon = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await axios.post(
+        "/api/checkout/apply-coupon",
+        { code: couponCode, summary: summaryData }, // send coupon + current summary
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (resp.data.success) {
+        setAppliedCoupon(resp.data.coupon);
+        // setSummaryData(resp.data.updatedSummary); // backend recalculates totals
+        showSuccessToast(
+          `Coupon applied: ${resp.data.coupon.code}`,
+          "Checkout"
+        );
+      } else {
+        showErrorToast(resp.data.message, "Coupon");
+      }
+    } catch (err) {
+      showErrorToast(err.response?.data?.message || err.message, "Coupon");
+    }
+  };
+
+  // const applyCoupon = () => {
+  //   const coupon = availableCoupons.find(
+  //     (c) => c.code.toLowerCase() === couponCode.toLowerCase()
+  //   );
+  //   if (!coupon) {
+  //     showErrorToast("Invalid coupon code!", "Checkout - Coupon Validation");
+  //     return;
+  //   }
+  //   if (subtotal < coupon.minOrder) {
+  //     showErrorToast(
+  //       `Minimum order amount ₹${coupon.minOrder} required for this coupon!`,
+  //       "Checkout - Coupon Validation"
+  //     );
+  //     return;
+  //   }
+  //   setAppliedCoupon(coupon);
+  //   showSuccessToast(
+  //     `Coupon "${coupon.code}" applied successfully!`,
+  //     "Checkout - Coupon Applied"
+  //   );
+  //   setShowCouponInput(false);
+  //   setCouponCode("");
+  // };
+
+  // const removeCoupon = () => {
+  //   setAppliedCoupon(null);
+  //   showInfoToast("Coupon removed", "Checkout - Coupon Management");
+  // };
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
-    showInfoToast("Coupon removed", "Checkout - Coupon Management");
+    fetchCheckoutSummary(billingDetails); // refresh without coupon
   };
-
   const validateCheckoutForm = () => {
     const validationRules = {
       firstName: {
         required: true,
-        requiredMessage: "First name is required"
+        requiredMessage: "First name is required",
       },
       lastName: {
         required: true,
-        requiredMessage: "Last name is required"
+        requiredMessage: "Last name is required",
       },
       email: {
         required: true,
         requiredMessage: "Email is required",
         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        patternMessage: "Please enter a valid email address"
+        patternMessage: "Please enter a valid email address",
       },
       phone: {
         required: true,
@@ -165,19 +369,19 @@ export default function Checkout() {
         minLength: 10,
         maxLength: 10,
         minLengthMessage: "Please enter a valid 10-digit phone number",
-        maxLengthMessage: "Please enter a valid 10-digit phone number"
+        maxLengthMessage: "Please enter a valid 10-digit phone number",
       },
       address: {
         required: true,
-        requiredMessage: "Address is required"
+        requiredMessage: "Address is required",
       },
       city: {
         required: true,
-        requiredMessage: "City is required"
+        requiredMessage: "City is required",
       },
       state: {
         required: true,
-        requiredMessage: "State is required"
+        requiredMessage: "State is required",
       },
       pincode: {
         required: true,
@@ -185,8 +389,8 @@ export default function Checkout() {
         minLength: 6,
         maxLength: 6,
         minLengthMessage: "Please enter a valid 6-digit pincode",
-        maxLengthMessage: "Please enter a valid 6-digit pincode"
-      }
+        maxLengthMessage: "Please enter a valid 6-digit pincode",
+      },
     };
 
     const { isValid } = validateForm(billingDetails, validationRules);
@@ -219,23 +423,23 @@ export default function Checkout() {
     navigate("/");
   };
 
-  if (cartItems.length === 0) {
-    return (
-      <div className="checkout-empty">
-        <div className="empty-cart-icon">
-          <ShoppingCart size={64} />
-        </div>
-        <h2>Your cart is empty</h2>
-        <p>Add some items to your cart to proceed with checkout</p>
-        <button
-          className="continue-shopping-btn"
-          onClick={handleContinueShopping}
-        >
-          Continue Shopping
-        </button>
-      </div>
-    );
-  }
+  // if (cartItems.length === 0) {
+  //   return (
+  //     <div className="checkout-empty">
+  //       <div className="empty-cart-icon">
+  //         <ShoppingCart size={64} />
+  //       </div>
+  //       <h2>Your cart is empty</h2>
+  //       <p>Add some items to your cart to proceed with checkout</p>
+  //       <button
+  //         className="continue-shopping-btn"
+  //         onClick={handleContinueShopping}
+  //       >
+  //         Continue Shopping
+  //       </button>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="checkout-container">
@@ -266,7 +470,7 @@ export default function Checkout() {
           <div className="billing-section">
             <h2 className="section-title">
               <User size={20} />
-              Billing Details
+              Billing & Delivery Address Details
             </h2>
             <div className="billing-form">
               <div className="form-row">
@@ -275,7 +479,7 @@ export default function Checkout() {
                   <input
                     type="text"
                     name="firstName"
-                    value={billingDetails.firstName}
+                    value={userData.firstName}
                     onChange={handleInputChange}
                     placeholder="Enter first name"
                     required
@@ -286,7 +490,7 @@ export default function Checkout() {
                   <input
                     type="text"
                     name="lastName"
-                    value={billingDetails.lastName}
+                    value={userData.lastName}
                     onChange={handleInputChange}
                     placeholder="Enter last name"
                     required
@@ -300,7 +504,7 @@ export default function Checkout() {
                   <input
                     type="email"
                     name="email"
-                    value={billingDetails.email}
+                    value={userData.email}
                     onChange={handleInputChange}
                     placeholder="Enter email address"
                     required
@@ -311,7 +515,7 @@ export default function Checkout() {
                   <input
                     type="tel"
                     name="phone"
-                    value={billingDetails.phone}
+                    value={userData.phone}
                     onChange={handleInputChange}
                     placeholder="Enter 10-digit phone number"
                     maxLength="10"
@@ -321,15 +525,24 @@ export default function Checkout() {
               </div>
 
               <div className="form-group">
-                <label>Address *</label>
-                <textarea
-                  name="address"
-                  value={billingDetails.address}
+                <label>Delievery Address *</label>
+                <input
+                  name="addressLine1"
+                  value={userData.shippingAddress.addressLine1}
                   onChange={handleInputChange}
-                  placeholder="Enter complete address"
+                  placeholder="AddressLine 1 (e.g., Flat / House No / Building)"
                   rows="3"
                   required
                 />
+
+                {/* <input
+                  name="addressLine1"
+                  value={userData.shippingAddress?.addressLine2}
+                  onChange={handleInputChange}
+                  placeholder="AddressLine 2 (Optional) (e.g., Flat / House No / Building)"
+                  rows="3"
+                  required
+                /> */}
               </div>
 
               <div className="form-row">
@@ -338,7 +551,7 @@ export default function Checkout() {
                   <input
                     type="text"
                     name="city"
-                    value={billingDetails.city}
+                    value={userData.shippingAddress.city}
                     onChange={handleInputChange}
                     placeholder="Enter city"
                     required
@@ -349,7 +562,7 @@ export default function Checkout() {
                   <input
                     type="text"
                     name="state"
-                    value={billingDetails.state}
+                    value={userData.shippingAddress.state}
                     onChange={handleInputChange}
                     placeholder="Enter state"
                     required
@@ -363,7 +576,7 @@ export default function Checkout() {
                   <input
                     type="text"
                     name="pincode"
-                    value={billingDetails.pincode}
+                    value={userData.shippingAddress.pincode}
                     onChange={handleInputChange}
                     placeholder="Enter 6-digit pincode"
                     maxLength="6"
@@ -375,10 +588,20 @@ export default function Checkout() {
                   <input
                     type="text"
                     name="country"
-                    value={billingDetails.country}
+                    value={userData.shippingAddress.country}
                     onChange={handleInputChange}
                     disabled
                   />
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => fetchCheckoutSummary(userData)}
+                  >
+                    Recalculate Checkout Summary
+                  </button>
                 </div>
               </div>
             </div>
@@ -470,7 +693,7 @@ export default function Checkout() {
               {cartItems.map((item) => {
                 const itemId = item.id || item._id;
                 const itemPrice = parseFloat(
-                  item.price?.toString().replace(/[^0-9.]/g, "") || 0,
+                  item.price?.toString().replace(/[^0-9.]/g, "") || 0
                 );
                 return (
                   <div key={itemId} className="order-item">
@@ -503,7 +726,7 @@ export default function Checkout() {
             <div className="price-breakdown">
               <div className="price-row">
                 <span>Subtotal ({cartItems.length} items)</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span>₹{summaryData?.subTotal.toFixed(2) || 0}</span>
               </div>
 
               {appliedCoupon && (
@@ -515,13 +738,13 @@ export default function Checkout() {
 
               <div className="price-row">
                 <span>GST (18%)</span>
-                <span>₹{finalGstAmount.toFixed(2)}</span>
+                <span>₹{summaryData?.totalGST.toFixed(2) || 0}</span>
               </div>
 
-              <div className="price-row">
+              {/* <div className="price-row">
                 <span>Packaging Charges</span>
                 <span>₹{packagingCharge.toFixed(2)}</span>
-              </div>
+              </div> */}
 
               <div className="price-row">
                 <span>
@@ -531,7 +754,7 @@ export default function Checkout() {
                 <span className={deliveryCharge === 0 ? "free" : ""}>
                   {deliveryCharge === 0
                     ? "FREE"
-                    : `₹${deliveryCharge.toFixed(2)}`}
+                    : `₹${summaryData?.totalDeliveryCharge.toFixed(2) || 0}`}
                 </span>
               </div>
 

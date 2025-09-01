@@ -1,7 +1,13 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { FaEdit, FaTrashAlt, FaChevronRight, FaEye, FaPlus } from "react-icons/fa";
-import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaChevronRight,
+  FaEye,
+  FaPlus,
+} from "react-icons/fa";
+import { toast } from "react-toastify";
 
 import "./Categories.css"; // Assuming you'll create this CSS file
 import axiosInstance from "../../utils/axios";
@@ -55,7 +61,8 @@ const Categories = () => {
   // View modal states
   const [showViewCategoryModal, setShowViewCategoryModal] = useState(false);
   const [viewingCategory, setViewingCategory] = useState(null);
-  const [showViewSubcategoryModal, setShowViewSubcategoryModal] = useState(false);
+  const [showViewSubcategoryModal, setShowViewSubcategoryModal] =
+    useState(false);
   const [viewingSubcategory, setViewingSubcategory] = useState(null);
   const [subcategoryBrands, setSubcategoryBrands] = useState([]);
 
@@ -73,7 +80,7 @@ const Categories = () => {
       }
     } catch (err) {
       setError(err);
-      showErrorToast("Failed to load categories.", "Categories - Initial Load");
+      toast.error("Failed to load categories.");
     } finally {
       setLoading(false);
     }
@@ -86,11 +93,11 @@ const Categories = () => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!categoryName.trim()) {
-      showErrorToast("Category name cannot be empty.", "Categories - Add Category");
+      toast.error("Category name cannot be empty.");
       return;
     }
     if (!categoryImage) {
-      showErrorToast("Please select an image for the category.", "Categories - Add Category");
+      toast.error("Please select an image for the category.");
       return;
     }
     try {
@@ -103,14 +110,19 @@ const Categories = () => {
       // Debug: log the file
       console.log("Uploading category image:", categoryImage);
       // Use your custom axios instance
-      const { data } = await axiosInstance.post("/api/category", formData);
+
+      const { data } = await axiosInstance.post("/api/category", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       setCategoryName("");
       setCategoryImage(null);
       setSelectedBrands([]); // Clear selected brands after adding category
-      showSuccessToast(`Category '${categoryName}' added.`, "Categories - Add Category");
+      toast.success(`Category '${categoryName}' added.`);
       await initialLoad();
     } catch (err) {
-      showErrorToast("Failed to add category.", "Categories - Add Category");
+      toast.error("Failed to add category.");
       console.error(err);
     }
   };
@@ -118,7 +130,7 @@ const Categories = () => {
   const handleAddSubCategory = async (e) => {
     e.preventDefault();
     if (!subCategoryName.trim() || !selectedCategory) {
-      showErrorToast("Subcategory name and category selection are required.", "Categories - Add Subcategory");
+      toast.error("Subcategory name and category selection are required.");
       return;
     }
     try {
@@ -151,28 +163,18 @@ const Categories = () => {
       setGstPercentage("");
       setSelectedSubBrands([]);
       setSelectedSubBrandDetails([]);
-      showSuccessToast(`Subcategory added successfully.`, "Categories - Add Subcategory");
+      toast.success(`Subcategory added successfully.`);
       await initialLoad();
     } catch (err) {
-      showErrorToast("Failed to add subcategory.", "Categories - Add Subcategory");
+      toast.error("Failed to add subcategory.");
       console.error(err);
     }
   };
 
-  const handleDeleteCategory = async (category) => {
-    const { showDeleteConfirm } = await import('../../utils/muiAlertHandler.jsx');
-    
-    const result = await showDeleteConfirm(`category "${category.name}"`);
-    if (result.isConfirmed) {
-      try {
-        await axiosInstance.delete(`/api/category/delete-category/${category._id}`);
-        showSuccessToast(`Category "${category.name}" deleted successfully.`, "Categories - Delete");
-        await initialLoad();
-      } catch (err) {
-        showErrorToast(`Failed to delete category "${category.name}".`, "Categories - Delete");
-        console.error(err);
-      }
-    }
+  const handleDeleteCategory = (category) => {
+    setItemToDelete(category);
+    setItemTypeToDelete("category");
+    setShowConfirmDeleteModal(true);
   };
 
   const handleUpdateCategory = (category) => {
@@ -185,20 +187,10 @@ const Categories = () => {
     setShowEditCategoryModal(true);
   };
 
-  const handleDeleteSubCategory = async (subcategory) => {
-    const { showDeleteConfirm } = await import('../../utils/muiAlertHandler.jsx');
-    
-    const result = await showDeleteConfirm(`subcategory "${subcategory.name}"`);
-    if (result.isConfirmed) {
-      try {
-        await axiosInstance.delete(`/api/category/delete-category/${subcategory._id}`);
-        showSuccessToast(`Subcategory "${subcategory.name}" deleted successfully.`, "Categories - Delete");
-        await initialLoad();
-      } catch (err) {
-        showErrorToast(`Failed to delete subcategory "${subcategory.name}".`, "Categories - Delete");
-        console.error(err);
-      }
-    }
+  const handleDeleteSubCategory = (subcategory) => {
+    setItemToDelete(subcategory);
+    setItemTypeToDelete("subcategory");
+    setShowConfirmDeleteModal(true);
   };
 
   const handleUpdateSubCategory = (subcategory) => {
@@ -223,10 +215,10 @@ const Categories = () => {
       await axiosInstance.delete(
         `/api/category/delete-category/${itemToDelete._id}`
       );
-      showSuccessToast(`${itemTypeToDelete} deleted successfully.`, "Categories - Delete");
+      toast.success(`${itemTypeToDelete} deleted successfully.`);
       await initialLoad();
     } catch (err) {
-      showErrorToast(`Failed to delete ${itemTypeToDelete}.`, "Categories - Delete");
+      toast.error(`Failed to delete ${itemTypeToDelete}.`);
       console.error(err);
     } finally {
       setShowConfirmDeleteModal(false);
@@ -259,16 +251,21 @@ const Categories = () => {
         console.log("FormData:", key, value);
       }
 
-      await axiosInstance.post(
+      await axiosInstance.patch(
         `/api/category/update-category/${editingCategory._id}`,
-        formData
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
-      showSuccessToast("Category updated successfully.", "Categories - Update Category");
+      toast.success("Category updated successfully.");
       await initialLoad();
       resetEditState();
     } catch (err) {
-      showErrorToast("Failed to update category.", "Categories - Update Category");
+      toast.error("Failed to update category.");
       console.error(err);
     }
   };
@@ -317,11 +314,11 @@ const Categories = () => {
         }
       );
 
-      showSuccessToast("Subcategory updated successfully.", "Categories - Update Subcategory");
+      toast.success("Subcategory updated successfully.");
       await initialLoad();
       resetEditState();
     } catch (err) {
-      showErrorToast("Failed to update subcategory.", "Categories - Update Subcategory");
+      toast.error("Failed to update subcategory.");
       console.error(err);
     }
   };
@@ -361,7 +358,7 @@ const Categories = () => {
       const { data } = await axiosInstance.get("/api/brands");
       setBrands(data.brands || []);
     } catch (error) {
-      showErrorToast("Failed to load brands", "Categories - Fetch Brands");
+      toast.error("Failed to load brands");
       console.error(error);
     } finally {
       setLoading(false);
@@ -394,7 +391,7 @@ const Categories = () => {
   const handleAddBrand = async (e) => {
     e.preventDefault();
     if (!brandName.trim()) {
-      showErrorToast("Brand name is required", "Categories - Add Brand");
+      toast.error("Brand name is required");
       return;
     }
     try {
@@ -404,20 +401,20 @@ const Categories = () => {
       if (brandLogo) formData.append("logo", brandLogo);
 
       await axiosInstance.post("/api/brands/create", formData);
-      showSuccessToast("Brand added successfully", "Categories - Add Brand");
+      toast.success("Brand added successfully");
       setBrandName("");
       setBrandDescription("");
       setBrandLogo(null);
       fetchBrands();
     } catch (error) {
-      showErrorToast(error.response?.data?.message || "Failed to add brand", "Categories - Add Brand");
+      toast.error(error.response?.data?.message || "Failed to add brand");
       console.error(error);
     }
   };
 
   const handleAddNewBrand = async () => {
     if (!newBrandName.trim()) {
-      showErrorToast("Brand name required", "Categories - Add New Brand");
+      toast.error("Brand name required");
       return;
     }
     try {
@@ -425,11 +422,11 @@ const Categories = () => {
       formData.append("name", newBrandName.trim());
       const { data } = await axiosInstance.post("/api/brands/create", formData);
 
-      showSuccessToast("Brand added successfully", "Categories - Add New Brand");
+      toast.success("Brand added successfully");
       setBrands([...brands, data.brand]); //  add new brand to dropdown immediately
       setNewBrandName("");
     } catch (error) {
-      showErrorToast(error.response?.data?.message || "Failed to add brand", "Categories - Add New Brand");
+      toast.error(error.response?.data?.message || "Failed to add brand");
     }
   };
 
@@ -437,7 +434,7 @@ const Categories = () => {
   const handleUpdateBrand = async (e) => {
     e.preventDefault();
     if (!editBrandName.trim()) {
-      showErrorToast("Brand name is required", "Categories - Update Brand");
+      toast.error("Brand name is required");
       return;
     }
     try {
@@ -447,11 +444,11 @@ const Categories = () => {
       if (editBrandLogo) formData.append("logo", editBrandLogo);
 
       await axiosInstance.put(`/api/brands/${editingBrand._id}`, formData);
-      showSuccessToast("Brand updated successfully", "Categories - Update Brand");
+      toast.success("Brand updated successfully");
       resetEditState();
       fetchBrands();
     } catch (error) {
-      showErrorToast(error.response?.data?.message || "Failed to update brand", "Categories - Update Brand");
+      toast.error(error.response?.data?.message || "Failed to update brand");
       console.error(error);
     }
   };
@@ -461,10 +458,10 @@ const Categories = () => {
     if (!window.confirm("Are you sure you want to delete this brand?")) return;
     try {
       await axiosInstance.delete(`/api/brand/${brandId}`);
-      showSuccessToast("Brand deleted successfully", "Categories - Delete Brand");
+      toast.success("Brand deleted successfully");
       fetchBrands();
     } catch (error) {
-      showErrorToast("Failed to delete brand", "Categories - Delete Brand");
+      toast.error("Failed to delete brand");
       console.error(error);
     }
   };
@@ -479,10 +476,12 @@ const Categories = () => {
     setViewingSubcategory(subcategory);
     // Fetch brands for this subcategory
     try {
-      const response = await axiosInstance.get(`/brands/subcategory/${subcategory._id}`);
+      const response = await axiosInstance.get(
+        `/brands/subcategory/${subcategory._id}`
+      );
       setSubcategoryBrands(response.data.brands || []);
     } catch (error) {
-      console.error('Error fetching subcategory brands:', error);
+      console.error("Error fetching subcategory brands:", error);
       setSubcategoryBrands([]);
     }
     setShowViewSubcategoryModal(true);
@@ -943,9 +942,11 @@ const Categories = () => {
           <div className="modal-content view-modal">
             <div className="modal-header">
               <h2>Category: {viewingCategory.name}</h2>
-              <button className="btn btn-close" onClick={closeViewModals}>×</button>
+              <button className="btn btn-close" onClick={closeViewModals}>
+                ×
+              </button>
             </div>
-            
+
             <div className="category-details">
               <div className="category-image-section">
                 <img
@@ -958,12 +959,14 @@ const Categories = () => {
                   }}
                 />
               </div>
-              
+
               <div className="subcategories-section">
                 <div className="section-header">
-                  <h3>Subcategories ({viewingCategory.children?.length || 0})</h3>
+                  <h3>
+                    Subcategories ({viewingCategory.children?.length || 0})
+                  </h3>
                 </div>
-                
+
                 {viewingCategory.children?.length > 0 ? (
                   <div className="subcategory-grid">
                     {viewingCategory.children.map((subCat) => (
@@ -1000,24 +1003,30 @@ const Categories = () => {
                             </button>
                           </div>
                         </div>
-                        
+
                         <div className="subcategory-info">
                           {subCat.gstPercentage && (
-                            <span className="gst-badge">GST: {subCat.gstPercentage}%</span>
+                            <span className="gst-badge">
+                              GST: {subCat.gstPercentage}%
+                            </span>
                           )}
                           {subCat.defaultHsnCode && (
-                            <span className="hsn-badge">HSN: {subCat.defaultHsnCode}</span>
+                            <span className="hsn-badge">
+                              HSN: {subCat.defaultHsnCode}
+                            </span>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="no-data">No subcategories found for this category.</p>
+                  <p className="no-data">
+                    No subcategories found for this category.
+                  </p>
                 )}
               </div>
             </div>
-            
+
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={closeViewModals}>
                 Close
@@ -1033,31 +1042,37 @@ const Categories = () => {
           <div className="modal-content view-modal">
             <div className="modal-header">
               <h2>Subcategory: {viewingSubcategory.name}</h2>
-              <button className="btn btn-close" onClick={closeViewModals}>×</button>
+              <button className="btn btn-close" onClick={closeViewModals}>
+                ×
+              </button>
             </div>
-            
+
             <div className="subcategory-details">
               <div className="subcategory-info-section">
                 <div className="info-grid">
                   {viewingSubcategory.gstPercentage && (
                     <div className="info-item">
                       <label>GST Percentage:</label>
-                      <span className="gst-badge">{viewingSubcategory.gstPercentage}%</span>
+                      <span className="gst-badge">
+                        {viewingSubcategory.gstPercentage}%
+                      </span>
                     </div>
                   )}
                   {viewingSubcategory.defaultHsnCode && (
                     <div className="info-item">
                       <label>Default HSN Code:</label>
-                      <span className="hsn-badge">{viewingSubcategory.defaultHsnCode}</span>
+                      <span className="hsn-badge">
+                        {viewingSubcategory.defaultHsnCode}
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
-              
+
               <div className="brands-section">
                 <div className="section-header">
                   <h3>Associated Brands ({subcategoryBrands.length})</h3>
-                  <button 
+                  <button
                     className="btn btn-add-brand"
                     onClick={() => {
                       closeViewModals();
@@ -1067,7 +1082,7 @@ const Categories = () => {
                     <FaPlus /> Add Brand
                   </button>
                 </div>
-                
+
                 {subcategoryBrands.length > 0 ? (
                   <div className="brands-grid">
                     {subcategoryBrands.map((brand) => (
@@ -1075,7 +1090,9 @@ const Categories = () => {
                         <div className="brand-info">
                           <h4>{brand.name}</h4>
                           {brand.description && (
-                            <p className="brand-description">{brand.description}</p>
+                            <p className="brand-description">
+                              {brand.description}
+                            </p>
                           )}
                         </div>
                         <div className="brand-actions">
@@ -1090,7 +1107,7 @@ const Categories = () => {
                             className="btn btn-delete-sm"
                             onClick={() => {
                               // Handle brand deletion
-                              console.log('Delete brand:', brand._id);
+                              console.log("Delete brand:", brand._id);
                             }}
                             title="Delete Brand"
                           >
@@ -1103,7 +1120,7 @@ const Categories = () => {
                 ) : (
                   <div className="no-data">
                     <p>No brands associated with this subcategory.</p>
-                    <button 
+                    <button
                       className="btn btn-primary"
                       onClick={() => {
                         closeViewModals();
@@ -1116,7 +1133,7 @@ const Categories = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={closeViewModals}>
                 Close

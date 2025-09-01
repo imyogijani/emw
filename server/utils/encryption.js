@@ -9,7 +9,9 @@ const APP_SECRET = process.env.APP_SECRET;
 // Function to check if encryption is available
 const isEncryptionAvailable = () => {
   if (!APP_SECRET) {
-    console.warn("⚠️  APP_SECRET not defined in .env. File encryption features will be disabled.");
+    console.warn(
+      "⚠️  APP_SECRET not defined in .env. File encryption features will be disabled."
+    );
     return false;
   }
   return true;
@@ -27,7 +29,7 @@ export const encryptFile = (buffer) => {
       authTag: null,
     };
   }
-  
+
   const iv = crypto.randomBytes(16); // random IV
   const salt = crypto.randomBytes(16); // salt for key derivation
   const key = crypto.scryptSync(APP_SECRET, salt, 32); // derive key
@@ -51,12 +53,12 @@ export const decryptFile = (encryptedBuffer, ivHex, saltHex, authTagHex) => {
     console.warn("File decryption skipped - APP_SECRET not configured");
     return encryptedBuffer;
   }
-  
+
   // If no encryption metadata, return buffer as-is (backwards compatibility)
   if (!ivHex || !saltHex || !authTagHex) {
     return encryptedBuffer;
   }
-  
+
   const iv = Buffer.from(ivHex, "hex");
   const salt = Buffer.from(saltHex, "hex");
   const key = crypto.scryptSync(APP_SECRET, salt, 32);

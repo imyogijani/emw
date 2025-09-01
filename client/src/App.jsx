@@ -60,6 +60,7 @@ import Payment from "./Pages/Payment/Payment";
 import Invoice from "./Pages/Invoice/Invoice";
 import SellerOnboarding from "./Pages/Seller/SellerOnboarding";
 import Onboarding from "./Components/Onboarding/Onboarding";
+import SellerShipments from "./Pages/Seller/SellerShipments";
 
 function LayoutWrapper() {
   const [showProfile, setShowProfile] = useState(false);
@@ -108,6 +109,7 @@ function LayoutWrapper() {
     "/seller/deals",
     "/seller/profile",
     "/seller/onboarding", // Hide layout for onboarding
+    "/seller/sellershipments",
   ];
 
   const hideLayout = hideLayoutPaths.includes(location.pathname.toLowerCase());
@@ -120,8 +122,8 @@ function LayoutWrapper() {
     location.pathname.startsWith("/register");
 
   // Show cart button only on non-admin/seller/auth/onboarding pages
-  const shouldShowCartButton = !isAdminOrSellerOrAuth && !location.pathname.includes('onboarding');
-
+  const shouldShowCartButton =
+    !isAdminOrSellerOrAuth && !location.pathname.includes("onboarding");
   return (
     <>
       {!hideLayout && <Navbar onProfileClick={() => setShowProfile(true)} />}
@@ -215,6 +217,7 @@ function LayoutWrapper() {
           <Route path="customers" element={<SellerCustomers />} />
           <Route path="deals" element={<SellerDeals />} />
           <Route path="profile" element={<SellerProfile />} />
+          <Route path="sellershipments" element={<SellerShipments />} />
         </Route>
         <Route path="*" element={<NotFound />} />
         {/* Add more routes as needed */}

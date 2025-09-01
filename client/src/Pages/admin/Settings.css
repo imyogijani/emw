@@ -1,9 +1,13 @@
 /* Import Admin Button System */
-@import url('../../admin-button-system.css');
+@import url("../../admin-button-system.css");
 
 .admin-settings {
   padding: 2rem;
   background: linear-gradient(135deg, var(--bg-color) 0%, #f8f9fa 100%);
+}
+.admin-settings {
+  padding: 2rem;
+  background: var(--bg-color);
   min-height: 100vh;
 }
 
@@ -21,59 +25,8 @@
 .admin-subtitle {
   color: var(--text-color-light);
   font-size: 1.1rem;
-}
-
-/* Demo Seller Table Styles */
-.settings-card .ant-table {
-  background: var(--component-bg);
-  border-radius: 8px;
-  margin-top: 1rem;
-}
-
-.settings-card .ant-table-thead > tr > th {
-  background: var(--component-bg-dark);
-  color: var(--text-color);
-  font-weight: 600;
-}
-
-.settings-card .ant-table-tbody > tr > td {
-  color: var(--text-color);
-}
-
-.settings-card .ant-switch {
-  background-color: var(--text-color-light);
-}
-
-.settings-card .ant-switch-checked {
-  background-color: var(--primary-color);
-}
-
-.settings-card .ant-pagination {
-  margin-top: 1rem;
-  text-align: right;
-}
-
-/* Fix AntD Switch inside table */
-.ant-switch {
-  background-color: #d9d9d9 !important; /* default off color */
-  min-width: 44px !important;
-  height: 22px !important;
-  border-radius: 20px !important;
-  display: inline-flex;
-  align-items: center;
-}
-
-.ant-switch-checked {
-  background-color: #52c41a !important; /* green when ON */
-}
-
-.ant-switch-handle {
-  top: 2px !important;
-  width: 18px !important;
-  height: 18px !important;
   margin: 0;
 }
-
 
 .settings-container {
   max-width: 800px;
@@ -88,7 +41,11 @@
 }
 
 .settings-card-header {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
   color: white;
   padding: 1.5rem;
   display: flex;
@@ -143,46 +100,38 @@
 .toggle-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  border: 2px solid var(--admin-border);
-  background: var(--admin-white);
-  border-radius: var(--admin-radius-md);
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 25px;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  transition: var(--admin-transition);
+  transition: all 0.3s ease;
   font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--admin-text-secondary);
-  min-height: 44px;
-  box-shadow: var(--admin-shadow-sm);
+  font-weight: 500;
+  color: var(--text-color-light);
 }
 
 .toggle-btn:hover {
-  border-color: var(--admin-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--admin-shadow-hover);
-  color: var(--admin-primary);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
 }
 
 .toggle-btn.active {
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
-  border-color: var(--admin-primary);
-  color: var(--admin-white);
-  box-shadow: var(--admin-shadow-md);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
 }
 
 .toggle-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-  box-shadow: var(--admin-shadow-sm);
 }
 
 .toggle-btn:disabled:hover {
-  border-color: var(--admin-border);
+  border-color: var(--border-color);
   transform: none;
-  box-shadow: var(--admin-shadow-sm);
-  color: var(--admin-text-secondary);
 }
 
 .toggle-icon {
@@ -203,119 +152,34 @@
 .save-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
-  color: var(--admin-white);
+  gap: 0.5rem;
+  background: var(--primary-color);
+  color: white;
   border: none;
-  border-radius: var(--admin-radius-md);
-  padding: 0.875rem 1.75rem;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--admin-transition);
-  min-height: 48px;
-  box-shadow: var(--admin-shadow-sm);
+  transition: all 0.3s ease;
 }
 
 .save-btn:hover {
-  background: linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%);
+  background: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: var(--admin-shadow-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  box-shadow: var(--admin-shadow-sm);
 }
 
 .save-btn:disabled:hover {
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
+  background: var(--primary-color);
   transform: none;
-  box-shadow: var(--admin-shadow-sm);
-}
-
-/* Onboarding Settings Styles */
-.onboarding-steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.step-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.25rem;
-  border: 2px solid var(--admin-border);
-  background: var(--admin-white);
-  border-radius: var(--admin-radius-md);
-  cursor: pointer;
-  transition: var(--admin-transition);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--admin-text-secondary);
-  min-height: 48px;
-  box-shadow: var(--admin-shadow-sm);
-  text-align: left;
-}
-
-.step-toggle-btn:hover:not(:disabled) {
-  border-color: var(--admin-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--admin-shadow-hover);
-  color: var(--admin-primary);
-}
-
-.step-toggle-btn.active {
-  background: linear-gradient(135deg, var(--admin-success) 0%, #22c55e 100%);
-  border-color: var(--admin-success);
-  color: var(--admin-white);
-  box-shadow: var(--admin-shadow-md);
-}
-
-.step-toggle-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: var(--admin-shadow-sm);
-}
-
-.step-toggle-btn:disabled:hover {
-  border-color: var(--admin-border);
-  transform: none;
-  box-shadow: var(--admin-shadow-sm);
-  color: var(--admin-text-secondary);
-}
-
-.step-icon {
-  font-size: 1.1rem;
-  transition: color 0.3s ease;
-}
-
-.step-icon.active {
-  color: var(--admin-white);
-}
-
-.onboarding-info-note {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #f59e0b;
-  border-radius: var(--admin-radius-md);
-  padding: 1rem;
-  margin-top: 1.5rem;
-}
-
-.onboarding-info-note p {
-  margin: 0;
-  color: #92400e;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.onboarding-info-note strong {
-  color: #78350f;
+  box-shadow: none;
 }
 
 .loading-container {
@@ -348,29 +212,29 @@
   .admin-settings {
     padding: 1rem;
   }
-  
+
   .admin-header h1 {
     font-size: 2rem;
   }
-  
+
   .settings-card-header {
     padding: 1rem;
   }
-  
+
   .settings-card-body {
     padding: 1rem;
   }
-  
+
   .setting-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .setting-control {
     align-self: flex-end;
   }
-  
+
   .settings-actions {
     justify-content: center;
   }
