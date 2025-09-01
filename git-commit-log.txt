@@ -1,14 +1,153 @@
 # Git Commit Log - E-Mall World Project
-# Generated on: 2025-08-30T05:22:45.119Z
+# Generated on: 2025-09-01T04:17:21.513Z
 # Current Branch: main
 # Repository Path: Y:\E-Mall World\emw
 ================================================================================
 
 ## Current Repository Status:
-  Untracked: git-log.js
-  Untracked: package.json
+  Modified: it-commit-log.txt
 
 ## Commit History:
+
+### Commit: 923176e
+**Author:** Yogesh Jani <janiyogesh61@gmail.com>
+**Date:** 2025-09-01 09:44:45
+**Message:** Merge branch 'main' of https://github.com/imyogijani/emw
+
+────────────────────────────────────────────────────────────
+
+### Commit: c75eccc
+**Author:** Yogesh Jani <janiyogesh61@gmail.com>
+**Date:** 2025-09-01 09:44:43
+**Message:** feat(config): make database and firebase initialization more resilient
+**Files Changed:**
+  - Modified: server/config/db.js
+  - Modified: server/config/firebaseAdmin.js
+  - Modified: server/package-lock.json
+  - Modified: server/utils/encryption.js
+
+────────────────────────────────────────────────────────────
+
+### Commit: 3d47514
+**Author:** YogeshTundiya <yogeshtundiya945@gmail.com>
+**Date:** 2025-08-31 15:34:21
+**Message:** feat(home): redesign FilterSortBar and FeaturedProducts for modern UI; enhance product card styles
+**Files Changed:**
+  - Modified: client/src/Pages/Home/Home.css
+  - Modified: client/src/Pages/Home/index.jsx
+  - Modified: client/src/Pages/Home/products-slider.css
+
+────────────────────────────────────────────────────────────
+
+### Commit: d6d3748
+**Author:** YogeshTundiya <yogeshtundiya945@gmail.com>
+**Date:** 2025-08-30 18:10:44
+**Message:** Refactor userController: Remove getUserAddress method to streamline user data retrieval
+**Files Changed:**
+  - Modified: client/src/App.jsx
+  - Modified: client/src/Components/CartModal.jsx
+  - Modified: client/src/Components/Login/Login.jsx
+  - Modified: client/src/Components/Login/Register.jsx
+  - Modified: client/src/Components/Navbar.css
+  - Modified: client/src/Components/Navbar.jsx
+  - Modified: client/src/Components/Onboarding/RoleSelection.jsx
+  - Modified: client/src/Components/ProtectedRoute.jsx
+  - Modified: client/src/Components/SellerSidebar.jsx
+  - Modified: client/src/Pages/Checkout/Checkout.jsx
+  - Modified: client/src/Pages/Home/Home.css
+  - Modified: client/src/Pages/Home/PopularCategories.jsx
+  - Modified: client/src/Pages/Home/index.jsx
+  - Deleted: client/src/Pages/Seller/EnhancedSellerOnboarding.jsx
+  - Modified: client/src/Pages/Seller/OnboardingForms.css
+  - Modified: client/src/Pages/Seller/SellerOnboarding.jsx
+  - Modified: client/src/Pages/Seller/SellerOrders.jsx
+  - Modified: client/src/Pages/Seller/SellerProfile.jsx
+  - Deleted: client/src/Pages/Seller/SellerShipments.jsx
+  - Deleted: client/src/Pages/Seller/seller-shipments.css
+  - Modified: client/src/Pages/admin/Categories.jsx
+  - Modified: client/src/Pages/admin/OnboardingManagement.css
+  - Modified: client/src/Pages/admin/OnboardingManagement.jsx
+  - Modified: client/src/Pages/admin/Users.jsx
+  - Modified: client/src/utils/navigationUtils.js
+  - Modified: server/controllers/authController.js
+  - Modified: server/controllers/categoryController.js
+  - Modified: server/controllers/onBoardingController.js
+  - Deleted: server/controllers/onboardingConfigController.js
+  - Modified: server/controllers/orderController.js
+  - Modified: server/controllers/sellerController.js
+  - Modified: server/controllers/sellerDocumentController.js
+  - Modified: server/controllers/shipmentController.js
+  - Modified: server/controllers/userController.js
+  - Modified: server/cronJobs/checkExpiredSubscriptions.js
+  - Modified: server/cronJobs/sellerDocumentCleanUp.js
+  - Deleted: server/cronJobs/shipmentsDocCleanUp.js
+  - Deleted: server/models/onboardingConfigModel.js
+  - Modified: server/models/orderModel.js
+  - Modified: server/models/sellerDocument.js
+  - Modified: server/models/sellerModel.js
+  - Modified: server/package-lock.json
+  - Modified: server/routes/categoryRoutes.js
+  - Deleted: server/routes/onboardingConfigRoutes.js
+  - Modified: server/routes/sellerOnboardingRoutes.js
+  - Modified: server/routes/shipmentRoutes.js
+  - Modified: server/routes/userRoutes.js
+  - Modified: server/server.js
+  - Modified: server/utils/apiClient.js
+  - Deleted: server/utils/labelPdfGenerator.js
+  - Modified: server/utils/logger.js
+  - Modified: server/webhooks/razorpayWebhook.js
+
+────────────────────────────────────────────────────────────
+
+### Commit: 6512c76
+**Author:** Meet Chauhan <123140382+Meet1810chauhan@users.noreply.github.com>
+**Date:** 2025-08-30 17:45:08
+**Message:** - Fixed category addition and improved image upload handling on frontend - Adjusted PDF waybill generation for Delhivery integration - Modified and integrated Delivery APIs - Enhanced Seller Profile: secure document upload, view, and download - Updated Razorpay payment integration with webhook modifications - CheckOut page modified and some api integrate
+**Files Changed:**
+  - Modified: client/src/App.jsx
+  - Modified: client/src/Components/CartModal.jsx
+  - Modified: client/src/Components/Login/Login.jsx
+  - Modified: client/src/Components/Onboarding/RoleSelection.jsx
+  - Modified: client/src/Components/SellerSidebar.jsx
+  - Modified: client/src/Pages/Checkout/Checkout.jsx
+  - Modified: client/src/Pages/Seller/SellerOrders.jsx
+  - Modified: client/src/Pages/Seller/SellerProfile.jsx
+  - Added: client/src/Pages/Seller/SellerShipments.jsx
+  - Added: client/src/Pages/Seller/seller-shipments.css
+  - Modified: client/src/Pages/admin/Categories.jsx
+  - Modified: server/controllers/categoryController.js
+  - Modified: server/controllers/orderController.js
+  - Modified: server/controllers/sellerDocumentController.js
+  - Modified: server/controllers/shipmentController.js
+  - Modified: server/controllers/userController.js
+  - Added: server/cronJobs/shipmentsDocCleanUp.js
+  - Modified: server/models/orderModel.js
+  - Modified: server/models/sellerDocument.js
+  - Modified: server/routes/categoryRoutes.js
+  - Modified: server/routes/shipmentRoutes.js
+  - Modified: server/routes/userRoutes.js
+  - Added: server/storage/private_docs/pexels-pixabay-264636_1756530142925_certificateOfIncorporation.jpg.enc
+  - Deleted: server/storage/temp_uploads/Logo_nike_principal_1755949030278_pan.jpg
+  - Modified: server/utils/apiClient.js
+  - Added: server/utils/labelPdfGenerator.js
+  - Modified: server/webhooks/razorpayWebhook.js
+
+────────────────────────────────────────────────────────────
+
+### Commit: 5009422
+**Author:** Yogesh Jani <janiyogesh61@gmail.com>
+**Date:** 2025-08-30 11:11:12
+**Message:** feat: add git-based logging system and update API endpoints
+**Files Changed:**
+  - Added: GIT-LOG-README.md
+  - Modified: client/src/Pages/Home/PopularCategories.jsx
+  - Modified: client/src/Pages/Seller/EnhancedSellerOnboarding.jsx
+  - Added: git-commit-log.txt
+  - Added: git-log.js
+  - Added: package.json
+  - Modified: server/routes/sellerOnboardingRoutes.js
+
+────────────────────────────────────────────────────────────
 
 ### Commit: af92db4
 **Author:** Yogesh Jani <janiyogesh61@gmail.com>
@@ -11300,5 +11439,5 @@
 
 
 ================================================================================
-Total commits: 157
-Log generated: 2025-08-30T05:22:45.119Z
+Total commits: 163
+Log generated: 2025-09-01T04:17:21.513Z
