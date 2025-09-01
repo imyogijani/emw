@@ -5,10 +5,29 @@ const SECRET = process.env.APP_SECRET; // strong secret
 
 const APP_SECRET = process.env.APP_SECRET;
 // console.log("APP_SECRET:", APP_SECRET);
-if (!APP_SECRET) throw new Error("APP_SECRET not defined in .env");
+
+// Function to check if encryption is available
+const isEncryptionAvailable = () => {
+  if (!APP_SECRET) {
+    console.warn("⚠️  APP_SECRET not defined in .env. File encryption features will be disabled.");
+    return false;
+  }
+  return true;
+};
 
 // Encrypt buffer
 export const encryptFile = (buffer) => {
+  if (!isEncryptionAvailable()) {
+    // Return the buffer as-is if encryption is not available
+    console.warn("File encryption skipped - APP_SECRET not configured");
+    return {
+      encrypted: buffer,
+      iv: null,
+      salt: null,
+      authTag: null,
+    };
+  }
+  
   const iv = crypto.randomBytes(16); // random IV
   const salt = crypto.randomBytes(16); // salt for key derivation
   const key = crypto.scryptSync(APP_SECRET, salt, 32); // derive key
@@ -27,6 +46,17 @@ export const encryptFile = (buffer) => {
 
 // Decrypt buffer
 export const decryptFile = (encryptedBuffer, ivHex, saltHex, authTagHex) => {
+  if (!isEncryptionAvailable()) {
+    // Return the buffer as-is if encryption is not available
+    console.warn("File decryption skipped - APP_SECRET not configured");
+    return encryptedBuffer;
+  }
+  
+  // If no encryption metadata, return buffer as-is (backwards compatibility)
+  if (!ivHex || !saltHex || !authTagHex) {
+    return encryptedBuffer;
+  }
+  
   const iv = Buffer.from(ivHex, "hex");
   const salt = Buffer.from(saltHex, "hex");
   const key = crypto.scryptSync(APP_SECRET, salt, 32);

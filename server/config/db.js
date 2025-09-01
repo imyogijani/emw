@@ -6,13 +6,19 @@ import colors from "colors";
 const connectDB = async () => {
   try {
     if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI is not defined in environment variables");
+      console.warn("⚠️  MONGO_URI is not defined in environment variables".yellow);
+      console.warn("   Database features will be disabled. Server will continue without database.".yellow);
+      return;
     }
 
     const mongoURL = process.env.MONGO_URI.trim();
     console.log("Attempting to connect to MongoDB...".yellow);
 
-    await mongoose.connect(mongoURL);
+    // Set connection timeout to prevent hanging
+    await mongoose.connect(mongoURL, {
+      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      connectTimeoutMS: 5000,
+    });
 
     console.log(
       `Connected To MongoDB Database ${mongoose.connection.host}`.bgMagenta
@@ -22,8 +28,11 @@ const connectDB = async () => {
     console.log("MongoDB Connection Error Details:".red);
     console.log("Error type:", error.name);
     console.log("Error message:", error.message);
-    console.log("Stack trace:", error.stack);
-    process.exit(1);
+    console.warn("⚠️  Failed to connect to MongoDB. Server will continue without database.".yellow);
+    console.warn("   To fix this:".yellow);
+    console.warn("   1. Make sure MongoDB is running locally, or".yellow);
+    console.warn("   2. Update MONGO_URI in .env to use MongoDB Atlas".yellow);
+    // Don't exit the process, let the server continue
   }
 };
 
