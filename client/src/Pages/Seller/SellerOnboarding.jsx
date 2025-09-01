@@ -2201,6 +2201,19 @@ const SellerOnboarding = () => {
             </button>
           )}
 
+          {/* Save Document button for step 3 */}
+          {step === 3 && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={submitStep3}
+              disabled={loading}
+              style={{ marginLeft: "10px" }}
+            >
+              Save Document
+            </button>
+          )}
+
           {step < 4 ? (
             <button
               type="button"

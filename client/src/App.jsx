@@ -10,7 +10,7 @@ import "./App.css";
 import Home from "./Pages/Home/index";
 
 import Navbar from "./Components/Navbar";
-import Menu from "./Pages/Home/Menu";
+import Products from "./Pages/Home/Products";
 import Offers from "./Pages/Home/Offers";
 import Shops from "./Pages/Home/Shops";
 import Footer from "./Components/Footer/index";
@@ -32,7 +32,7 @@ import NotFound from "./Pages/NotFound";
 import AdminLayout from "./Components/AdminLayout";
 import SellerLayout from "./Components/SellerLayout";
 import Dashboard from "./Pages/admin/Dashboard";
-import Products from "./Pages/admin/Products";
+import AdminProducts from "./Pages/admin/Products";
 import Orders from "./Pages/admin/Orders";
 import Users from "./Pages/admin/Users";
 import Subscriptions from "./Pages/admin/Subscriptions";
@@ -130,7 +130,7 @@ function LayoutWrapper() {
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="menu" element={<Menu />} />
+        <Route path="products" element={<Products />} />
         <Route path="offer" element={<Offers />} />
         <Route path="subscription/review" element={<SubscriptionReview />} />
         <Route path="shops" element={<Shops />} />
@@ -188,7 +188,7 @@ function LayoutWrapper() {
         >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
+          <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<Orders />} />
           <Route path="users" element={<Users />} />
           <Route path="onboarding" element={<OnboardingManagement />} />

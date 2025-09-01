@@ -16,7 +16,7 @@ import mallimage from "../images/Mall1.png";
 
 const navLinks = [
   { name: "Home", path: "/" },
-  { name: "Browse Products", path: "/menu" },
+  { name: "Browse Products", path: "/products" },
   { name: "Today's Deals", path: "/Offer" },
   { name: "All Stores", path: "/shops" },
 ];
