@@ -22,11 +22,11 @@ import {
   FaInfoCircle,
 } from "react-icons/fa";
 import SellerNotification from "../../Components/SellerNotification";
-import { 
-  getSystemSettings, 
-  isOnboardingEnabled, 
+import {
+  getSystemSettings,
+  isOnboardingEnabled,
   getRequiredOnboardingSteps,
-  STEP_MAPPING 
+  STEP_MAPPING,
 } from "../../utils/systemSettings";
 import { showInfoToast } from "../../utils/errorHandler";
 
@@ -43,7 +43,8 @@ const SellerDashboard = () => {
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [systemSettings, setSystemSettings] = useState(null);
   const [skippedSteps, setSkippedSteps] = useState([]);
-  const [showSkippedStepsReminder, setShowSkippedStepsReminder] = useState(false);
+  const [showSkippedStepsReminder, setShowSkippedStepsReminder] =
+    useState(false);
 
   // Check onboarding status and system settings on component mount
   useEffect(() => {
@@ -53,7 +54,7 @@ const SellerDashboard = () => {
         if (!userStr) return;
 
         const user = JSON.parse(userStr);
-        
+
         // Fetch system settings
         const settings = await getSystemSettings();
         setSystemSettings(settings);
@@ -75,16 +76,18 @@ const SellerDashboard = () => {
 
         // Check for skipped steps if onboarding is complete
         if (user.isOnboardingComplete) {
-          const skippedStepsData = localStorage.getItem('skippedOnboardingSteps');
+          const skippedStepsData = localStorage.getItem(
+            "skippedOnboardingSteps"
+          );
           if (skippedStepsData) {
             const skipped = JSON.parse(skippedStepsData);
             const requiredSteps = getRequiredOnboardingSteps(settings);
-            
+
             // Filter skipped steps to only show required ones
-            const skippedRequiredSteps = skipped.filter(stepKey => 
+            const skippedRequiredSteps = skipped.filter((stepKey) =>
               requiredSteps.includes(stepKey)
             );
-            
+
             if (skippedRequiredSteps.length > 0) {
               setSkippedSteps(skippedRequiredSteps);
               setShowSkippedStepsReminder(true);
@@ -92,7 +95,7 @@ const SellerDashboard = () => {
           }
         }
       } catch (error) {
-        console.error('Error checking onboarding status:', error);
+        console.error("Error checking onboarding status:", error);
       }
     };
 
@@ -164,15 +167,17 @@ const SellerDashboard = () => {
 
   const handleDismissSkippedStepsReminder = () => {
     setShowSkippedStepsReminder(false);
-    showInfoToast("Reminder dismissed. You can complete these steps anytime from Settings.");
+    showInfoToast(
+      "Reminder dismissed. You can complete these steps anytime from Settings."
+    );
   };
 
   const getStepDisplayName = (stepKey) => {
     const stepNames = {
-      'basicDetails': 'Basic Details',
-      'shopTiming': 'Shop Timing',
-      'legalDocuments': 'Legal Documents',
-      'subscription': 'Subscription Plan'
+      basicDetails: "Basic Details",
+      shopTiming: "Shop Timing",
+      legalDocuments: "Legal Documents",
+      subscription: "Subscription Plan",
     };
     return stepNames[stepKey] || stepKey;
   };
@@ -180,7 +185,7 @@ const SellerDashboard = () => {
   return (
     <div className="seller-dashboard">
       <SellerNotification />
-      
+
       {/* Onboarding Alert */}
       {showOnboardingAlert && (
         <div className="onboarding-alert">
@@ -188,9 +193,12 @@ const SellerDashboard = () => {
             <FaExclamationTriangle className="alert-icon" />
             <div className="alert-text">
               <h3>Complete Your Onboarding</h3>
-              <p>Please complete your seller onboarding process to access all dashboard features.</p>
+              <p>
+                Please complete your seller onboarding process to access all
+                dashboard features.
+              </p>
             </div>
-            <button 
+            <button
               className="btn btn-medium btn-primary complete-onboarding-btn"
               onClick={handleCompleteOnboarding}
             >
@@ -208,19 +216,21 @@ const SellerDashboard = () => {
             <div className="alert-text">
               <h3>Complete Skipped Steps</h3>
               <p>
-                You skipped some important onboarding steps: {' '}
-                <strong>{skippedSteps.map(getStepDisplayName).join(', ')}</strong>.
-                Complete them to unlock full functionality.
+                You skipped some important onboarding steps:{" "}
+                <strong>
+                  {skippedSteps.map(getStepDisplayName).join(", ")}
+                </strong>
+                . Complete them to unlock full functionality.
               </p>
             </div>
             <div className="alert-actions">
-              <button 
+              <button
                 className="btn btn-medium btn-primary complete-onboarding-btn"
                 onClick={handleCompleteSkippedSteps}
               >
                 <span className="text">Complete Steps</span>
               </button>
-              <button 
+              <button
                 className="btn btn-medium btn-outline dismiss-btn"
                 onClick={handleDismissSkippedStepsReminder}
               >
@@ -230,12 +240,14 @@ const SellerDashboard = () => {
           </div>
         </div>
       )}
-      
+
       <div className="admin-header">
         <h1>Seller Dashboard</h1>
         <p className="admin-subtitle">
           Monitor your store's performance and orders
-          {isReadOnly && <span className="read-only-badge"> (Read-Only Mode)</span>}
+          {isReadOnly && (
+            <span className="read-only-badge"> (Read-Only Mode)</span>
+          )}
         </p>
       </div>
 
@@ -247,11 +259,13 @@ const SellerDashboard = () => {
             </div>
             <div className="card-info">
               <h3 className="card-title">Today's Sales</h3>
-              <p className="card-value">
-                ₹{dashboardStats.todaySales}
-              </p>
+              <p className="card-value">₹{dashboardStats.todaySales}</p>
               <p className="card-description">
-                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.salesGrowth}%</span> from yesterday
+                <FaArrowUp />{" "}
+                <span className="card-badge success">
+                  +{dashboardStats.salesGrowth}%
+                </span>{" "}
+                from yesterday
               </p>
             </div>
           </div>
@@ -264,11 +278,13 @@ const SellerDashboard = () => {
             </div>
             <div className="card-info">
               <h3 className="card-title">Total Products</h3>
-              <p className="card-value">
-                {dashboardStats.totalProducts}
-              </p>
+              <p className="card-value">{dashboardStats.totalProducts}</p>
               <p className="card-description">
-                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.newProductsThisWeek}</span> new this week
+                <FaArrowUp />{" "}
+                <span className="card-badge success">
+                  +{dashboardStats.newProductsThisWeek}
+                </span>{" "}
+                new this week
               </p>
             </div>
           </div>
@@ -281,11 +297,13 @@ const SellerDashboard = () => {
             </div>
             <div className="card-info">
               <h3 className="card-title">Pending Orders</h3>
-              <p className="card-value">
-                {dashboardStats.totalPendingOrders}
-              </p>
+              <p className="card-value">{dashboardStats.totalPendingOrders}</p>
               <p className="card-description">
-                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.pendingOrdersDiffYesterday}</span> from yesterday
+                <FaArrowUp />{" "}
+                <span className="card-badge success">
+                  +{dashboardStats.pendingOrdersDiffYesterday}
+                </span>{" "}
+                from yesterday
               </p>
             </div>
           </div>
@@ -293,16 +311,16 @@ const SellerDashboard = () => {
 
         <div className="card-base card-medium seller-card">
           <div className="card-content">
-            <div className="card-icon">
-              ⭐
-            </div>
+            <div className="card-icon">⭐</div>
             <div className="card-info">
               <h3 className="card-title">Customer Rating</h3>
-              <p className="card-value">
-                {dashboardStats.averageRating}
-              </p>
+              <p className="card-value">{dashboardStats.averageRating}</p>
               <p className="card-description">
-                <FaArrowUp /> <span className="card-badge success">+{dashboardStats.reviewsThisMonth}</span> this month
+                <FaArrowUp />{" "}
+                <span className="card-badge success">
+                  +{dashboardStats.reviewsThisMonth}
+                </span>{" "}
+                this month
               </p>
             </div>
           </div>

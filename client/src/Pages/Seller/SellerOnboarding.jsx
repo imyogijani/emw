@@ -5,7 +5,7 @@ import {
   showErrorToast,
   showSuccessToast,
   showInfoToast,
-} from "../../utils/alertHandler";
+} from "../../utils/errorHandler";
 import { useNavigate } from "react-router-dom";
 import "./OnboardingForms.css?v=1.0.0";
 import "./GSTForm.css?v=1.0.0";
@@ -28,6 +28,8 @@ const SellerOnboarding = () => {
   const [systemSettings, setSystemSettings] = useState(null);
   const [requiredSteps, setRequiredSteps] = useState([]);
   const [onboardingDisabled, setOnboardingDisabled] = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState([]);
+  const [isDocsSubmitted, setIsDocsSubmitted] = useState(false);
 
   // Helper function to check if a step is required
   const isStepRequired = (stepNumber) => {
@@ -987,6 +989,8 @@ const SellerOnboarding = () => {
       const response = await axios.post("/api/seller-documents/upload", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      setUploadedDocs(response.data.uploadedDocs || []); // backend se docs aayenge
+      setIsDocsSubmitted(true);
 
       if (formData.hasGST === true) {
         // Call GST API only if GST is provided
@@ -1833,129 +1837,153 @@ const SellerOnboarding = () => {
               Additional verification documents (optional)
             </p>
           )}
-
-          {documents.map((doc, index) => (
-            <div key={index} className="document-upload-item">
-              <div className="form-group">
-                <label className="form-label">Document Type *</label>
-                <select
-                  className="form-input"
-                  value={doc.docType}
-                  onChange={(e) =>
-                    handleDocChange(index, "docType", e.target.value)
-                  }
-                  required={formData.hasGST === false && index < 2}
-                >
-                  <option value="">Select Document Type</option>
-                  {requiredDocTypes.map((option) => (
-                    <option key={option} value={option}>
-                      {option.charAt(0).toUpperCase() +
-                        option.slice(1).replace(/([A-Z])/g, " $1")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Categories */}
-              <select
-                className="form-input"
-                multiple
-                value={doc.categories}
-                onChange={(e) =>
-                  handleDocChange(
-                    index,
-                    "categories",
-                    Array.from(e.target.selectedOptions, (o) => o.value)
-                  )
-                }
-                disabled={!doc.docType}
-              >
-                {doc.docType ? (
-                  getAvailableCategories(doc.docType).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Select document type first</option>
-                )}
-              </select>
-
-              {doc.docType && (
-                <>
+          {isDocsSubmitted ? (
+            <div className="uploaded-docs">
+              <h4>Uploaded Documents ✅</h4>
+              <ul>
+                {uploadedDocs.map((doc) => {
+                  // Extract only file name from filePath
+                  const fileName = doc.filePath
+                    .split("\\")
+                    .pop()
+                    .split("/")
+                    .pop();
+                  return (
+                    <li key={doc._id}>
+                      <strong>{doc.docType}</strong> - {doc.docNumber}
+                      <br />
+                      <span>{fileName}</span> {/* ✅ Only show file name */}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : (
+            <>
+              {documents.map((doc, index) => (
+                <div key={index} className="document-upload-item">
                   <div className="form-group">
-                    <label className="form-label">Document Number *</label>
-                    <input
-                      type="text"
+                    <label className="form-label">Document Type *</label>
+                    <select
                       className="form-input"
-                      value={doc.number}
+                      value={doc.docType}
                       onChange={(e) =>
-                        handleDocChange(index, "number", e.target.value)
+                        handleDocChange(index, "docType", e.target.value)
                       }
-                      placeholder={`Enter ${doc.docType
-                        .replace(/([A-Z])/g, " $1")
-                        .toLowerCase()} number`}
                       required={formData.hasGST === false && index < 2}
-                    />
+                    >
+                      <option value="">Select Document Type</option>
+                      {requiredDocTypes.map((option) => (
+                        <option key={option} value={option}>
+                          {option.charAt(0).toUpperCase() +
+                            option.slice(1).replace(/([A-Z])/g, " $1")}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Upload Document *</label>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={(e) =>
-                        handleFileChange(index, e.target.files[0])
-                      }
-                      required={formData.hasGST === false && index < 2}
-                    />
-                    {doc.preview && (
-                      <div className="document-preview">
-                        {doc.file?.type.startsWith("image/") ? (
-                          <img src={doc.preview} alt="Document preview" />
-                        ) : (
-                          <div className="pdf-preview">PDF Document</div>
+                  {/* Categories */}
+                  <select
+                    className="form-input"
+                    multiple
+                    value={doc.categories}
+                    onChange={(e) =>
+                      handleDocChange(
+                        index,
+                        "categories",
+                        Array.from(e.target.selectedOptions, (o) => o.value)
+                      )
+                    }
+                    disabled={!doc.docType}
+                  >
+                    {doc.docType ? (
+                      getAvailableCategories(doc.docType).map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Select document type first</option>
+                    )}
+                  </select>
+
+                  {doc.docType && (
+                    <>
+                      <div className="form-group">
+                        <label className="form-label">Document Number *</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={doc.number}
+                          onChange={(e) =>
+                            handleDocChange(index, "number", e.target.value)
+                          }
+                          placeholder={`Enter ${doc.docType
+                            .replace(/([A-Z])/g, " $1")
+                            .toLowerCase()} number`}
+                          required={formData.hasGST === false && index < 2}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Upload Document *</label>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) =>
+                            handleFileChange(index, e.target.files[0])
+                          }
+                          required={formData.hasGST === false && index < 2}
+                        />
+                        {doc.preview && (
+                          <div className="document-preview">
+                            {doc.file?.type.startsWith("image/") ? (
+                              <img src={doc.preview} alt="Document preview" />
+                            ) : (
+                              <div className="pdf-preview">PDF Document</div>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                </>
-              )}
+                    </>
+                  )}
 
-              {index > 0 && (
+                  {index > 0 && (
+                    <button
+                      type="button"
+                      className="remove-document"
+                      onClick={() => {
+                        const newDocs = [...documents];
+                        newDocs.splice(index, 1);
+                        setDocuments(newDocs);
+                      }}
+                    >
+                      Remove Document
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {documents.length < 3 && (
                 <button
                   type="button"
-                  className="remove-document"
-                  onClick={() => {
-                    const newDocs = [...documents];
-                    newDocs.splice(index, 1);
-                    setDocuments(newDocs);
-                  }}
+                  className="add-document"
+                  onClick={() =>
+                    setDocuments([
+                      ...documents,
+                      {
+                        docType: "",
+                        file: null,
+                        preview: null,
+                        number: "",
+                      },
+                    ])
+                  }
                 >
-                  Remove Document
+                  Add Another Document
                 </button>
               )}
-            </div>
-          ))}
-
-          {documents.length < 3 && (
-            <button
-              type="button"
-              className="add-document"
-              onClick={() =>
-                setDocuments([
-                  ...documents,
-                  {
-                    docType: "",
-                    file: null,
-                    preview: null,
-                    number: "",
-                  },
-                ])
-              }
-            >
-              Add Another Document
-            </button>
+            </>
           )}
         </div>
       </div>
@@ -2202,7 +2230,7 @@ const SellerOnboarding = () => {
           )}
 
           {/* Save Document button for step 3 */}
-          {step === 3 && (
+          {step === 3 && !isDocsSubmitted && (
             <button
               type="button"
               className="btn btn-secondary"
