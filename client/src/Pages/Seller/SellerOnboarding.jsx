@@ -5,7 +5,7 @@ import {
   showErrorToast,
   showSuccessToast,
   showInfoToast,
-} from "../../utils/errorHandler";
+} from "../../utils/alertHandler";
 import { useNavigate } from "react-router-dom";
 import "./OnboardingForms.css?v=1.0.0";
 import "./GSTForm.css?v=1.0.0";

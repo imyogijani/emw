@@ -5,7 +5,7 @@ import "./Offers.css";
 import "./theme-override.css";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import {
   Star,
   ShoppingCart,
@@ -161,7 +161,7 @@ export default function Offers() {
       const userId = user?._id;
 
       if (!userId) {
-        toast.error("Please login to add items to cart");
+        showErrorToast("Please login to add items to cart", "Offers - Add to Cart");
         return;
       }
 
@@ -187,10 +187,10 @@ export default function Offers() {
         source_page: sourcePage,
         location: window.location.pathname,
       });
-      toast.success("Added to cart!");
+      showSuccessToast("Added to cart!", "Offers - Add to Cart");
     } catch (err) {
       console.error("Add to cart error:", err);
-      toast.error("Failed to add to cart.");
+      showErrorToast("Failed to add to cart.", "Offers - Add to Cart");
     }
   };
 

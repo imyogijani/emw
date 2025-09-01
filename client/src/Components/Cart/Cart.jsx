@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { showErrorToast } from "../../utils/muiAlertHandler.jsx";
 import "./Cart.css";
 
 const Cart = () => {
@@ -18,7 +18,7 @@ const Cart = () => {
       });
       setOrders(response.data.orders);
     } catch (error) {
-      toast.error("Error fetching orders");
+      showErrorToast("Error fetching orders", "Cart - Fetch Orders");
       console.log(error);
     }
   };

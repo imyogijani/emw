@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import axios from "../../utils/axios";
 import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";

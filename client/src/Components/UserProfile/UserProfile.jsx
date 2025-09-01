@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import "./UserProfile.css";
 import { useNavigate } from "react-router-dom";
 import axios from "../../utils/axios";
@@ -63,7 +63,7 @@ const UserProfile = ({ onClose }) => {
       });
     } catch (error) {
       console.error("Fetch error:", error);
-      toast.error("Error fetching user data");
+      showErrorToast("Error fetching user data", "UserProfile - Data Fetch");
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ const UserProfile = ({ onClose }) => {
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);
         setIsEditing(false);
-        toast.success("Profile updated successfully");
+        showSuccessToast("Profile updated successfully", "UserProfile - Update");
 
         setFormData((prev) => ({
           ...prev,
@@ -115,7 +115,7 @@ const UserProfile = ({ onClose }) => {
       }
     } catch (error) {
       console.error("Update error:", error);
-      toast.error(error.response?.data?.message || "Error updating profile");
+      showErrorToast(error.response?.data?.message || "Error updating profile", "UserProfile - Update");
     }
   };
 
@@ -123,12 +123,12 @@ const UserProfile = ({ onClose }) => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+        showErrorToast("Please select an image file", "UserProfile - Avatar Upload");
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
+        showErrorToast("Image size should be less than 5MB", "UserProfile - Avatar Upload");
         return;
       }
 
@@ -155,7 +155,7 @@ const UserProfile = ({ onClose }) => {
             avatar: avatarUrl,
           }));
 
-          toast.success("Profile picture updated successfully");
+          showSuccessToast("Profile picture updated successfully", "UserProfile - Avatar Upload");
 
           const updatedUser = { ...user, avatar: avatarUrl };
           setUser(updatedUser);
@@ -163,7 +163,7 @@ const UserProfile = ({ onClose }) => {
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Failed to upload image. Please try again.");
+        showErrorToast("Failed to upload image. Please try again.", "UserProfile - Avatar Upload");
       } finally {
         setIsLoading(false);
       }

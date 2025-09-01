@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './BulkOrders.css';
-import { showErrorToast, showSuccessToast, validateForm } from '../utils/errorHandler';
+import { showErrorToast, showSuccessToast, validateForm } from '../utils/muiAlertHandler.jsx';
 import { 
   Package, 
   Users, 

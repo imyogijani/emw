@@ -105,31 +105,40 @@ const Users = () => {
   }, [hasMore, loading, page, fetchUsers]);
 
   const handleDeleteUser = async (userId) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`/api/admin/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Optimistically update the UI
-      setUsers(prevUsers => {
-        const updatedUsers = prevUsers.filter(user => user._id !== userId);
-        // If we have less than 20 users after deletion and there are more pages,
-        // fetch the next page to maintain the list
-        if (updatedUsers.length < 20 && hasMore) {
-          fetchUsers(page + 1);
-        }
-        return updatedUsers;
-      });
-      setTotalUsersCount(prev => prev - 1);
-      toast.success("User deleted successfully");
-      // Close the modal immediately
+    const { showDeleteConfirm, showSuccessToast, showErrorToast } = await import('../../utils/muiAlertHandler.jsx');
+    
+    // Find user name for confirmation
+    const user = users.find(u => u._id === userId);
+    const userName = user ? `${user.firstName} ${user.lastName}` : 'this user';
+    
+    const result = await showDeleteConfirm(`user "${userName}"`);
+    if (result.isConfirmed) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(`/api/admin/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Optimistically update the UI
+        setUsers(prevUsers => {
+          const updatedUsers = prevUsers.filter(user => user._id !== userId);
+          // If we have less than 20 users after deletion and there are more pages,
+          // fetch the next page to maintain the list
+          if (updatedUsers.length < 20 && hasMore) {
+            fetchUsers(page + 1);
+          }
+          return updatedUsers;
+        });
+        setTotalUsersCount(prev => prev - 1);
+        showSuccessToast(`User "${userName}" deleted successfully`, "Users - Delete");
+        // Close the modal immediately
       setModal(null);
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      toast.error(error.response?.data?.message || "Error deleting user");
-      setModal(null);
-      // Refresh the list in case of error to ensure consistency
-      fetchUsers(page, true);
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        showErrorToast(error.response?.data?.message || "Error deleting user", "Users - Delete");
+        setModal(null);
+        // Refresh the list in case of error to ensure consistency
+        fetchUsers(page, true);
+      }
     }
   };
 

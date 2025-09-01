@@ -7,7 +7,7 @@ import {
   FaSignInAlt,
   FaShoppingCart,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { showSuccessToast } from "../utils/muiAlertHandler.jsx";
 import axios from "../utils/axios";
 import "../Components/Navbar.css";
 import UserProfile from "./UserProfile/UserProfile";
@@ -76,13 +76,15 @@ const Navbar = () => {
     };
   }, [showMobileMenu]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const { showSuccessToast } = await import('../utils/muiAlertHandler.jsx');
+    
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setUser(null);
     setShowMobileMenu(false);
-    toast.success("Logged out successfully");
+    showSuccessToast("Logged out successfully", "Navbar - Logout");
     navigate("/login");
   };
 

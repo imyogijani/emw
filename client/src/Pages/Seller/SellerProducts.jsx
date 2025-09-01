@@ -59,23 +59,7 @@ const SellerProducts = () => {
     }
   };
 
-  const handleDelete = async (productId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.delete(`/api/products/${productId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.data.success) {
-          toast.success("Product deleted successfully");
-          fetchProducts();
-        }
-      } catch (error) {
-        toast.error("Error deleting product");
-        console.error(error);
-      }
-    }
-  };
+
 
   const handleEdit = (product) => {
     setEditProduct(product);

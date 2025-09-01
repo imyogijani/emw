@@ -7,7 +7,7 @@ import {
   FaGlobe,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import JumpingLoader from "../../Components/JumpingLoader";
 import "./ManageLocations.css";
 
@@ -58,7 +58,7 @@ const ManageLocations = () => {
       if (res.data.success) setStates(res.data.data);
       console.log(res.data.data);
     } catch (err) {
-      toast.error("Failed to fetch states");
+      showErrorToast("Failed to fetch states", "Locations - Fetch States", err);
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ const ManageLocations = () => {
         setCities((prev) => ({ ...prev, [stateId]: res.data.data }));
       }
     } catch {
-      toast.error("Failed to fetch cities");
+      showErrorToast("Failed to fetch cities", "Locations - Fetch Cities");
     }
   };
 
@@ -85,7 +85,7 @@ const ManageLocations = () => {
         setPincodes((prev) => ({ ...prev, [key]: res.data.data }));
       }
     } catch {
-      toast.error("Failed to fetch pincodes");
+      showErrorToast("Failed to fetch pincodes", "Locations - Fetch Pincodes");
     }
   };
 
@@ -96,27 +96,27 @@ const ManageLocations = () => {
         setStats(res.data.data);
       }
     } catch {
-      toast.error("Failed to fetch states");
+      showErrorToast("Failed to fetch stats", "Locations - Fetch Stats");
     }
   };
 
   // ========= CRUD =========
   const handleAddState = async (e) => {
     e.preventDefault();
-    if (!newStateName.trim()) return toast.error("State name required");
+    if (!newStateName.trim()) return showErrorToast("State name required", "Locations - Add State");
     try {
       const res = await axios.post("/api/location/state", {
         name: newStateName.trim(),
         country: "68ad34991048ec5580634565", // India
       });
       if (res.data.success) {
-        toast.success("State added");
+        showSuccessToast("State added", "Locations - Add State");
         setNewStateName("");
         setShowAddStateModal(false);
         fetchStates();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to add state");
+      showErrorToast(err.response?.data?.message || "Failed to add state", "Locations - Add State");
     }
   };
 
@@ -124,31 +124,31 @@ const ManageLocations = () => {
     if (!window.confirm("Delete state and all its cities?")) return;
     try {
       await axios.delete(`/api/location/state/${id}`);
-      toast.success("State deleted");
+      showSuccessToast("State deleted", "Locations - Delete State");
       fetchStates();
     } catch {
-      toast.error("Failed to delete state");
+      showErrorToast("Failed to delete state", "Locations - Delete State");
     }
   };
 
   const handleAddCity = async (e) => {
     e.preventDefault();
     if (!selectedStateId || !newCityName.trim())
-      return toast.error("Select state & enter city");
+      return showErrorToast("Select state & enter city", "Locations - Add City");
     try {
       const res = await axios.post("/api/location/city", {
         state: selectedStateId,
         name: newCityName.trim(),
       });
       if (res.data.success) {
-        toast.success("City added");
+        showSuccessToast("City added", "Locations - Add City");
         setNewCityName("");
         setShowAddCityModal(false);
         setCities({});
         fetchCities(selectedStateId);
       }
     } catch {
-      toast.error("Failed to add city");
+      showErrorToast("Failed to add city", "Locations - Add City");
     }
   };
 
@@ -156,7 +156,7 @@ const ManageLocations = () => {
     if (!window.confirm("Delete city?")) return;
     try {
       await axios.delete(`/api/location/city/${id}`);
-      toast.success("City deleted");
+      showSuccessToast("City deleted", "Locations - Delete City");
       setCities((prev) => {
         const updated = { ...prev };
         delete updated[stateId];
@@ -164,14 +164,14 @@ const ManageLocations = () => {
       });
       fetchCities(stateId);
     } catch {
-      toast.error("Failed to delete city");
+      showErrorToast("Failed to delete city", "Locations - Delete City");
     }
   };
 
   const handleAddPincode = async (e) => {
     e.preventDefault();
     if (!selectedStateId || !selectedCityId || !newAreaName || !newPincode)
-      return toast.error("All fields required");
+      return showErrorToast("All fields required", "Locations - Add Pincode");
 
     try {
       const res = await axios.post("/api/location/pincode", {
@@ -181,7 +181,7 @@ const ManageLocations = () => {
         pincode: newPincode.trim(),
       });
       if (res.data.success) {
-        toast.success("Pincode added");
+        showSuccessToast("Pincode added", "Locations - Add Pincode");
         setNewAreaName("");
         setNewPincode("");
         setShowAddPincodeModal(false);
@@ -189,7 +189,7 @@ const ManageLocations = () => {
         fetchPincodes(selectedStateId, selectedCityId);
       }
     } catch {
-      toast.error("Failed to add pincode");
+      showErrorToast("Failed to add pincode", "Locations - Add Pincode");
     }
   };
 
@@ -200,7 +200,7 @@ const ManageLocations = () => {
     );
     try {
       await axios.delete(`/api/location/pincode/${id}`);
-      toast.success("Pincode deleted");
+      showSuccessToast("Pincode deleted", "Locations - Delete Pincode");
       setPincodes((prev) => {
         const key = `${stateId}-${cityId}`;
         const updated = { ...prev };
@@ -209,7 +209,7 @@ const ManageLocations = () => {
       });
       fetchPincodes(stateId, cityId);
     } catch {
-      toast.error("Failed to delete pincode");
+      showErrorToast("Failed to delete pincode", "Locations - Delete Pincode");
     }
   };
 

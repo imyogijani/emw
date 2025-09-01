@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getApiBaseUrl } from "./apiConfig";
-import { handleApiError, ERROR_TYPES } from "./errorHandler";
+import { handleApiError } from "./muiAlertHandler.jsx";
+import { ERROR_TYPES } from "./errorHandler";
 
 // Get the correct base URL based on environment
 const baseURL = getApiBaseUrl();

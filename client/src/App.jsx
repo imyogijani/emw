@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "./styles/toast-styles.css";
+import "./styles/sweet-alert-styles.css";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import "./App.css";
 import Home from "./Pages/Home/index";
@@ -233,25 +231,6 @@ function App() {
     <DealsProvider>
       <CartProvider>
         <BrowserRouter>
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-            limit={5}
-            toastClassName="custom-toast"
-            bodyClassName="custom-toast-body"
-            progressClassName="custom-toast-progress"
-            closeButton={true}
-            enableMultiContainer={false}
-            containerId="main-toast-container"
-          />
           <LayoutWrapper />
         </BrowserRouter>
       </CartProvider>

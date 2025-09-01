@@ -2,11 +2,29 @@ import { messagingPromise } from "../firebase/firebase";
 import { getToken, onMessage } from "firebase/messaging";
 import axios from "./axios";
 
+// Fallback notification system for development
+export const showFallbackNotification = (title, body) => {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title || "New Notification", {
+      body: body || "",
+      icon: "/favicon.png",
+    });
+  } else {
+    console.log(`📢 Notification: ${title}${body ? ' - ' + body : ''}`);
+  }
+};
+
 export const requestPushPermission = async (userId) => {
   try {
     // Check if notifications are supported
     if (!("Notification" in window)) {
       console.warn("🚫 This browser does not support notifications");
+      return;
+    }
+
+    // Check if we're in a secure context (HTTPS or localhost)
+    if (!window.isSecureContext) {
+      console.warn("🔒 Push notifications require HTTPS or localhost");
       return;
     }
 
@@ -29,6 +47,12 @@ export const requestPushPermission = async (userId) => {
     // Validate userId
     if (!userId) {
       console.error("❌ User ID is required for push notification setup");
+      return;
+    }
+
+    // Check if service worker is registered
+    if (!('serviceWorker' in navigator)) {
+      console.warn("🚫 Service Worker not supported");
       return;
     }
 
@@ -76,6 +100,15 @@ export const requestPushPermission = async (userId) => {
       }
     });
   } catch (err) {
-    console.error("❌ Error requesting push permission:", err);
+    if (err.name === 'AbortError' && err.message.includes('push service not available')) {
+      console.warn("⚠️ Push notifications not available in this environment (likely development mode)");
+      console.info("💡 Push notifications will work in production with HTTPS");
+      console.info("🔄 Using fallback notification system for development");
+      
+      // Set up fallback notification system
+      window.showDevNotification = showFallbackNotification;
+    } else {
+      console.error("❌ Error requesting push permission:", err);
+    }
   }
 };

@@ -10,7 +10,7 @@ import {
   FaSquare,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
-import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/errorHandler";
+import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/muiAlertHandler.jsx";
 import { Table, Switch } from "antd";
 import "./Settings.css";
 

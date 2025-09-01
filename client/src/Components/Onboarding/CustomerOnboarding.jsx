@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import {
   showErrorToast,
   showSuccessToast,
+  showInfoToast,
   validateForm,
-} from "../../utils/errorHandler";
+} from "../../utils/muiAlertHandler.jsx";
 import "./CustomerOnboarding.css";
 import axios from "../../utils/axios";
-import { toast } from "react-toastify";
 
 const CustomerOnboarding = () => {
   const navigate = useNavigate();
@@ -67,33 +67,7 @@ const CustomerOnboarding = () => {
     }));
   };
 
-  const validateOnboardingForm = () => {
-    const validationRules = {
-      preferences: {
-        required: true,
-        requiredMessage: "Please select at least one preference",
-        custom: (value) =>
-          value.length > 0 || "Please select at least one preference",
-      },
-      "location.city": {
-        required: true,
-        requiredMessage: "City is required",
-      },
-      "location.state": {
-        required: true,
-        requiredMessage: "State is required",
-      },
-    };
 
-    const flatFormData = {
-      preferences: formData.preferences,
-      "location.city": formData.location.city,
-      "location.state": formData.location.state,
-    };
-
-    const { isValid } = validateForm(flatFormData, validationRules);
-    return isValid;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,7 +78,7 @@ const CustomerOnboarding = () => {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      toast.error("Authentication required. Please log in again.");
+      showErrorToast("Authentication required. Please log in again.", "Customer Onboarding - Authentication");
       navigate("/login");
       return;
     }
@@ -124,23 +98,23 @@ const CustomerOnboarding = () => {
         userData.isOnboardingComplete = true;
         localStorage.setItem("user", JSON.stringify(userData));
 
-        toast.success("Welcome! Your account is now set up.");
+        showSuccessToast("Welcome! Your account is now set up.", "Customer Onboarding - Success");
         navigate("/");
       } else {
-        toast.error(data.message || "Failed to complete onboarding");
+        showErrorToast(data.message || "Failed to complete onboarding", "Customer Onboarding - Error");
       }
     } catch (error) {
       console.error("Onboarding error:", error);
 
       if (error.response?.status === 401) {
-        toast.error("Session expired. Please log in again.");
+        showErrorToast("Session expired. Please log in again.", "Customer Onboarding - Session Expired");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         navigate("/login");
       } else if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+        showErrorToast(error.response.data.message, "Customer Onboarding - Server Error");
       } else {
-        toast.error("Something went wrong. Please try again.");
+        showErrorToast("Something went wrong. Please try again.", "Customer Onboarding - Unknown Error");
       }
     } finally {
       setLoading(false);
@@ -150,7 +124,7 @@ const CustomerOnboarding = () => {
   const handleSkip = () => {
     // Complete onboarding with minimal data
     // handleSubmit({ preventDefault: () => {} });
-    toast.info("You can complete your profile later!");
+    showInfoToast("You can complete your profile later!", "Customer Onboarding - Skip");
     navigate("/");
   };
 

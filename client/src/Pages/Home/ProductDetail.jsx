@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import {
   Star,
   ShoppingCart,
@@ -451,9 +451,9 @@ export default function ProductDetail() {
       });
 
       setProductReviews(updatedReviews);
-      toast.success(res.message);
+      showSuccessToast(res.message, "Product Detail - Update Helpful Status");
     } catch (error) {
-      toast.error(error.message || "Could not update helpful status");
+      showErrorToast(error.message || "Could not update helpful status", "Product Detail - Update Helpful Status");
     }
   };
 
@@ -552,7 +552,7 @@ export default function ProductDetail() {
       const userId = user?._id;
 
       if (!userId) {
-        toast.error("User not logged in");
+        showErrorToast("User not logged in", "Product Detail - Add to Cart");
         return;
       }
 
@@ -586,7 +586,7 @@ export default function ProductDetail() {
         location: window.location.pathname,
       });
 
-      toast.success("Added to cart!");
+      showSuccessToast("Added to cart!", "Product Detail - Add to Cart");
 
       // if (response.data.success) {
       //   toast.success("Item added to cart");
@@ -595,7 +595,7 @@ export default function ProductDetail() {
       // }
     } catch (err) {
       console.error("Error adding to cart:", JSON.stringify(err));
-      toast.error("Something went wrong");
+      showErrorToast("Something went wrong", "Product Detail - Add to Cart");
     }
   };
 
@@ -1169,7 +1169,7 @@ export default function ProductDetail() {
                         },
                         null
                       );
-                      toast.success(`${product.name} added to cart! 🛒`);
+                      showSuccessToast(`${product.name} added to cart! 🛒`, "Product Detail - Add to Cart");
                     }}
                     title="Add to Cart"
                   >

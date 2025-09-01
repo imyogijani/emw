@@ -1,0 +1,315 @@
+/* Sweet Alert Custom Styles */
+
+/* Base Sweet Alert styling */
+.swal2-popup {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: none;
+  padding: 2rem;
+  max-width: 500px;
+}
+
+.swal2-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.swal2-content {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+}
+
+/* Button styling */
+.swal2-confirm,
+.swal2-cancel {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 0.5rem;
+}
+
+.swal2-confirm:hover,
+.swal2-cancel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.swal2-confirm:active,
+.swal2-cancel:active {
+  transform: translateY(0);
+}
+
+/* Timer progress bar */
+.swal2-timer-progress-bar {
+  background: rgba(0, 0, 0, 0.2);
+  height: 3px;
+}
+
+/* Icon styling */
+.swal2-icon {
+  margin: 1rem auto 1.5rem;
+  border: none;
+}
+
+.swal2-icon.swal2-success {
+  border-color: #28a745;
+}
+
+.swal2-icon.swal2-error {
+  border-color: #dc3545;
+}
+
+.swal2-icon.swal2-warning {
+  border-color: #ffc107;
+}
+
+.swal2-icon.swal2-info {
+  border-color: #17a2b8;
+}
+
+/* Custom alert type classes */
+.error-alert {
+  border-left: 4px solid #dc3545;
+}
+
+.error-alert .swal2-icon.swal2-error {
+  color: #dc3545;
+}
+
+.error-alert-title {
+  color: #dc3545 !important;
+}
+
+.error-alert-content {
+  color: #721c24;
+}
+
+.warning-alert {
+  border-left: 4px solid #ffc107;
+}
+
+.warning-alert .swal2-icon.swal2-warning {
+  color: #ffc107;
+}
+
+.warning-alert-title {
+  color: #856404 !important;
+}
+
+.warning-alert-content {
+  color: #856404;
+}
+
+.success-alert {
+  border-left: 4px solid #28a745;
+}
+
+.success-alert .swal2-icon.swal2-success {
+  color: #28a745;
+}
+
+.success-alert-title {
+  color: #28a745 !important;
+}
+
+.success-alert-content {
+  color: #155724;
+}
+
+.info-alert {
+  border-left: 4px solid #17a2b8;
+}
+
+.info-alert .swal2-icon.swal2-info {
+  color: #17a2b8;
+}
+
+.info-alert-title {
+  color: #17a2b8 !important;
+}
+
+.info-alert-content {
+  color: #0c5460;
+}
+
+/* Animation improvements */
+.swal2-show {
+  animation: swal2-show 0.3s ease-out;
+}
+
+.swal2-hide {
+  animation: swal2-hide 0.15s ease-in;
+}
+
+@keyframes swal2-show {
+  0% {
+    transform: scale(0.7) translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes swal2-hide {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9) translateY(-10px);
+    opacity: 0;
+  }
+}
+
+/* Backdrop styling */
+.swal2-backdrop-show {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+/* Close button */
+.swal2-close {
+  color: #a0aec0;
+  font-size: 1.5rem;
+  transition: color 0.2s ease;
+}
+
+.swal2-close:hover {
+  color: #718096;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .swal2-popup {
+    margin: 1rem;
+    padding: 1.5rem;
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .swal2-title {
+    font-size: 1.25rem;
+  }
+  
+  .swal2-content {
+    font-size: 0.9rem;
+  }
+  
+  .swal2-confirm,
+  .swal2-cancel {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .swal2-popup {
+    background: #2d3748;
+    color: #e2e8f0;
+  }
+  
+  .swal2-title {
+    color: #f7fafc;
+  }
+  
+  .swal2-content {
+    color: #cbd5e0;
+  }
+  
+  .error-alert-content {
+    color: #feb2b2;
+  }
+  
+  .warning-alert-content {
+    color: #faf089;
+  }
+  
+  .success-alert-content {
+    color: #9ae6b4;
+  }
+  
+  .info-alert-content {
+    color: #90cdf4;
+  }
+}
+
+/* Loading state */
+.swal2-loading .swal2-confirm {
+  background-color: transparent !important;
+  color: transparent;
+}
+
+.swal2-loading .swal2-confirm::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: swal2-rotate 1s linear infinite;
+}
+
+@keyframes swal2-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Input field styling for forms */
+.swal2-input {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.swal2-input:focus {
+  border-color: #4299e1;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+/* Validation error styling */
+.swal2-validation-message {
+  background: #fed7d7;
+  color: #c53030;
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Custom scrollbar for long content */
+.swal2-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.swal2-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.swal2-content::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.swal2-content::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrashAlt, FaChevronRight, FaEye, FaPlus } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 
 import "./Categories.css"; // Assuming you'll create this CSS file
 import axiosInstance from "../../utils/axios";
@@ -73,7 +73,7 @@ const Categories = () => {
       }
     } catch (err) {
       setError(err);
-      toast.error("Failed to load categories.");
+      showErrorToast("Failed to load categories.", "Categories - Initial Load");
     } finally {
       setLoading(false);
     }
@@ -86,11 +86,11 @@ const Categories = () => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!categoryName.trim()) {
-      toast.error("Category name cannot be empty.");
+      showErrorToast("Category name cannot be empty.", "Categories - Add Category");
       return;
     }
     if (!categoryImage) {
-      toast.error("Please select an image for the category.");
+      showErrorToast("Please select an image for the category.", "Categories - Add Category");
       return;
     }
     try {
@@ -107,10 +107,10 @@ const Categories = () => {
       setCategoryName("");
       setCategoryImage(null);
       setSelectedBrands([]); // Clear selected brands after adding category
-      toast.success(`Category '${categoryName}' added.`);
+      showSuccessToast(`Category '${categoryName}' added.`, "Categories - Add Category");
       await initialLoad();
     } catch (err) {
-      toast.error("Failed to add category.");
+      showErrorToast("Failed to add category.", "Categories - Add Category");
       console.error(err);
     }
   };
@@ -118,7 +118,7 @@ const Categories = () => {
   const handleAddSubCategory = async (e) => {
     e.preventDefault();
     if (!subCategoryName.trim() || !selectedCategory) {
-      toast.error("Subcategory name and category selection are required.");
+      showErrorToast("Subcategory name and category selection are required.", "Categories - Add Subcategory");
       return;
     }
     try {
@@ -151,18 +151,28 @@ const Categories = () => {
       setGstPercentage("");
       setSelectedSubBrands([]);
       setSelectedSubBrandDetails([]);
-      toast.success(`Subcategory added successfully.`);
+      showSuccessToast(`Subcategory added successfully.`, "Categories - Add Subcategory");
       await initialLoad();
     } catch (err) {
-      toast.error("Failed to add subcategory.");
+      showErrorToast("Failed to add subcategory.", "Categories - Add Subcategory");
       console.error(err);
     }
   };
 
-  const handleDeleteCategory = (category) => {
-    setItemToDelete(category);
-    setItemTypeToDelete("category");
-    setShowConfirmDeleteModal(true);
+  const handleDeleteCategory = async (category) => {
+    const { showDeleteConfirm } = await import('../../utils/muiAlertHandler.jsx');
+    
+    const result = await showDeleteConfirm(`category "${category.name}"`);
+    if (result.isConfirmed) {
+      try {
+        await axiosInstance.delete(`/api/category/delete-category/${category._id}`);
+        showSuccessToast(`Category "${category.name}" deleted successfully.`, "Categories - Delete");
+        await initialLoad();
+      } catch (err) {
+        showErrorToast(`Failed to delete category "${category.name}".`, "Categories - Delete");
+        console.error(err);
+      }
+    }
   };
 
   const handleUpdateCategory = (category) => {
@@ -175,10 +185,20 @@ const Categories = () => {
     setShowEditCategoryModal(true);
   };
 
-  const handleDeleteSubCategory = (subcategory) => {
-    setItemToDelete(subcategory);
-    setItemTypeToDelete("subcategory");
-    setShowConfirmDeleteModal(true);
+  const handleDeleteSubCategory = async (subcategory) => {
+    const { showDeleteConfirm } = await import('../../utils/muiAlertHandler.jsx');
+    
+    const result = await showDeleteConfirm(`subcategory "${subcategory.name}"`);
+    if (result.isConfirmed) {
+      try {
+        await axiosInstance.delete(`/api/category/delete-category/${subcategory._id}`);
+        showSuccessToast(`Subcategory "${subcategory.name}" deleted successfully.`, "Categories - Delete");
+        await initialLoad();
+      } catch (err) {
+        showErrorToast(`Failed to delete subcategory "${subcategory.name}".`, "Categories - Delete");
+        console.error(err);
+      }
+    }
   };
 
   const handleUpdateSubCategory = (subcategory) => {
@@ -203,10 +223,10 @@ const Categories = () => {
       await axiosInstance.delete(
         `/api/category/delete-category/${itemToDelete._id}`
       );
-      toast.success(`${itemTypeToDelete} deleted successfully.`);
+      showSuccessToast(`${itemTypeToDelete} deleted successfully.`, "Categories - Delete");
       await initialLoad();
     } catch (err) {
-      toast.error(`Failed to delete ${itemTypeToDelete}.`);
+      showErrorToast(`Failed to delete ${itemTypeToDelete}.`, "Categories - Delete");
       console.error(err);
     } finally {
       setShowConfirmDeleteModal(false);
@@ -244,11 +264,11 @@ const Categories = () => {
         formData
       );
 
-      toast.success("Category updated successfully.");
+      showSuccessToast("Category updated successfully.", "Categories - Update Category");
       await initialLoad();
       resetEditState();
     } catch (err) {
-      toast.error("Failed to update category.");
+      showErrorToast("Failed to update category.", "Categories - Update Category");
       console.error(err);
     }
   };
@@ -297,11 +317,11 @@ const Categories = () => {
         }
       );
 
-      toast.success("Subcategory updated successfully.");
+      showSuccessToast("Subcategory updated successfully.", "Categories - Update Subcategory");
       await initialLoad();
       resetEditState();
     } catch (err) {
-      toast.error("Failed to update subcategory.");
+      showErrorToast("Failed to update subcategory.", "Categories - Update Subcategory");
       console.error(err);
     }
   };
@@ -341,7 +361,7 @@ const Categories = () => {
       const { data } = await axiosInstance.get("/api/brands");
       setBrands(data.brands || []);
     } catch (error) {
-      toast.error("Failed to load brands");
+      showErrorToast("Failed to load brands", "Categories - Fetch Brands");
       console.error(error);
     } finally {
       setLoading(false);
@@ -374,7 +394,7 @@ const Categories = () => {
   const handleAddBrand = async (e) => {
     e.preventDefault();
     if (!brandName.trim()) {
-      toast.error("Brand name is required");
+      showErrorToast("Brand name is required", "Categories - Add Brand");
       return;
     }
     try {
@@ -384,20 +404,20 @@ const Categories = () => {
       if (brandLogo) formData.append("logo", brandLogo);
 
       await axiosInstance.post("/api/brands/create", formData);
-      toast.success("Brand added successfully");
+      showSuccessToast("Brand added successfully", "Categories - Add Brand");
       setBrandName("");
       setBrandDescription("");
       setBrandLogo(null);
       fetchBrands();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add brand");
+      showErrorToast(error.response?.data?.message || "Failed to add brand", "Categories - Add Brand");
       console.error(error);
     }
   };
 
   const handleAddNewBrand = async () => {
     if (!newBrandName.trim()) {
-      toast.error("Brand name required");
+      showErrorToast("Brand name required", "Categories - Add New Brand");
       return;
     }
     try {
@@ -405,11 +425,11 @@ const Categories = () => {
       formData.append("name", newBrandName.trim());
       const { data } = await axiosInstance.post("/api/brands/create", formData);
 
-      toast.success("Brand added successfully");
+      showSuccessToast("Brand added successfully", "Categories - Add New Brand");
       setBrands([...brands, data.brand]); //  add new brand to dropdown immediately
       setNewBrandName("");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add brand");
+      showErrorToast(error.response?.data?.message || "Failed to add brand", "Categories - Add New Brand");
     }
   };
 
@@ -417,7 +437,7 @@ const Categories = () => {
   const handleUpdateBrand = async (e) => {
     e.preventDefault();
     if (!editBrandName.trim()) {
-      toast.error("Brand name is required");
+      showErrorToast("Brand name is required", "Categories - Update Brand");
       return;
     }
     try {
@@ -427,11 +447,11 @@ const Categories = () => {
       if (editBrandLogo) formData.append("logo", editBrandLogo);
 
       await axiosInstance.put(`/api/brands/${editingBrand._id}`, formData);
-      toast.success("Brand updated successfully");
+      showSuccessToast("Brand updated successfully", "Categories - Update Brand");
       resetEditState();
       fetchBrands();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update brand");
+      showErrorToast(error.response?.data?.message || "Failed to update brand", "Categories - Update Brand");
       console.error(error);
     }
   };
@@ -441,10 +461,10 @@ const Categories = () => {
     if (!window.confirm("Are you sure you want to delete this brand?")) return;
     try {
       await axiosInstance.delete(`/api/brand/${brandId}`);
-      toast.success("Brand deleted successfully");
+      showSuccessToast("Brand deleted successfully", "Categories - Delete Brand");
       fetchBrands();
     } catch (error) {
-      toast.error("Failed to delete brand");
+      showErrorToast("Failed to delete brand", "Categories - Delete Brand");
       console.error(error);
     }
   };

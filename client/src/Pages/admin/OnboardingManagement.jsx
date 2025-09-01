@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { showErrorToast, showSuccessToast } from '../../utils/muiAlertHandler.jsx';
 import JumpingLoader from '../../Components/JumpingLoader';
 import './OnboardingManagement.css';
 
@@ -71,14 +71,14 @@ const OnboardingManagement = () => {
             }
           });
         } else {
-          toast.error('Failed to fetch onboarding data');
+          showErrorToast('Failed to fetch onboarding data', 'Onboarding Management - Fetch Data');
         }
       } else {
-        toast.error('Failed to fetch onboarding data');
+        showErrorToast('Failed to fetch onboarding data', 'Onboarding Management - Fetch Data');
       }
     } catch (error) {
       console.error('Error fetching onboarding data:', error);
-      toast.error('Error fetching onboarding data');
+      showErrorToast('Error fetching onboarding data', 'Onboarding Management - Fetch Data');
     } finally {
       setLoading(false);
     }
@@ -99,17 +99,17 @@ const OnboardingManagement = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          toast.success(`Seller status updated to ${newStatus}`);
+          showSuccessToast(`Seller status updated to ${newStatus}`, 'Onboarding Management - Update Seller Status');
           fetchOnboardingData(); // Refresh data
         } else {
-          toast.error(data.message || 'Failed to update seller status');
+          showErrorToast(data.message || 'Failed to update seller status', 'Onboarding Management - Update Seller Status');
         }
       } else {
-        toast.error('Failed to update seller status');
+        showErrorToast('Failed to update seller status', 'Onboarding Management - Update Seller Status');
       }
     } catch (error) {
       console.error('Error updating seller status:', error);
-      toast.error('Error updating seller status');
+      showErrorToast('Error updating seller status', 'Onboarding Management - Update Seller Status');
     }
   };
 
@@ -128,17 +128,17 @@ const OnboardingManagement = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          toast.success('User onboarding reset successfully');
+          showSuccessToast('User onboarding reset successfully', 'Onboarding Management - Reset User Onboarding');
           fetchOnboardingData(); // Refresh data
         } else {
-          toast.error(data.message || 'Failed to reset user onboarding');
+          showErrorToast(data.message || 'Failed to reset user onboarding', 'Onboarding Management - Reset User Onboarding');
         }
       } else {
-        toast.error('Failed to reset user onboarding');
+        showErrorToast('Failed to reset user onboarding', 'Onboarding Management - Reset User Onboarding');
       }
     } catch (error) {
       console.error('Error resetting user onboarding:', error);
-      toast.error('Error resetting user onboarding');
+      showErrorToast('Error resetting user onboarding', 'Onboarding Management - Reset User Onboarding');
     }
   };
 

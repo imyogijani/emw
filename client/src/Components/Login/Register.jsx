@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import axios from "../../utils/axios";
 import {
   FaEnvelope,

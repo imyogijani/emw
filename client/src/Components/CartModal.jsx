@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { showErrorToast, showSuccessToast } from "../utils/errorHandler";
+import { showErrorToast, showSuccessToast } from "../utils/muiAlertHandler.jsx";
 import "./CartModal.css";
 import {
   getCartByUserAPI,

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { showErrorToast, showSuccessToast } from "../../utils/errorHandler";
@@ -5,7 +6,7 @@ import axios from "../../utils/axios";
 import "../../App.css";
 import "./SellerProducts.css";
 import { Button, Input } from "../../Components/Reusable";
-import { toast } from "react-toastify";
+import { showInfoToast } from "../../utils/muiAlertHandler.jsx";
 
 const AddProduct = () => {
   const [categories, setCategories] = useState([]);
@@ -258,7 +259,7 @@ const AddProduct = () => {
     const user = userStr ? JSON.parse(userStr) : null;
 
     if (user.email === "demo@seller.com") {
-      toast.info("This is a demo account. You cannot add products.");
+      showInfoToast("This is a demo account. You cannot add products.", "AddProduct - Demo Account");
       return; //  stop here
     }
 

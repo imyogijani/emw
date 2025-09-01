@@ -10,7 +10,7 @@ import {
   processImageUrl,
   processCategoryImageUrl,
 } from "../../utils/apiConfig";
-import { toast } from "react-toastify";
+import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
 import BottomCard from "./BottomCard";
 import { useCart } from "../../context/CartContext";
 import JumpingLoader from "../../Components/JumpingLoader";
@@ -86,7 +86,7 @@ export default function Home() {
       setDeals([...deals]);
     } catch (error) {
       console.error("Deals fetch error:", error);
-      toast.error("Error fetching deals");
+      showErrorToast("Error fetching deals", "Home - Fetch Deals");
       setDeals([]);
     }
   }, []);
@@ -99,7 +99,7 @@ export default function Home() {
       setProducts(response.data.products);
     } catch (error) {
       console.error("Product fetch error:", error);
-      toast.error("Error fetching products");
+      showErrorToast("Error fetching products", "Home - Fetch Products");
     } finally {
       setLoading(false);
     }
@@ -124,7 +124,7 @@ export default function Home() {
       setSubcategories(subCategoriesMap);
     } catch (error) {
       console.error("Category fetch error:", error);
-      toast.error("Error fetching categories");
+      showErrorToast("Error fetching categories", "Home - Fetch Categories");
       setCategories([]);
       setSubcategories({});
     }
@@ -142,7 +142,7 @@ export default function Home() {
         await Promise.all([fetchCategories(), fetchProducts(), fetchDeals()]);
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        toast.error("Failed to load initial data");
+        showErrorToast("Failed to load initial data", "Home - Initial Load");
       }
     };
 
@@ -181,7 +181,7 @@ export default function Home() {
 
     try {
       if (!user?._id) {
-        toast.error("Please login to add items to cart");
+        showErrorToast("Please login to add items to cart", "Home - Add to Cart");
         return;
       }
 
@@ -207,10 +207,10 @@ export default function Home() {
         source_page: sourcePage,
         location: window.location.pathname,
       });
-      toast.success("Added to cart!");
+      showSuccessToast("Added to cart!", "Home - Add to Cart");
     } catch (err) {
       console.error("Add to cart error:", err);
-      toast.error("Failed to add to cart");
+      showErrorToast("Failed to add to cart", "Home - Add to Cart");
     }
   };
 
