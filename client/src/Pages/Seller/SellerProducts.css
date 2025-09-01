@@ -589,6 +589,41 @@
 }
 
 /* Category Filter Buttons */
+.category-filter-container {
+  margin-bottom: 28px;
+  padding: 0 8px;
+  position: relative;
+}
+
+.category-filter-slider {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 153, 0, 0.3) transparent;
+}
+
+.category-filter-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.category-filter-slider::-webkit-scrollbar-track {
+  background: rgba(227, 232, 238, 0.3);
+  border-radius: 3px;
+}
+
+.category-filter-slider::-webkit-scrollbar-thumb {
+  background: rgba(255, 153, 0, 0.4);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.category-filter-slider::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 153, 0, 0.6);
+}
+
 .category-filter {
   display: flex;
   flex-wrap: wrap;
@@ -609,6 +644,8 @@
   box-shadow: 0 2px 8px rgba(60,72,88,0.06);
   outline: none;
   margin-bottom: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .category-btn.active, .category-btn:focus {
   background: linear-gradient(90deg, #ff9900 0%, #fc8a06 100%);
@@ -622,6 +659,12 @@
   border-color: #ff9900;
 }
 @media (max-width: 600px) {
+  .category-filter-container {
+    padding: 0 2px;
+  }
+  .category-filter-slider {
+    gap: 8px;
+  }
   .category-filter {
     gap: 8px;
     padding: 0 2px;

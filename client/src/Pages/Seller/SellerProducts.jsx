@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { FaPlus, FaEdit } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import axios from "../../utils/axios";
 import { processImageUrl } from "../../utils/apiConfig";
 import JumpingLoader from "../../Components/JumpingLoader";
@@ -19,6 +19,8 @@ const SellerProducts = () => {
   const [editStatus, setEditStatus] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editStock, setEditStock] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteProduct, setDeleteProduct] = useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -109,6 +111,34 @@ const SellerProducts = () => {
     }
   };
 
+  const handleDelete = (product) => {
+    setDeleteProduct(product);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteProduct(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteProduct) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/products/${deleteProduct._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast.success("Product deleted successfully");
+      closeDeleteModal();
+      fetchProducts();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error deleting product");
+      console.error(error);
+    }
+  };
+
   const filteredProducts =
     selectedCategory === "All"
       ? products
@@ -147,29 +177,29 @@ const SellerProducts = () => {
         </Link>
       </div>
 
-      <div className="category-filter">
-        <button
-          key="All"
-          className={`category-btn ${
-            selectedCategory === "All" ? "active" : ""
-          }`}
-          style={{ marginRight: "10px" }}
-          onClick={() => setSelectedCategory("All")}
-        >
-          All
-        </button>
-        {categories.map((category) => (
+      <div className="category-filter-container">
+        <div className="category-filter-slider">
           <button
-            key={category._id}
+            key="All"
             className={`category-btn ${
-              selectedCategory === category.name ? "active" : ""
+              selectedCategory === "All" ? "active" : ""
             }`}
-            style={{ marginRight: "10px" }}
-            onClick={() => setSelectedCategory(category.name)}
+            onClick={() => setSelectedCategory("All")}
           >
-            {category.name}
+            All
           </button>
-        ))}
+          {categories.map((category) => (
+            <button
+              key={category._id}
+              className={`category-btn ${
+                selectedCategory === category.name ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory(category.name)}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="products-container">
@@ -241,6 +271,16 @@ const SellerProducts = () => {
                       <FaEdit />
                     </span>
                     <span className="text">Edit</span>
+                  </button>
+                  <button
+                    className="btn btn-small btn-danger delete-product-btn"
+                    onClick={() => handleDelete(product)}
+                    style={{ marginLeft: '8px' }}
+                  >
+                    <span className="sparkle">
+                      <FaTrash />
+                    </span>
+                    <span className="text">Delete</span>
                   </button>
                 </div>
               </div>
@@ -332,6 +372,46 @@ const SellerProducts = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Confirm Delete</h3>
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                className="close-btn"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                Are you sure you want to delete "{deleteProduct?.name}"? This
+                action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="btn btn-medium btn-danger delete-btn"
+              >
+                <span className="text">Delete</span>
+              </button>
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                className="btn btn-medium btn-secondary cancel-btn"
+              >
+                <span className="text">Cancel</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

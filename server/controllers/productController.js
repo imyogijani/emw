@@ -736,16 +736,29 @@ export const deleteAllProducts = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const { productId } = req.params;
+    
+    // Find seller using the logged-in user's ID
+    const seller = await Seller.findOne({ user: req.userId });
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found for this user",
+      });
+    }
+
+    // Find and delete product only if it belongs to this seller
     const product = await Product.findOneAndDelete({
       _id: productId,
-      seller: req.userId,
+      seller: seller._id,
     });
+    
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: "Product not found",
+        message: "Product not found or you don't have permission to delete it",
       });
     }
+    
     res.status(200).json({
       success: true,
       message: "Product deleted successfully",
