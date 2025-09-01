@@ -1,44 +1,56 @@
 # Git Commit Log - E-Mall World Project
-# Generated on: 2025-09-01T09:09:55.233Z
+# Generated on: 2025-09-01T09:35:58.538Z
 # Current Branch: main
 # Repository Path: Y:\E-Mall World\emw
 ================================================================================
 
 ## Current Repository Status:
-  Modified: lient/package-lock.json
-  Modified (unstaged): client/package.json
-  Modified (unstaged): client/src/App.jsx
-  Modified (unstaged): client/src/Components/AdminSidebar.jsx
-  Modified (unstaged): client/src/Components/Cart/Cart.jsx
-  Modified (unstaged): client/src/Components/CartModal.jsx
-  Modified (unstaged): client/src/Components/Login/Login.jsx
-  Modified (unstaged): client/src/Components/Login/Register.jsx
-  Modified (unstaged): client/src/Components/Navbar.jsx
-  Modified (unstaged): client/src/Components/Onboarding/CustomerOnboarding.jsx
+  Modified: lient/src/Components/Navbar.jsx
   Modified (unstaged): client/src/Components/SellerSidebar.jsx
-  Modified (unstaged): client/src/Components/UserProfile/UserProfile.jsx
-  Modified (unstaged): client/src/Pages/BulkOrders.jsx
-  Modified (unstaged): client/src/Pages/Home/Offers.jsx
-  Modified (unstaged): client/src/Pages/Home/ProductDetail.jsx
-  Modified (unstaged): client/src/Pages/Home/index.jsx
-  Modified (unstaged): client/src/Pages/Seller/AddProduct.jsx
-  Modified (unstaged): client/src/Pages/Seller/SellerOnboarding.jsx
   Modified (unstaged): client/src/Pages/Seller/SellerProducts.jsx
-  Modified (unstaged): client/src/Pages/admin/Categories.jsx
-  Modified (unstaged): client/src/Pages/admin/ManageLocations.jsx
-  Modified (unstaged): client/src/Pages/admin/OnboardingManagement.jsx
-  Modified (unstaged): client/src/Pages/admin/Settings.jsx
-  Modified (unstaged): client/src/Pages/admin/Users.jsx
-  Modified (unstaged): client/src/main.jsx
-  Modified (unstaged): client/src/utils/axios.js
-  Modified (unstaged): client/src/utils/pushNotification.js
   Modified (unstaged): git-commit-log.txt
-  Untracked: client/src/styles/sweet-alert-styles.css
-  Untracked: client/src/utils/alertHandler.js
-  Untracked: client/src/utils/muiAlertHandler.jsx
-  Untracked: server/public/uploads/products/sung-jinwoo.jpg
 
 ## Commit History:
+
+### Commit: 045d88f
+**Author:** Yogesh Jani <janiyogesh61@gmail.com>
+**Date:** 2025-09-01 14:40:51
+**Message:** feat(alerts): replace react-toastify with sweetalert2 and implement muiAlertHandler
+**Files Changed:**
+  - Modified: client/package-lock.json
+  - Modified: client/package.json
+  - Modified: client/src/App.jsx
+  - Modified: client/src/Components/AdminSidebar.jsx
+  - Modified: client/src/Components/Cart/Cart.jsx
+  - Modified: client/src/Components/CartModal.jsx
+  - Modified: client/src/Components/Login/Login.jsx
+  - Modified: client/src/Components/Login/Register.jsx
+  - Modified: client/src/Components/Navbar.jsx
+  - Modified: client/src/Components/Onboarding/CustomerOnboarding.jsx
+  - Modified: client/src/Components/SellerSidebar.jsx
+  - Modified: client/src/Components/UserProfile/UserProfile.jsx
+  - Modified: client/src/Pages/BulkOrders.jsx
+  - Modified: client/src/Pages/Home/Offers.jsx
+  - Modified: client/src/Pages/Home/ProductDetail.jsx
+  - Modified: client/src/Pages/Home/index.jsx
+  - Modified: client/src/Pages/Seller/AddProduct.jsx
+  - Modified: client/src/Pages/Seller/SellerOnboarding.jsx
+  - Modified: client/src/Pages/Seller/SellerProducts.jsx
+  - Modified: client/src/Pages/admin/Categories.jsx
+  - Modified: client/src/Pages/admin/ManageLocations.jsx
+  - Modified: client/src/Pages/admin/OnboardingManagement.jsx
+  - Modified: client/src/Pages/admin/Settings.jsx
+  - Modified: client/src/Pages/admin/Users.jsx
+  - Modified: client/src/main.jsx
+  - Added: client/src/styles/sweet-alert-styles.css
+  - Added: client/src/utils/alertHandler.js
+  - Modified: client/src/utils/axios.js
+  - Added: client/src/utils/muiAlertHandler.jsx
+  - Modified: client/src/utils/pushNotification.js
+  - Modified: git-commit-log.txt
+  - Added: server/public/uploads/products/sung-jinwoo.jpg
+
+────────────────────────────────────────────────────────────
 
 ### Commit: 5fa8bf4
 **Author:** Yogesh Jani <janiyogesh61@gmail.com>
@@ -11495,5 +11507,5 @@
 
 
 ================================================================================
-Total commits: 165
-Log generated: 2025-09-01T09:09:55.233Z
+Total commits: 166
+Log generated: 2025-09-01T09:35:58.538Z

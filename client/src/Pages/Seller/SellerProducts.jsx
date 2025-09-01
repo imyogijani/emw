@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaPlus, FaEdit } from "react-icons/fa";
 import axios from "../../utils/axios";
+import { processImageUrl } from "../../utils/apiConfig";
 import JumpingLoader from "../../Components/JumpingLoader";
 import "../../App.css";
 import "./SellerProducts.css";
@@ -49,6 +50,7 @@ const SellerProducts = () => {
         }
       );
       if (response.data.success) {
+        console.log("Seller products data:", response.data.products);
         setProducts(response.data.products);
       }
     } catch (error) {
@@ -177,11 +179,11 @@ const SellerProducts = () => {
               <div key={product._id} className="product-card">
                 <div className="product-card-header">
                   <img
-                    src={
-                      product.images && product.images.length > 0
-                        ? product.images[0]
-                        : "https://via.placeholder.com/300x200?text=No+Image"
-                    }
+                    src={(() => {
+                      const imageUrl = processImageUrl(product.image);
+                      console.log(`Product ${product.name} - Images:`, product.image, "Processed URL:", imageUrl);
+                      return imageUrl;
+                    })()}
                     alt={product.name}
                     className="product-card-image"
                     style={{
