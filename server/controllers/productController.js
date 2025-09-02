@@ -64,20 +64,33 @@ export const addProduct = async (req, res) => {
         .json({ success: false, message: "Invalid category" });
     }
 
-    //  Validate brand
-    if (!brand) {
-      deleteUploadedFiles(req.files);
-      return res
-        .status(400)
-        .json({ success: false, message: "Brand is required" });
-    }
+    // //  Validate brand
+    // if (!brand) {
+    //   deleteUploadedFiles(req.files);
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Brand is required" });
+    // }
 
-    const brandDoc = await Brand.findById(brand);
-    if (!brandDoc) {
+    // const brandDoc = await Brand.findById(brand);
+    // if (!brandDoc) {
+    //   deleteUploadedFiles(req.files);
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid brand selected" });
+    // }
+
+    //  Validate brand
+    if (brand) {
       deleteUploadedFiles(req.files);
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid brand selected" });
+
+      const brandDoc = await Brand.findById(brand);
+      if (!brandDoc) {
+        deleteUploadedFiles(req.files);
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid brand selected" });
+      }
     }
 
     let gstPercentage = 0;
@@ -736,7 +749,7 @@ export const deleteAllProducts = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const { productId } = req.params;
-    
+
     // Find seller using the logged-in user's ID
     const seller = await Seller.findOne({ user: req.userId });
     if (!seller) {
@@ -751,14 +764,14 @@ export const deleteProduct = async (req, res) => {
       _id: productId,
       seller: seller._id,
     });
-    
+
     if (!product) {
       return res.status(404).json({
         success: false,
         message: "Product not found or you don't have permission to delete it",
       });
     }
-    
+
     res.status(200).json({
       success: true,
       message: "Product deleted successfully",
