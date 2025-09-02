@@ -481,91 +481,94 @@ const AddProduct = () => {
             onSubmit={handleSubmit}
             className="add-product-form enhanced-form"
           >
-          <div className="form-section">
-            <h3 className="section-title">Basic Information</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="name">Product Name *</label>
-                <Input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  maxLength={100}
-                  placeholder="Enter product name"
-                  className="form-input"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="category">Category *</label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  required
-                  className="form-select"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {subcategories.length > 0 && (
-                <div className="form-group">
-                  <label htmlFor="subcategory">Subcategory</label>
-                  <select
-                    id="subcategory"
-                    name="subcategory"
-                    value={formData.subcategory}
-                    onChange={handleChange}
-                    className="form-select"
-                  >
-                    <option value="">Select a subcategory</option>
-                    {subcategories.map((subcat) => (
-                      <option key={subcat._id} value={subcat._id}>
-                        {subcat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {brands.length > 0 && (
+            <div className="form-section">
+              <h3 className="section-title">Basic Information</h3>
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="brand">Brand</label>
-                  <select
-                    id="brand"
-                    name="brand"
-                    value={formData.brand}
+                  <label htmlFor="name">Product Name *</label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
+                    required
+                    maxLength={100}
+                    placeholder="Enter product name"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="category">Category *</label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    required
                     className="form-select"
                   >
-                    <option value="">Select Brand</option>
-                    {brands.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name}
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {subcategories.length > 0 && (
+                  <div className="form-group">
+                    <label htmlFor="subcategory">Subcategory</label>
+                    <select
+                      id="subcategory"
+                      name="subcategory"
+                      value={formData.subcategory}
+                      onChange={handleChange}
+                      className="form-select"
+                    >
+                      <option value="">Select a subcategory</option>
+                      {subcategories.map((subcat) => (
+                        <option key={subcat._id} value={subcat._id}>
+                          {subcat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
-            )}
+
+              {brands.length > 0 && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="brand">Brand</label>
+                    <select
+                      id="brand"
+                      name="brand"
+                      value={formData.brand}
+                      onChange={handleChange}
+                      className="form-select"
+                    >
+                      <option value="">Select Brand</option>
+                      {brands.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div className="form-group">
                 <label htmlFor="hsnCode">HSN/SAC Code</label>
-                <div className="hsn-search-container" style={{ position: "relative" }}>
+                <div
+                  className="hsn-search-container"
+                  style={{ position: "relative" }}
+                >
                   <input
                     type="text"
                     id="hsnCode"
@@ -573,7 +576,9 @@ const AddProduct = () => {
                     value={hsnSearch}
                     onChange={handleHsnSearch}
                     onFocus={() => setShowHsnDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowHsnDropdown(false), 200)}
+                    onBlur={() =>
+                      setTimeout(() => setShowHsnDropdown(false), 200)
+                    }
                     placeholder="Search HSN/SAC code or description"
                     className="form-input hsn-search-input"
                   />
@@ -619,290 +624,358 @@ const AddProduct = () => {
               </div>
             </div>
 
-          {/* GST Percentage Field - only if gstVerified */}
-          {gstVerified && (
-            <div className="form-group">
-              <label htmlFor="gstPercentage">GST (%)</label>
-              <Input
-                type="number"
-                id="gstPercentage"
-                name="gstPercentage"
-                value={formData.gstPercentage}
-                onChange={handleChange}
-                min="0"
-                max="28"
-                step="0.01"
-                placeholder="Enter GST %"
-              />
-            </div>
-          )}
+            <div className="form-section">
+              <h3 className="section-title">Pricing & Inventory</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="price">Price (INR) *</label>
+                  <Input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter product price in INR"
+                    className="form-input"
+                  />
+                </div>
 
-          {/* Final Price Preview */}
-          {/* <div className="form-group">
+                <div className="form-group">
+                  <label htmlFor="discount">Discount (%)</label>
+                  <Input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleChange}
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Enter discount percentage (optional)"
+                    className="form-input"
+                  />
+                </div>
+                {/* GST Percentage Field - only if gstVerified */}
+                {gstVerified && (
+                  <div className="form-group">
+                    <label htmlFor="gstPercentage">GST (%)</label>
+                    <Input
+                      type="number"
+                      id="gstPercentage"
+                      name="gstPercentage"
+                      value={formData.gstPercentage}
+                      onChange={handleChange}
+                      min="0"
+                      max="28"
+                      step="0.01"
+                      placeholder="Enter GST %"
+                    />
+                  </div>
+                )}
+
+                {/* Final Price Preview */}
+                {/* <div className="form-group">
             <label>Final Price (calculated)</label>
             <Input type="text" value={formData.finalPrice} readOnly />
           </div> */}
 
-          {/* Summary Section */}
-          <div className="summary-card">
-            <h3>Price Summary</h3>
+                {/* Summary Section */}
+                <div className="summary-card">
+                  <h3>Price Summary</h3>
 
-            <div className="summary-item">
-              <span>Final Price (after discount)</span>
-              <span className="value">{formData.finalPrice}</span>
-            </div>
+                  <div className="summary-item">
+                    <span>Final Price (after discount)</span>
+                    <span className="value">{formData.finalPrice}</span>
+                  </div>
 
-            {gstVerified && (
-              <div className="summary-item">
-                <span>GST Amount</span>
-                <span className="value">{formData.gstAmount}</span>
-              </div>
-            )}
+                  {gstVerified && (
+                    <div className="summary-item">
+                      <span>GST Amount</span>
+                      <span className="value">{formData.gstAmount}</span>
+                    </div>
+                  )}
 
-            <div className="summary-item">
-              <span>Commission Rate</span>
-              <span className="value">{formData.commissionRate}%</span>
-            </div>
+                  <div className="summary-item">
+                    <span>Commission Rate</span>
+                    <span className="value">{formData.commissionRate}%</span>
+                  </div>
 
-            <div className="summary-item">
-              <span>Commission Amount</span>
-              <span className="value">{formData.commissionAmount}</span>
-            </div>
+                  <div className="summary-item">
+                    <span>Commission Amount</span>
+                    <span className="value">{formData.commissionAmount}</span>
+                  </div>
 
-            <div className="summary-item highlight">
-              <span>Seller Earning</span>
-              <span>{formData.sellerEarning}</span>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="stock">Stock Quantity *</label>
-            <Input
-              type="number"
-              id="stock"
-              name="stock"
-              value={formData.stock}
-              onChange={handleChange}
-              min="0"
-              required
-              placeholder="0"
-            />
-          </div>
-
-          {/* Technical Details Section */}
-          <div className="form-group">
-            <label>Technical Details</label>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <Input
-                type="text"
-                readOnly
-                value={
-                  technicalDetails
-                    ? // ? `${technicalDetails.title} (${technicalDetails.id})`
-                      `${technicalDetails.title}`
-                    : "No Technical Details Linked"
-                }
-              />
-              <Button type="button" onClick={() => setShowTechModal(true)}>
-                + Add Technical Details
-              </Button>
-            </div>
-          </div>
-
-          {/* Technical Details Modal */}
-          {showTechModal && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h2>Add Technical Details</h2>
-                {/* {console.log("techForm values: ", techForm)} */}
-                <div className="form-group">
-                  <label>Title *</label>
-                  <Input
-                    type="text"
-                    name="title"
-                    value={techForm.title}
-                    onChange={handleTechChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Model Number</label>
-                  <Input
-                    type="text"
-                    name="modelNumber"
-                    value={techForm.modelNumber}
-                    onChange={handleTechChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Weight (grams) *</label>
-                  <Input
-                    type="number"
-                    name="weight"
-                    value={techForm.weight}
-                    onChange={handleTechChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Dimensions *</label>
-                  <div style={{ display: "flex", gap: "5px" }}>
-                    <Input
-                      type="number"
-                      name="dimensions.length"
-                      placeholder="Length"
-                      value={techForm.dimensions.length}
-                      onChange={handleTechChange}
-                    />
-                    <Input
-                      type="number"
-                      name="dimensions.width"
-                      placeholder="Width"
-                      value={techForm.dimensions.width}
-                      onChange={handleTechChange}
-                    />
-                    <Input
-                      type="number"
-                      name="dimensions.height"
-                      placeholder="Height"
-                      value={techForm.dimensions.height}
-                      onChange={handleTechChange}
-                    />
-                    <Input
-                      type="text"
-                      name="dimensions.unit"
-                      placeholder="Unit"
-                      value={techForm.dimensions.unit}
-                      onChange={handleTechChange}
-                    />
+                  <div className="summary-item highlight">
+                    <span>Seller Earning</span>
+                    <span>{formData.sellerEarning}</span>
                   </div>
                 </div>
 
-                {/* Optional fields */}
                 <div className="form-group">
-                  <label>Processor</label>
+                  <label htmlFor="stock">Stock Quantity *</label>
                   <Input
-                    type="text"
-                    name="processor"
-                    value={techForm.processor}
-                    onChange={handleTechChange}
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                    placeholder="0"
+                    className="form-input"
                   />
-                </div>
-                <div className="form-group">
-                  <label>RAM</label>
-                  <Input
-                    type="text"
-                    name="ram"
-                    value={techForm.ram}
-                    onChange={handleTechChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Storage</label>
-                  <Input
-                    type="text"
-                    name="storage"
-                    value={techForm.storage}
-                    onChange={handleTechChange}
-                  />
-                </div>
-
-                <div className="modal-actions">
-                  <Button type="button" onClick={saveTechnicalDetails}>
-                    Save
-                  </Button>
-                  <Button type="button" onClick={() => setShowTechModal(false)}>
-                    Cancel
-                  </Button>
                 </div>
               </div>
             </div>
-          )}
 
-          <div className="form-group">
-            <label htmlFor="description">Description *</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              required
-              maxLength={500}
-              placeholder="Enter product description"
-            />
-          </div>
+            <div className="form-section">
+              <h3 className="section-title">Product Details</h3>
+              <div className="form-row">
+                {/* <div className="form-group">
+                  <label htmlFor="stock">Stock Quantity *</label>
+                  <Input
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                    placeholder="0"
+                  />
+                </div> */}
 
-          <div className="form-group">
-            <label htmlFor="image">Product Images *</label>
-            <Input
-              type="file"
-              id="image"
-              name="image"
-              onChange={handleImageChange}
-              accept="image/*"
-              multiple
-              required
-              ref={imageInputRef}
-            />
-            {imagePreview.length > 0 && (
-              <div className="image-preview-group">
-                {imagePreview.map((src, index) => (
-                  <img key={index} src={src} alt={`Preview ${index}`} />
-                ))}
+                {/* Technical Details Section */}
+                <div className="form-group">
+                  <label>Technical Details</label>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Input
+                      type="text"
+                      readOnly
+                      value={
+                        technicalDetails
+                          ? // ? `${technicalDetails.title} (${technicalDetails.id})`
+                            `${technicalDetails.title}`
+                          : "No Technical Details Linked"
+                      }
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => setShowTechModal(true)}
+                    >
+                      + Add Technical Details
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Technical Details Modal */}
+                {showTechModal && (
+                  <div className="modal-overlay">
+                    <div className="modal-content">
+                      <h2>Add Technical Details</h2>
+                      {/* {console.log("techForm values: ", techForm)} */}
+                      <div className="form-group">
+                        <label>Title *</label>
+                        <Input
+                          type="text"
+                          name="title"
+                          value={techForm.title}
+                          onChange={handleTechChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Model Number</label>
+                        <Input
+                          type="text"
+                          name="modelNumber"
+                          value={techForm.modelNumber}
+                          onChange={handleTechChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Weight (grams) *</label>
+                        <Input
+                          type="number"
+                          name="weight"
+                          value={techForm.weight}
+                          onChange={handleTechChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Dimensions *</label>
+                        <div style={{ display: "flex", gap: "5px" }}>
+                          <Input
+                            type="number"
+                            name="dimensions.length"
+                            placeholder="Length"
+                            value={techForm.dimensions.length}
+                            onChange={handleTechChange}
+                          />
+                          <Input
+                            type="number"
+                            name="dimensions.width"
+                            placeholder="Width"
+                            value={techForm.dimensions.width}
+                            onChange={handleTechChange}
+                          />
+                          <Input
+                            type="number"
+                            name="dimensions.height"
+                            placeholder="Height"
+                            value={techForm.dimensions.height}
+                            onChange={handleTechChange}
+                          />
+                          <Input
+                            type="text"
+                            name="dimensions.unit"
+                            placeholder="Unit"
+                            value={techForm.dimensions.unit}
+                            onChange={handleTechChange}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Optional fields */}
+                      <div className="form-group">
+                        <label>Processor</label>
+                        <Input
+                          type="text"
+                          name="processor"
+                          value={techForm.processor}
+                          onChange={handleTechChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>RAM</label>
+                        <Input
+                          type="text"
+                          name="ram"
+                          value={techForm.ram}
+                          onChange={handleTechChange}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Storage</label>
+                        <Input
+                          type="text"
+                          name="storage"
+                          value={techForm.storage}
+                          onChange={handleTechChange}
+                        />
+                      </div>
+
+                      <div className="modal-actions">
+                        <Button type="button" onClick={saveTechnicalDetails}>
+                          Save
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => setShowTechModal(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label htmlFor="description">Description *</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows="4"
+                    required
+                    maxLength={500}
+                    placeholder="Enter product description"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="image">Product Images *</label>
+                  <Input
+                    type="file"
+                    id="image"
+                    name="image"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    multiple
+                    required
+                    ref={imageInputRef}
+                  />
+                  {imagePreview.length > 0 && (
+                    <div className="image-preview-group">
+                      {imagePreview.map((src, index) => (
+                        <img key={index} src={src} alt={`Preview ${index}`} />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+            </div>
 
-      <div className="form-section">
-        <h3 className="section-title">Product Variants</h3>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Variants (optional)</label>
-            <Button type="button" onClick={addVariant}>
-              + Add Variant
-            </Button>
-            {formData.variants.map((variant, index) => (
-              <div key={index} className="variant-row">
-                <Input
-                  type="text"
-                  placeholder="Color"
-                  value={variant.color}
-                  onChange={(e) =>
-                    updateVariant(index, "color", e.target.value)
-                  }
-                  required
-                />
-                <Input
-                  type="text"
-                  placeholder="Size"
-                  value={variant.size}
-                  onChange={(e) => updateVariant(index, "size", e.target.value)}
-                  required
-                />
-                <Input
-                  type="number"
-                  placeholder="Price"
-                  value={variant.price}
-                  onChange={(e) =>
-                    updateVariant(index, "price", e.target.value)
-                  }
-                  required
-                />
-                <Input
-                  type="number"
-                  placeholder="Stock"
-                  value={variant.stock}
-                  onChange={(e) =>
-                    updateVariant(index, "stock", e.target.value)
-                  }
-                  required
-                />
+            <div className="form-section">
+              <h3 className="section-title">Product Variants</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Variants (optional)</label>
+                  <Button type="button" onClick={addVariant}>
+                    + Add Variant
+                  </Button>
+                  {formData.variants.map((variant, index) => (
+                    <div key={index} className="variant-row">
+                      <Input
+                        type="text"
+                        placeholder="Color"
+                        value={variant.color}
+                        onChange={(e) =>
+                          updateVariant(index, "color", e.target.value)
+                        }
+                        required
+                      />
+                      <Input
+                        type="text"
+                        placeholder="Size"
+                        value={variant.size}
+                        onChange={(e) =>
+                          updateVariant(index, "size", e.target.value)
+                        }
+                        required
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Price"
+                        value={variant.price}
+                        onChange={(e) =>
+                          updateVariant(index, "price", e.target.value)
+                        }
+                        required
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Stock"
+                        value={variant.stock}
+                        onChange={(e) =>
+                          updateVariant(index, "stock", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </div>
 
             <div className="form-actions">
               <Button type="submit" className="submit-btn" disabled={loading}>
