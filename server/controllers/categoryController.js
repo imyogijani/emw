@@ -359,16 +359,17 @@ export const updateCategoryController = async (req, res) => {
     }
 
     // Only handle HSN codes for subcategories (categories with parent)
-    if (currentCategory.parent || parent) {
-      if (suggestedHsnCodes !== undefined) {
-        updateData.suggestedHsnCodes = Array.isArray(suggestedHsnCodes)
-          ? suggestedHsnCodes
-          : [];
-      }
-      if (typeof defaultHsnCode !== "undefined") {
-        updateData.defaultHsnCode = defaultHsnCode;
-      }
-    }
+    // if (currentCategory.parent || parent) {
+    //   if (suggestedHsnCodes !== undefined) {
+    //     updateData.suggestedHsnCodes = Array.isArray(suggestedHsnCodes)
+    //       ? suggestedHsnCodes
+    //       : [];
+    //   }
+    //   if (typeof defaultHsnCode !== "undefined") {
+    //     updateData.defaultHsnCode = defaultHsnCode;
+    //   }
+    // }
+
     let oldImagePath = null;
     if (req.file) {
       if (currentCategory.image) {
