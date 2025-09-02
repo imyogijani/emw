@@ -6,6 +6,15 @@ import {
   FaChevronRight,
   FaEye,
   FaPlus,
+  FaTimes,
+  FaLayerGroup,
+  FaList,
+  FaPercent,
+  FaClock,
+  FaTag,
+  FaTags,
+  FaInfoCircle,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -477,9 +486,9 @@ const Categories = () => {
     // Fetch brands for this subcategory
     try {
       const response = await axiosInstance.get(
-        `/brands/subcategory/${subcategory._id}`
+        `/api/category/${subcategory._id}/brands`
       );
-      setSubcategoryBrands(response.data.brands || []);
+      setSubcategoryBrands(response.data.subcategory?.brands || []);
     } catch (error) {
       console.error("Error fetching subcategory brands:", error);
       setSubcategoryBrands([]);
@@ -935,53 +944,79 @@ const Categories = () => {
         </div>
       )}
 
-      {/* View Category Modal */}
+      {/* View Category Modal - Redesigned */}
       {showViewCategoryModal && viewingCategory && (
         <div className="modal-overlay">
-          <div className="modal-content view-modal">
-            <div className="modal-header">
-              <h2>Category: {viewingCategory.name}</h2>
-              <button className="btn btn-close" onClick={closeViewModals}>
-                ×
+          <div className="modal-content view-category-modal">
+            {/* Enhanced Header with Category Image */}
+            <div className="view-modal-header">
+              <div className="category-header-content">
+                <div className="category-image-container">
+                  <img
+                    src={processCategoryImageUrl(viewingCategory.image)}
+                    alt={viewingCategory.name}
+                    className="category-header-image"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/vite.svg";
+                    }}
+                  />
+                </div>
+                <div className="category-header-info">
+                  <h2 className="category-title">{viewingCategory.name}</h2>
+                  <div className="category-stats">
+                    <span className="stat-item">
+                      <FaLayerGroup className="stat-icon" />
+                      {viewingCategory.children?.length || 0} Subcategories
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button className="close-button" onClick={closeViewModals}>
+                <FaTimes />
               </button>
             </div>
 
-            <div className="category-details">
-              <div className="category-image-section">
-                <img
-                  src={processCategoryImageUrl(viewingCategory.image)}
-                  alt={viewingCategory.name}
-                  className="modal-category-image"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/vite.svg";
-                  }}
-                />
-              </div>
-
-              <div className="subcategories-section">
-                <div className="section-header">
+            {/* Modal Body */}
+            <div className="view-modal-body">
+              <div className="subcategories-container">
+                <div className="section-title">
                   <h3>
-                    Subcategories ({viewingCategory.children?.length || 0})
+                    <FaList className="section-icon" />
+                    Subcategories Management
                   </h3>
+                  <span className="subcategory-count">
+                    {viewingCategory.children?.length || 0} items
+                  </span>
                 </div>
 
                 {viewingCategory.children?.length > 0 ? (
-                  <div className="subcategory-grid">
+                  <div className="enhanced-subcategory-grid">
                     {viewingCategory.children.map((subCat) => (
-                      <div key={subCat._id} className="subcategory-card">
-                        <div className="subcategory-card-header">
-                          <h4>{subCat.name}</h4>
-                          <div className="subcategory-card-actions">
+                      <div key={subCat._id} className="enhanced-subcategory-card">
+                        <div className="subcategory-card-content">
+                          <div className="subcategory-main-info">
+                            <h4 className="subcategory-name">{subCat.name}</h4>
+                            <div className="subcategory-badges">
+                              {subCat.gstPercentage && (
+                                <span className="enhanced-gst-badge">
+                                  <FaPercent className="badge-icon" />
+                                  GST {subCat.gstPercentage}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="subcategory-actions">
                             <button
-                              className="btn btn-view-sm"
+                              className="action-btn view-btn"
                               onClick={() => handleViewSubcategory(subCat)}
                               title="View Brands"
                             >
                               <FaEye />
                             </button>
                             <button
-                              className="btn btn-edit-sm"
+                              className="action-btn edit-btn"
                               onClick={() => {
                                 closeViewModals();
                                 handleUpdateSubCategory(subCat);
@@ -991,7 +1026,7 @@ const Categories = () => {
                               <FaEdit />
                             </button>
                             <button
-                              className="btn btn-delete-sm"
+                              className="action-btn delete-btn"
                               onClick={() => {
                                 closeViewModals();
                                 handleDeleteSubCategory(subCat);
@@ -1002,125 +1037,195 @@ const Categories = () => {
                             </button>
                           </div>
                         </div>
-
-                        <div className="subcategory-info">
-                          {subCat.gstPercentage && (
-                            <span className="gst-badge">
-                              GST: {subCat.gstPercentage}%
-                            </span>
-                          )}
-                          {/* {subCat.defaultHsnCode && (
-                            <span className="hsn-badge">
-                              HSN: {subCat.defaultHsnCode}
-                            </span>
-                          )} */}
-                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="no-data">
-                    No subcategories found for this category.
-                  </p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <FaLayerGroup />
+                    </div>
+                    <h4>No Subcategories Found</h4>
+                    <p>This category doesn't have any subcategories yet.</p>
+                    <button 
+                      className="btn btn-primary add-subcategory-btn"
+                      onClick={() => {
+                        closeViewModals();
+                        // Add logic to create new subcategory
+                      }}
+                    >
+                      <FaPlus /> Add First Subcategory
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={closeViewModals}>
-                Close
-              </button>
+            {/* Enhanced Footer */}
+            <div className="view-modal-footer">
+              <div className="footer-info">
+                <span className="last-updated">
+                  <FaClock className="info-icon" />
+                  Category created
+                </span>
+              </div>
+              <div className="footer-actions">
+                <button className="btn btn-outline" onClick={closeViewModals}>
+                  Close
+                </button>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    closeViewModals();
+                    handleUpdateCategory(viewingCategory);
+                  }}
+                >
+                  <FaEdit /> Edit Category
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* View Subcategory Modal */}
+      {/* View Subcategory Modal - Redesigned */}
       {showViewSubcategoryModal && viewingSubcategory && (
         <div className="modal-overlay">
-          <div className="modal-content view-modal">
-            <div className="modal-header">
-              <h2>Subcategory: {viewingSubcategory.name}</h2>
-              <button className="btn btn-close" onClick={closeViewModals}>
-                ×
+          <div className="modal-content view-subcategory-modal">
+            {/* Enhanced Header */}
+            <div className="view-modal-header subcategory-header">
+              <div className="subcategory-header-content">
+                <div className="subcategory-icon-container">
+                  <FaLayerGroup className="subcategory-icon" />
+                </div>
+                <div className="subcategory-header-info">
+                  <h2 className="subcategory-title">{viewingSubcategory.name}</h2>
+                  <div className="subcategory-stats">
+                    <span className="stat-item">
+                      <FaTag className="stat-icon" />
+                      {subcategoryBrands.length} Brands
+                    </span>
+                    {viewingSubcategory.gstPercentage && (
+                      <span className="stat-item">
+                        <FaPercent className="stat-icon" />
+                        GST {viewingSubcategory.gstPercentage}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <button className="close-button" onClick={closeViewModals}>
+                <FaTimes />
               </button>
             </div>
 
-            <div className="subcategory-details">
-              <div className="subcategory-info-section">
-                <div className="info-grid">
+            {/* Modal Body */}
+            <div className="view-modal-body">
+              {/* Subcategory Information Section */}
+              <div className="subcategory-info-container">
+                <div className="section-title">
+                  <h3>
+                    <FaInfoCircle className="section-icon" />
+                    Subcategory Information
+                  </h3>
+                  <button
+                    className="edit-subcategory-btn"
+                    onClick={() => {
+                      closeViewModals();
+                      handleUpdateSubCategory(viewingSubcategory);
+                    }}
+                    title="Edit Subcategory"
+                  >
+                    <FaEdit /> Edit Details
+                  </button>
+                </div>
+                
+                <div className="info-cards-grid">
                   {viewingSubcategory.gstPercentage && (
-                    <div className="info-item">
-                      <label>GST Percentage:</label>
-                      <span className="gst-badge">
+                    <div className="info-card">
+                      <div className="info-card-header">
+                        <FaPercent className="info-card-icon" />
+                        <span className="info-card-title">GST Rate</span>
+                      </div>
+                      <div className="info-card-value">
                         {viewingSubcategory.gstPercentage}%
-                      </span>
+                      </div>
                     </div>
                   )}
-                  {/* {viewingSubcategory.defaultHsnCode && (
-                    <div className="info-item">
-                      <label>Default HSN Code:</label>
-                      <span className="hsn-badge">
-                        {viewingSubcategory.defaultHsnCode}
-                      </span>
+                  
+                  <div className="info-card">
+                    <div className="info-card-header">
+                      <FaTag className="info-card-icon" />
+                      <span className="info-card-title">Total Brands</span>
                     </div>
-                  )} */}
+                    <div className="info-card-value">
+                      {subcategoryBrands.length}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="brands-section">
-                <div className="section-header">
-                  <h3>Associated Brands ({subcategoryBrands.length})</h3>
+              {/* Brands Management Section */}
+              <div className="brands-container">
+                <div className="section-title">
+                  <h3>
+                    <FaTags className="section-icon" />
+                    Brand Management
+                  </h3>
                   <button
-                    className="btn btn-add-brand"
+                    className="add-brand-btn"
                     onClick={() => {
                       closeViewModals();
                       handleUpdateSubCategory(viewingSubcategory);
                     }}
                   >
-                    <FaPlus /> Add Brand
+                    <FaPlus /> Add New Brand
                   </button>
                 </div>
 
                 {subcategoryBrands.length > 0 ? (
-                  <div className="brands-grid">
+                  <div className="enhanced-brands-grid">
                     {subcategoryBrands.map((brand) => (
-                      <div key={brand._id} className="brand-card">
-                        <div className="brand-info">
-                          <h4>{brand.name}</h4>
-                          {brand.description && (
-                            <p className="brand-description">
-                              {brand.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="brand-actions">
-                          <button
-                            className="btn btn-edit-sm"
-                            onClick={() => startEdit(brand)}
-                            title="Edit Brand"
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            className="btn btn-delete-sm"
-                            onClick={() => {
-                              // Handle brand deletion
-                              console.log("Delete brand:", brand._id);
-                            }}
-                            title="Delete Brand"
-                          >
-                            <FaTrashAlt />
-                          </button>
+                      <div key={brand._id} className="enhanced-brand-card">
+                        <div className="brand-card-content">
+                          <div className="brand-main-info">
+                            <h4 className="brand-name">{brand.name}</h4>
+                            {brand.description && (
+                              <p className="brand-description">
+                                {brand.description}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="brand-actions-enhanced">
+                            <button
+                              className="enhanced-action-btn edit-brand-btn"
+                              onClick={() => startEdit(brand)}
+                              title="Edit Brand"
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              className="enhanced-action-btn delete-brand-btn"
+                              onClick={() => handleDeleteBrand(brand._id)}
+                              title="Delete Brand"
+                            >
+                              <FaTrashAlt />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="no-data">
-                    <p>No brands associated with this subcategory.</p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <FaTags />
+                    </div>
+                    <h4>No Brands Found</h4>
+                    <p>This subcategory doesn't have any brands associated yet.</p>
                     <button
-                      className="btn btn-primary"
+                      className="btn btn-primary add-first-brand-btn"
                       onClick={() => {
                         closeViewModals();
                         handleUpdateSubCategory(viewingSubcategory);
@@ -1133,10 +1238,44 @@ const Categories = () => {
               </div>
             </div>
 
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={closeViewModals}>
-                Close
-              </button>
+            {/* Enhanced Footer */}
+            <div className="view-modal-footer">
+              <div className="footer-info">
+                <span className="last-updated">
+                  <FaClock className="info-icon" />
+                  Subcategory details
+                </span>
+              </div>
+              <div className="footer-actions">
+                <button className="btn btn-outline" onClick={closeViewModals}>
+                  Close
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    closeViewModals();
+                    // Navigate back to parent category view
+                    const parentCategory = categories.find(cat => 
+                      cat.children?.some(child => child._id === viewingSubcategory._id)
+                    );
+                    if (parentCategory) {
+                      setViewingCategory(parentCategory);
+                      setShowViewCategoryModal(true);
+                    }
+                  }}
+                >
+                  <FaArrowLeft /> Back to Category
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    closeViewModals();
+                    handleUpdateSubCategory(viewingSubcategory);
+                  }}
+                >
+                  <FaEdit /> Edit Subcategory
+                </button>
+              </div>
             </div>
           </div>
         </div>
