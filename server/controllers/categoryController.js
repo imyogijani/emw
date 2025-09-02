@@ -77,18 +77,18 @@ export const createCategoryController = async (req, res) => {
     };
 
     // Only add HSN codes for subcategories (when parent exists)
-    if (parent) {
-      // Parse suggestedHsnCodes if it's a string
-      if (typeof suggestedHsnCodes === "string") {
-        try {
-          suggestedHsnCodes = JSON.parse(suggestedHsnCodes);
-        } catch (err) {
-          suggestedHsnCodes = [];
-        }
-      }
-      categoryData.suggestedHsnCodes = suggestedHsnCodes || [];
-      categoryData.defaultHsnCode = defaultHsnCode || "";
-    }
+    // if (parent) {
+    //   // Parse suggestedHsnCodes if it's a string
+    //   if (typeof suggestedHsnCodes === "string") {
+    //     try {
+    //       suggestedHsnCodes = JSON.parse(suggestedHsnCodes);
+    //     } catch (err) {
+    //       suggestedHsnCodes = [];
+    //     }
+    //   }
+    //   categoryData.suggestedHsnCodes = suggestedHsnCodes || [];
+    //   categoryData.defaultHsnCode = defaultHsnCode || "";
+    // }
 
     const category = await new Category(categoryData);
 
@@ -100,11 +100,11 @@ export const createCategoryController = async (req, res) => {
       }
     }
 
-    if (parent && (!defaultHsnCode || defaultHsnCode.trim() === "")) {
-      return res
-        .status(400)
-        .json({ message: "HSN code is required for subcategories" });
-    }
+    // if (parent && (!defaultHsnCode || defaultHsnCode.trim() === "")) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "HSN code is required for subcategories" });
+    // }
 
     //  GST check for subcategory
     if (parent && gstPercentage === 0) {
