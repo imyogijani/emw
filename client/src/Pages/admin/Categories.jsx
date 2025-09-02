@@ -486,9 +486,10 @@ const Categories = () => {
     // Fetch brands for this subcategory
     try {
       const response = await axiosInstance.get(
-        `/api/category/${subcategory._id}/brands`
+        `api/category/${subcategory._id}/brands`
       );
-      setSubcategoryBrands(response.data.subcategory?.brands || []);
+      console.log("Brands ---- Subcategories ----- >", response.data);
+      setSubcategoryBrands(response.data.brands || []);
     } catch (error) {
       console.error("Error fetching subcategory brands:", error);
       setSubcategoryBrands([]);

@@ -89,6 +89,10 @@ const sellerSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    gstVerified: {
+      type: Boolean,
+      default: false, //  becomes true only after GST number is verified
+    },
     kycVerified: {
       type: Boolean,
       default: false,

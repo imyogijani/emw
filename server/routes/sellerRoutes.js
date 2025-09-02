@@ -11,6 +11,7 @@ import {
   updateSellerGST,
   getOnboardingStep,
   updateBankDetails,
+  getSellerInfo,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -45,6 +46,7 @@ router.get("/customer-orders", checkDashboardAccess, getCustomerOrdersBySeller);
 
 router.get("/sales-overview", checkDashboardAccess, getSellerSalesOverview);
 router.get("/orders-analytics", checkDashboardAccess, getSellerOrdersAnalytics);
+
 // router.post(
 //   "/create-cashfree-beneficiary",
 //   authenticateToken,
@@ -59,7 +61,7 @@ router.get(
   authenticateToken,
   authorizeSeller,
   fetchUser,
-  getOnboardingStep 
+  getOnboardingStep
 );
 
 // bank details :
@@ -70,5 +72,8 @@ router.post(
   fetchUser,
   updateBankDetails
 );
+
+// seller Info
+router.get("/me", authenticateToken, authorizeSeller, fetchUser, getSellerInfo);
 
 export default router;

@@ -735,18 +735,20 @@
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
-  box-shadow: 0 2px 8px rgba(60,72,88,0.06);
+  transition: background 0.18s, color 0.18s, border-color 0.18s,
+    box-shadow 0.18s;
+  box-shadow: 0 2px 8px rgba(60, 72, 88, 0.06);
   outline: none;
   margin-bottom: 4px;
   white-space: nowrap;
   flex-shrink: 0;
 }
-.category-btn.active, .category-btn:focus {
+.category-btn.active,
+.category-btn:focus {
   background: linear-gradient(90deg, #ff9900 0%, #fc8a06 100%);
   color: #fff;
   border-color: #ff9900;
-  box-shadow: 0 4px 16px rgba(255,153,0,0.13);
+  box-shadow: 0 4px 16px rgba(255, 153, 0, 0.13);
 }
 .category-btn:hover {
   background: linear-gradient(90deg, #fc8a06 0%, #ff9900 100%);
@@ -854,7 +856,7 @@
 .modern-edit-modal {
   border-radius: 18px;
   background: linear-gradient(120deg, #f6f8fa 60%, #e3e8ee 100%);
-  box-shadow: 0 8px 32px rgba(60,72,88,0.18);
+  box-shadow: 0 8px 32px rgba(60, 72, 88, 0.18);
   padding: 2.5rem 2.5rem 2rem 2.5rem;
   max-width: 420px;
   width: 95vw;
@@ -892,13 +894,13 @@
   font-weight: 600;
   transition: border-color 0.2s, box-shadow 0.2s;
   margin-bottom: 0.2em;
-  box-shadow: 0 2px 8px rgba(60,72,88,0.06);
+  box-shadow: 0 2px 8px rgba(60, 72, 88, 0.06);
 }
 .modern-edit-form select:focus,
 .modern-edit-form input.modern-input:focus {
   border-color: #ff9900;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255,153,0,0.13);
+  box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.13);
 }
 .modern-edit-form .modal-actions {
   display: flex;
@@ -914,15 +916,16 @@
   font-size: 1rem;
   font-weight: 700;
   padding: 10px 22px;
-  box-shadow: 0 2px 8px rgba(6,125,98,0.08);
+  box-shadow: 0 2px 8px rgba(6, 125, 98, 0.08);
   transition: background 0.18s, box-shadow 0.18s, transform 0.08s;
   letter-spacing: 0.3px;
   text-transform: none;
   outline: none;
 }
-.modern-edit-form .save-btn:hover, .modern-edit-form .save-btn:focus {
+.modern-edit-form .save-btn:hover,
+.modern-edit-form .save-btn:focus {
   background: linear-gradient(90deg, #38a169 0%, #067d62 100%);
-  box-shadow: 0 4px 12px rgba(6,125,98,0.13);
+  box-shadow: 0 4px 12px rgba(6, 125, 98, 0.13);
   transform: translateY(-1px) scale(1.01);
 }
 .modern-edit-form .cancel-btn {
@@ -938,13 +941,63 @@
   text-transform: none;
   outline: none;
 }
-.modern-edit-form .cancel-btn:hover, .modern-edit-form .cancel-btn:focus {
+.modern-edit-form .cancel-btn:hover,
+.modern-edit-form .cancel-btn:focus {
   background: linear-gradient(90deg, #cfd8dc 0%, #e3e8ee 100%);
   color: #222;
   transform: translateY(-1px) scale(1.01);
 }
+
+.summary-card {
+  background: #fff; /* white card */
+  border-radius: 12px; /* rounded corners */
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* soft shadow */
+  max-width: 400px; /* fixed width card */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  transition: transform 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px); /* hover effect */
+}
+
+.summary-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.summary-card .summary-item {
+  display: flex;
+  justify-content: space-between; /* label left, value right */
+  margin: 8px 0;
+  font-size: 15px;
+  color: #444;
+}
+
+.summary-card .summary-item strong {
+  color: #111;
+}
+
+.summary-card .summary-item.value {
+  font-weight: 600;
+  color: #007bff; /* blue highlight */
+}
+
+.summary-card .highlight {
+  font-size: 16px;
+  font-weight: bold;
+  color: #28a745; /* green for earnings */
+}
+
 @media (max-width: 600px) {
-  .modern-edit-form .save-btn, .modern-edit-form .cancel-btn {
+  .modern-edit-form .save-btn,
+  .modern-edit-form .cancel-btn {
     padding: 8px 14px;
     font-size: 0.95rem;
   }

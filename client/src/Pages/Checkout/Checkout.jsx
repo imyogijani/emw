@@ -24,6 +24,10 @@ import {
 } from "lucide-react";
 import "./Checkout.css";
 import axios from "../../utils/axios";
+import {
+  processImageUrl,
+  processCategoryImageUrl,
+} from "../../utils/apiConfig";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -36,6 +40,7 @@ export default function Checkout() {
   const [showCouponInput, setShowCouponInput] = useState(false);
   const [summaryData, setSummaryData] = useState(null); // backend summary
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [offers, setOffers] = useState([]);
   const [userData, setUserData] = useState({
     code: "",
     firstName: "",
@@ -131,7 +136,10 @@ export default function Checkout() {
           }));
 
           // Abhi fresh address ke sath summary call karo
-          fetchCheckoutSummary();
+          fetchCheckoutSummary({
+            ...userData,
+            shippingAddress: res.data.address,
+          });
         } else {
           showErrorToast("No address found!", "Checkout");
         }
@@ -143,6 +151,25 @@ export default function Checkout() {
     };
 
     fetchAddress();
+  }, []);
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const resp = await axios.get("/api/offers/all?status=active");
+
+        if (resp.data.success) {
+          console.log("✅ Active Offers Response:", resp.data);
+          setOffers(resp.data.offers); // store in state
+        } else {
+          console.warn("⚠️ Failed to fetch offers:", resp.data.message);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching offers:", err.message);
+      }
+    };
+
+    fetchOffers();
   }, []);
 
   // Billing Details State
@@ -207,6 +234,24 @@ export default function Checkout() {
   //   }
   // }, [userData.shippingAddress]);
 
+  //  helper function  (reusable)
+  const buildCartItemsFromResponse = (respData) => {
+    if (!respData?.sellers) return [];
+
+    // sellers → products flatten
+    const items = respData.sellers.flatMap((seller) =>
+      seller.products.map((p) => ({
+        ...p, // product ka data
+        sellerId: seller.sellerId,
+        shopName: seller.shopName,
+        pickupPincode: seller.pickupPincode,
+        deliveryCharge: seller.deliveryCharge,
+      }))
+    );
+
+    return items;
+  };
+
   const buildShippingAddress = (user) => {
     return {
       name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
@@ -235,6 +280,8 @@ export default function Checkout() {
 
       if (resp.data.success) {
         setSummaryData(resp.data);
+        const items = buildCartItemsFromResponse(resp.data);
+        setCartItems(items);
         console.log("fetchCheckoutSummary ---> ---> ", resp.data.subTotal);
       } else {
         showErrorToast(
@@ -290,18 +337,33 @@ export default function Checkout() {
     }
   };
 
-  const applyCoupon = async () => {
+  const applyCoupon = async (updatedUser = userData) => {
     try {
-      const token = localStorage.getItem("token");
-      const resp = await axios.post(
-        "/api/checkout/apply-coupon",
-        { code: couponCode, summary: summaryData }, // send coupon + current summary
-        { headers: { Authorization: `Bearer ${token}` } }
+      const shippingAddress = buildShippingAddress(updatedUser);
+      const couponCode = (userData.code || "").toUpperCase();
+
+      console.log(
+        "Apply Coupon body Frontend --> ",
+        shippingAddress,
+        couponCode
       );
+
+      const resp = await axios.post("/api/checkout/apply-coupon", {
+        code: couponCode,
+        shippingAddress,
+      });
 
       if (resp.data.success) {
         setAppliedCoupon(resp.data.coupon);
-        // setSummaryData(resp.data.updatedSummary); // backend recalculates totals
+
+        //  Backend se updated summary lo (ye important hai)
+        if (resp.data) {
+          setSummaryData(resp.data);
+          const items = buildCartItemsFromResponse(resp.data);
+          setCartItems(items);
+        }
+        console.log("Apply coupan success : --> ", resp.data);
+
         showSuccessToast(
           `Coupon applied: ${resp.data.coupon.code}`,
           "Checkout"
@@ -314,39 +376,15 @@ export default function Checkout() {
     }
   };
 
-  // const applyCoupon = () => {
-  //   const coupon = availableCoupons.find(
-  //     (c) => c.code.toLowerCase() === couponCode.toLowerCase()
-  //   );
-  //   if (!coupon) {
-  //     showErrorToast("Invalid coupon code!", "Checkout - Coupon Validation");
-  //     return;
-  //   }
-  //   if (subtotal < coupon.minOrder) {
-  //     showErrorToast(
-  //       `Minimum order amount ₹${coupon.minOrder} required for this coupon!`,
-  //       "Checkout - Coupon Validation"
-  //     );
-  //     return;
-  //   }
-  //   setAppliedCoupon(coupon);
-  //   showSuccessToast(
-  //     `Coupon "${coupon.code}" applied successfully!`,
-  //     "Checkout - Coupon Applied"
-  //   );
-  //   setShowCouponInput(false);
-  //   setCouponCode("");
-  // };
-
-  // const removeCoupon = () => {
-  //   setAppliedCoupon(null);
-  //   showInfoToast("Coupon removed", "Checkout - Coupon Management");
-  // };
-
   const removeCoupon = () => {
+    // setAppliedCoupon(null);
+    // fetchCheckoutSummary(billingDetails); // refresh without coupon
+
     setAppliedCoupon(null);
-    fetchCheckoutSummary(billingDetails); // refresh without coupon
+    setUserData((prev) => ({ ...prev, code: "" })); // reset code
+    fetchCheckoutSummary({ ...userData, code: "" });
   };
+
   const validateCheckoutForm = () => {
     const validationRules = {
       firstName: {
@@ -618,9 +656,7 @@ export default function Checkout() {
                   <Percent size={16} />
                   <span className="coupon-code">{appliedCoupon.code}</span>
                   <span className="coupon-benefit">
-                    {appliedCoupon.type === "percentage"
-                      ? `${appliedCoupon.discount}% off`
-                      : `₹${appliedCoupon.discount} off`}
+                    {`₹${appliedCoupon?.discount || 0} off`}
                   </span>
                 </div>
                 <button className="remove-coupon" onClick={removeCoupon}>
@@ -633,14 +669,22 @@ export default function Checkout() {
                   <div className="coupon-input-group">
                     <input
                       type="text"
-                      value={couponCode}
+                      name="code"
+                      value={userData.code}
                       onChange={(e) =>
-                        setCouponCode(e.target.value.toUpperCase())
+                        setUserData((prev) => ({
+                          ...prev,
+                          code: e.target.value.toUpperCase(), // hamesha uppercase
+                        }))
                       }
                       placeholder="Enter coupon code"
                       className="coupon-input"
                     />
-                    <button className="apply-coupon-btn" onClick={applyCoupon}>
+
+                    <button
+                      className="apply-coupon-btn"
+                      onClick={() => applyCoupon(userData)}
+                    >
                       Apply
                     </button>
                     <button
@@ -665,7 +709,7 @@ export default function Checkout() {
 
                 <div className="available-coupons">
                   <p>Available coupons:</p>
-                  {availableCoupons.map((coupon) => (
+                  {/* {offers.map((coupon) => (
                     <div key={coupon.code} className="coupon-suggestion">
                       <span className="coupon-code">{coupon.code}</span>
                       <span className="coupon-desc">
@@ -675,7 +719,53 @@ export default function Checkout() {
                         on orders above ₹{coupon.minOrder}
                       </span>
                     </div>
-                  ))}
+                  ))} */}
+
+                  {offers.length > 0 && (
+                    <div className="offers-list">
+                      <h3>Available Offers 🎁</h3>
+                      {offers.map((offer) => (
+                        <div key={offer._id} className="offer-card">
+                          <h4>{offer.title}</h4>
+                          <p>{offer.description}</p>
+
+                          <div className="offer-details">
+                            <strong>Code:</strong> {offer.code}
+                            <br />
+                            <strong>Discount:</strong>{" "}
+                            {offer.discountType === "PERCENTAGE"
+                              ? `${offer.discountValue}% off`
+                              : `₹${offer.discountValue} off`}
+                            {offer.maxDiscountAmount > 0 &&
+                              ` (Max ₹${offer.maxDiscountAmount})`}
+                            <br />
+                            <strong>Min Cart:</strong> ₹{offer.minCartValue}
+                          </div>
+
+                          {/* ✅ Show applied scope */}
+                          <div className="offer-scope">
+                            {offer.categories?.length > 0 && (
+                              <p>
+                                Applicable on categories:{" "}
+                                {offer.categories.join(", ")}
+                              </p>
+                            )}
+                            {offer.brands?.length > 0 && (
+                              <p>
+                                Applicable on brands: {offer.brands.join(", ")}
+                              </p>
+                            )}
+                            {offer.products?.length > 0 && (
+                              <p>
+                                Applicable on products:{" "}
+                                {offer.products.join(", ")}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -691,31 +781,32 @@ export default function Checkout() {
 
             <div className="order-items">
               {cartItems.map((item) => {
-                const itemId = item.id || item._id;
+                const itemId = item.productId || item._id;
                 const itemPrice = parseFloat(
                   item.price?.toString().replace(/[^0-9.]/g, "") || 0
                 );
                 return (
                   <div key={itemId} className="order-item">
                     <img
-                      src={item.image || "/placeholder-image.jpg"}
-                      alt={item.title || item.name}
+                      src={
+                        processImageUrl(item?.image) || "/placeholder-image.jpg"
+                      }
+                      alt={item?.name}
                       className="order-item-image"
                     />
                     <div className="order-item-details">
-                      <h4 className="order-item-name">
-                        {item.title || item.name}
-                      </h4>
+                      <h4 className="order-item-name">{item?.name}</h4>
                       <div className="order-item-meta">
                         <span className="order-item-qty">
-                          Qty: {item.quantity || 1}
+                          Qty: {item?.quantity || 1}
                         </span>
                         <span className="order-item-price">
-                          ₹{itemPrice.toFixed(2)}
+                          ₹{item?.finalPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="order-item-total">
-                        Total: ₹{(itemPrice * (item.quantity || 1)).toFixed(2)}
+                        {/* Total: ₹{(itemPrice * (item.quantity || 1)).toFixed(2)} */}
+                        Total: ₹{item?.productTotal.toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -729,10 +820,10 @@ export default function Checkout() {
                 <span>₹{summaryData?.subTotal.toFixed(2) || 0}</span>
               </div>
 
-              {appliedCoupon && (
+              {summaryData?.coupon && (
                 <div className="price-row discount">
-                  <span>Coupon Discount ({appliedCoupon.code})</span>
-                  <span>-₹{couponDiscount.toFixed(2)}</span>
+                  <span>Coupon Discount ({summaryData?.coupon || 0})</span>
+                  <span>-₹{summaryData?.discount?.toFixed(2) || 0}</span>
                 </div>
               )}
 
@@ -751,8 +842,12 @@ export default function Checkout() {
                   <Truck size={16} />
                   Delivery Charges
                 </span>
-                <span className={deliveryCharge === 0 ? "free" : ""}>
-                  {deliveryCharge === 0
+                <span
+                  className={
+                    summaryData?.totalDeliveryCharge === 0 ? "free" : ""
+                  }
+                >
+                  {summaryData?.totalDeliveryCharge === 0
                     ? "FREE"
                     : `₹${summaryData?.totalDeliveryCharge.toFixed(2) || 0}`}
                 </span>
@@ -763,10 +858,9 @@ export default function Checkout() {
                   🎉 Free delivery on orders above ₹500
                 </div>
               )}
-
               <div className="price-row total">
                 <span>Grand Total</span>
-                <span>₹{grandTotal.toFixed(2)}</span>
+                <span>₹{summaryData?.totalAmount.toFixed(2) || 0}</span>
               </div>
             </div>
 

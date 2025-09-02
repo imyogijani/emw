@@ -228,11 +228,22 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
       const gstPercentage = product.gstPercentage || 0;
 
-      const gstAmount = parseFloat(
-        ((finalPrice * gstPercentage) / 100) * quantity
-      ).toFixed(2);
+      // const gstAmount = parseFloat(
+      //   ((finalPrice * gstPercentage) / 100) * quantity
+      // ).toFixed(2);
 
-      totalGST += parseFloat(gstAmount);
+      let productBasePrice = finalPrice;
+      let gstPerUnit = 0;
+
+      if (gstPercentage > 0) {
+        productBasePrice = finalPrice / (1 + gstPercentage / 100);
+        gstPerUnit = finalPrice - productBasePrice;
+      }
+
+      const gstAmount = gstPerUnit * quantity;
+
+      // totalGST += parseFloat(gstAmount);
+      totalGST += gstAmount;
       const productTotal = finalPrice * quantity;
       subTotal += productTotal;
 
@@ -246,7 +257,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         finalPrice,
         discount,
         productTotal,
-        gstAmount: parseFloat(gstAmount),
+        gstAmount: Number(gstAmount.toFixed(2)),
       };
     })
   );
@@ -316,23 +327,13 @@ export const createOrder = asyncHandler(async (req, res) => {
     offerId = offer._id;
   }
 
-  const totalAmount = parseFloat(
-    (subTotal + totalGST + deliveryCharge - couponDiscount).toFixed(2)
-  );
+  // const totalAmount = parseFloat(
+  //   (subTotal + totalGST + deliveryCharge - couponDiscount).toFixed(2)
+  // );
 
-  // const orderItems = items.map((item) => ({
-  //   productId: item.productId,
-  //   variantId: item.variantId || null,
-  //   sellerId: item.sellerId,
-  //   quantity: item.quantity,
-  //   price: item.price,
-  //   finalPrice: item.finalPrice,
-  //   discount: item.discount,
-  //   deliveryStatus: "processing",
-  //   deliveryPartner,
-  //   deliveryCharge: 0,
-  //   commission: 0,
-  // }));
+  const totalAmount = parseFloat(
+    (subTotal + deliveryCharge - couponDiscount).toFixed(2)
+  );
 
   const orderItems = await Promise.all(
     items.map(async (item) => {

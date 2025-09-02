@@ -137,7 +137,7 @@ productSchema.index({ seller: 1 }); // Seller wise product find fast
 productSchema.index({ createdAt: -1 });
 productSchema.pre("save", function (next) {
   this.finalPrice = this.price - (this.price * this.discount) / 100;
-  // console.log("Produc schema", this.finalPrice);
+  console.log("Produc schema", this.finalPrice);
 
   // Auto commission calculation
   if (this.finalPrice >= 10000) {

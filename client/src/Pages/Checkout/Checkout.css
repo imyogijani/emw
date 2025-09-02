@@ -641,4 +641,27 @@
     gap: 8px;
     align-items: center;
   }
+
+  .offers-list {
+    margin: 20px 0;
+  }
+  .offer-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: #fafafa;
+  }
+  .offer-card h4 {
+    margin: 0 0 6px;
+  }
+  .offer-details {
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  .offer-scope {
+    font-size: 13px;
+    color: #444;
+    margin-top: 6px;
+  }
 }

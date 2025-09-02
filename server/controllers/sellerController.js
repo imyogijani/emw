@@ -1150,3 +1150,59 @@ export const getOnboardingStep = async (req, res) => {
       .json({ success: false, message: "Server error", error: err.message });
   }
 };
+
+export const getSellerInfo = async (req, res) => {
+  try {
+    const userId = req.user._id; // login after get userId in middleware
+
+    
+    const seller = await Seller.findOne({ user: userId })
+      .populate("user", "names email phone") // userModel se name, email, phone
+      .populate("categories", "name") // agar category ka naam chahiye
+      .populate("brands", "name"); // agar brand ka naam chahiye
+
+    if (!seller) {
+      return res.status(404).json({
+        success: false,
+        message: "Seller not found",
+      });
+    }
+
+    // Response me seller + user dono ka info bhejna
+    res.status(200).json({
+      success: true,
+      seller: {
+        _id: seller._id,
+        shopName: seller.shopName,
+        shopImage: seller.shopImage,
+        ownerName: seller.ownerName,
+        description: seller.description,
+        location: seller.location,
+        shopAddresses: seller.shopAddresses,
+        specialist: seller.specialist,
+        status: seller.status,
+        gstNumber: seller.gstNumber,
+        gstVerified: seller.gstVerified,
+        kycVerified: seller.kycVerified,
+        bankDetails: seller.bankDetails,
+        createdAt: seller.createdAt,
+        updatedAt: seller.updatedAt,
+        // User info
+        user: seller.user
+          ? {
+              name: seller.user.names,
+              email: seller.user.email,
+              phone: seller.user.phone,
+            }
+          : null,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching seller info:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching seller info",
+      error: error.message,
+    });
+  }
+};

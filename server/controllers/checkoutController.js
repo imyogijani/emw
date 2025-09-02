@@ -120,12 +120,23 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
         variant?.finalPrice ?? product.finalPrice ?? product.price;
       const productTotal = finalPrice * quantity;
       const gstPercentage = product.gstPercentage || 0;
-      const gstAmount = parseFloat(
-        ((finalPrice * gstPercentage) / 100) * quantity
-      ).toFixed(2);
+      // const gstAmount = parseFloat(
+      //   ((finalPrice * gstPercentage) / 100) * quantity
+      // ).toFixed(2);
+
+      let basePrice = finalPrice;
+      let gstAmount = 0;
+
+      if (gstPercentage > 0) {
+        // GST included in finalPrice
+        basePrice = finalPrice / (1 + gstPercentage / 100);
+        gstAmount = finalPrice - basePrice;
+      }
 
       sellerSubTotal += productTotal;
-      sellerGST += parseFloat(gstAmount);
+      // sellerGST += parseFloat(gstAmount);
+
+      sellerGST += gstAmount * quantity;
 
       // default weight 0.5kg agar product weight field missing hai
       let rawWeight =
@@ -165,10 +176,12 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       productsSummary.push({
         productId: product._id,
         name: product.name,
+        image: product.image,
         quantity,
         finalPrice,
         productTotal,
-        gstAmount: parseFloat(gstAmount),
+        // gstAmount: parseFloat(gstAmount),
+        gstAmount: Number((gstAmount * quantity).toFixed(2)),
       });
     }
 
@@ -206,7 +219,8 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
     });
   }
 
-  const totalAmount = subTotal + totalGST + totalDeliveryCharge;
+  // const totalAmount = subTotal + totalGST + totalDeliveryCharge;
+  const totalAmount = subTotal + totalDeliveryCharge;
 
   // console.log("📦 Seller-wise Summary:", sellerSummaries);
 
@@ -223,6 +237,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
 export const applyCoupon = asyncHandler(async (req, res) => {
   const { code, shippingAddress } = req.body;
   const userId = req.user._id;
+  // console.log("apply coupan --> ", req.body);
 
   if (!shippingAddress || !shippingAddress.pincode) {
     return res
@@ -344,12 +359,24 @@ export const applyCoupon = asyncHandler(async (req, res) => {
         variant?.finalPrice ?? product.finalPrice ?? product.price;
       const productTotal = finalPrice * quantity;
       const gstPercentage = product.gstPercentage || 0;
-      const gstAmount = parseFloat(
-        ((finalPrice * gstPercentage) / 100) * quantity
-      ).toFixed(2);
+
+      // OldCode :
+      // const gstAmount = parseFloat(
+      //   ((finalPrice * gstPercentage) / 100) * quantity
+      // ).toFixed(2);
+
+      let basePrice = finalPrice;
+      let gstAmount = 0;
+
+      if (gstPercentage > 0) {
+        // GST included in finalPrice
+        basePrice = finalPrice / (1 + gstPercentage / 100);
+        gstAmount = finalPrice - basePrice;
+      }
 
       sellerSubTotal += productTotal;
-      sellerGST += parseFloat(gstAmount);
+      // sellerGST += parseFloat(gstAmount);
+      sellerGST += gstAmount * quantity;
 
       // Weight normalize
       let rawWeight =
@@ -385,10 +412,12 @@ export const applyCoupon = asyncHandler(async (req, res) => {
       productsSummary.push({
         productId: product._id,
         name: product.name,
+        image: product.image,
         quantity,
         finalPrice,
         productTotal,
-        gstAmount: parseFloat(gstAmount),
+        // gstAmount: parseFloat(gstAmount),
+        gstAmount: Number((gstAmount * quantity).toFixed(2)),
       });
     }
 
@@ -445,7 +474,8 @@ export const applyCoupon = asyncHandler(async (req, res) => {
   }
 
   // ---------- Final Total ----------
-  const totalAmount = subTotal + totalGST + totalDeliveryCharge - discount;
+  // const totalAmount = subTotal + totalGST + totalDeliveryCharge - discount;
+  const totalAmount = subTotal + totalDeliveryCharge - discount;
 
   res.status(200).json({
     success: true,

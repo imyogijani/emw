@@ -23,7 +23,10 @@ export const createCategoryController = async (req, res) => {
       defaultHsnCode,
     } = req.body;
     // Convert gstPercentage to number if string
-    gstPercentage = Number(gstPercentage) || 0;
+
+    if (gstPercentage) {
+      gstPercentage = Number(gstPercentage) || 0;
+    }
 
     let image = "";
     let imageId = null;
@@ -106,12 +109,12 @@ export const createCategoryController = async (req, res) => {
     //     .json({ message: "HSN code is required for subcategories" });
     // }
 
-    //  GST check for subcategory
-    if (parent && gstPercentage === 0) {
-      return res.status(400).json({
-        message: "GST percentage is required for subcategories",
-      });
-    }
+    // //  GST check for subcategory
+    // if (parent && gstPercentage === 0) {
+    //   return res.status(400).json({
+    //     message: "GST percentage is required for subcategories",
+    //   });
+    // }
 
     await category.save();
 

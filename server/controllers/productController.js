@@ -8,6 +8,7 @@ import Seller from "../models/sellerModel.js";
 import User from "../models/userModel.js";
 import UserSubscription from "../models/userSubscriptionModel.js";
 import Brand from "../models/brandModel.js";
+import mongoose from "mongoose";
 
 // import { attachActiveDeals } from "../utils/attachActiveDeals.js";
 import { getFeatureLimit } from "../helpers/checkSubscriptionFeature.js";
@@ -51,7 +52,7 @@ export const addProduct = async (req, res) => {
 
     // if ( !seller.bankDetails || !seller.razorpayAccountId) {
     //   return res.status(400).json({
-    //     error: "Please complete bank details and KYC before adding products.",
+    //     error: "Please complete bank details and KYC(GST) before adding products.",
     //   });
     // }
 
@@ -80,23 +81,61 @@ export const addProduct = async (req, res) => {
     //     .json({ success: false, message: "Invalid brand selected" });
     // }
 
-    //  Validate brand
-    if (brand) {
-      deleteUploadedFiles(req.files);
+    // //  Validate brand
+    // if (brand) {
+    //   deleteUploadedFiles(req.files);
 
+    //   const brandDoc = await Brand.findById(brand);
+    //   if (!brandDoc) {
+    //     deleteUploadedFiles(req.files);
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid brand selected" });
+    //   }
+    // }
+
+    let brandId = undefined;
+
+    if (brand && mongoose.Types.ObjectId.isValid(brand)) {
       const brandDoc = await Brand.findById(brand);
       if (!brandDoc) {
         deleteUploadedFiles(req.files);
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid brand selected" });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid brand selected",
+        });
       }
+      brandId = brandDoc._id; // only save if valid
     }
 
     let gstPercentage = 0;
     let hsnCode = null;
     let hsnCodeSource = "manual";
     let hsnCodeConfirmed = false;
+
+    // Step 1: Use seller's passed GST if available, but only if seller is KYC verified and has GST number
+    if (
+      req.body.gstPercentage !== undefined &&
+      req.body.gstPercentage !== null
+    ) {
+      if (seller.gstVerified && seller.gstNumber) {
+        gstPercentage = Number(req.body.gstPercentage) || 0;
+      } else {
+        deleteUploadedFiles(req.files);
+        return res.status(400).json({
+          success: false,
+          message: "Seller GST not verified. Cannot add GST for this product.",
+        });
+      }
+    }
+
+    // Step 1: Use seller's passed GST if available
+    // if (
+    //   req.body.gstPercentage !== undefined &&
+    //   req.body.gstPercentage !== null
+    // ) {
+    //   gstPercentage = Number(req.body.gstPercentage) || 0;
+    // }
     // Validate subcategory
     if (subcategory) {
       const subDoc = await Category.findById(subcategory);
@@ -108,9 +147,14 @@ export const addProduct = async (req, res) => {
           .json({ success: false, message: "Invalid subcategory" });
       }
 
-      if (seller.kycVerified && seller.gstNumber) {
-        gstPercentage = subDoc.gstPercentage || 0;
-      }
+      // if (seller.gstVerified && seller.gstNumber) {
+      //   gstPercentage = subDoc.gstPercentage || 0;
+      // }
+
+      // // fallback only if not passed
+      // if (gstPercentage === null && seller.gstNumber) {
+      //   gstPercentage = subDoc.gstPercentage || 0;
+      // }
 
       //  Auto fetch HSN code from subcategory
       if (subDoc.defaultHsnCode) {
@@ -118,6 +162,11 @@ export const addProduct = async (req, res) => {
         hsnCodeSource = "category_default";
         hsnCodeConfirmed = false;
       }
+    }
+
+    // Final: if still null, set to 0
+    if (gstPercentage === null) {
+      gstPercentage = 0;
     }
 
     let parsedVariants = [];
@@ -251,7 +300,7 @@ export const addProduct = async (req, res) => {
       subcategory,
       stock,
       status,
-      brand,
+      brand: brandId,
       seller: seller._id,
       image: images,
       variants: parsedVariants,
@@ -631,10 +680,42 @@ export const getAllProducts = async (req, res) => {
 
     // const updatedProducts = await attachActiveDeals(products);
 
+    // 8. Add GST + Commission Calculations in response
+    const updatedProducts = products.map((p) => {
+      const finalPrice = p.finalPrice ?? p.price ?? 0;
+      const gstPercentage = p.gstPercentage || 0;
+      const commissionRate = p.commissionRate || 0;
+
+      let basePrice = finalPrice;
+      let gstAmount = 0;
+
+      if (gstPercentage > 0) {
+        // GST included in finalPrice
+        basePrice = finalPrice / (1 + gstPercentage / 100);
+        gstAmount = finalPrice - basePrice;
+      }
+
+      const commissionAmount =
+        commissionRate > 0 ? (finalPrice * commissionRate) / 100 : 0;
+
+      const sellerEarning = finalPrice - gstAmount - commissionAmount;
+
+      const customerPay = finalPrice; // always GST included or not, seller set karta hai
+
+      return {
+        ...p.toObject(),
+        basePrice: Number(basePrice.toFixed(2)),
+        gstAmount: Number(gstAmount.toFixed(2)),
+        commissionAmount: Number(commissionAmount.toFixed(2)),
+        sellerEarning: Number(sellerEarning.toFixed(2)),
+        customerPay: Number(customerPay.toFixed(2)),
+      };
+    });
+
     // 8. Response
     res.status(200).json({
       success: true,
-      products,
+      products: updatedProducts,
       totalProducts,
       totalPages: Math.ceil(totalProducts / limit),
       currentPage: parseInt(page),

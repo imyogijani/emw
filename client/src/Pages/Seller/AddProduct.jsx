@@ -28,7 +28,14 @@ const AddProduct = () => {
     variants: [],
     technicalDetailsId: "6878d66d910126f21713e286",
     hsnCode: "",
+    gstPercentage: "", // Input
+    finalPrice: 0, // Auto calculate
+    gstAmount: 0, // Auto calculate
+    commissionRate: 0, // Auto calculate
+    commissionAmount: 0, // Auto calculate
+    sellerEarning: 0, // Auto calculate
   });
+  const [gstVerified, setGstVerified] = useState(false);
 
   // Technical Details States
   const [showTechModal, setShowTechModal] = useState(false);
@@ -60,6 +67,7 @@ const AddProduct = () => {
 
   useEffect(() => {
     fetchCategories();
+    fetchSellerInfo();
   }, []);
 
   useEffect(() => {
@@ -104,6 +112,12 @@ const AddProduct = () => {
       console.error("Error fetching HSN codes:", error);
     }
   };
+  const fetchSellerInfo = async () => {
+    const res = await axios.get("/api/sellers/me");
+    if (res.data.success) {
+      setGstVerified(res.data.seller.gstVerified); // ✅ backend ka seller info
+    }
+  };
 
   const handleHsnSearch = (e) => {
     const value = e.target.value;
@@ -141,7 +155,12 @@ const AddProduct = () => {
       if (file) {
         reader.readAsDataURL(file);
       }
-    } else if (name === "price" || name === "stock" || name === "discount") {
+    } else if (
+      name === "price" ||
+      name === "stock" ||
+      name === "discount" ||
+      name === "gstPercentage"
+    ) {
       // Ensure only positive numbers
       const numberValue = parseFloat(value);
       if (!isNaN(numberValue) && numberValue >= 0) {
@@ -259,7 +278,10 @@ const AddProduct = () => {
     const user = userStr ? JSON.parse(userStr) : null;
 
     if (user.email === "demo@seller.com") {
-      showInfoToast("This is a demo account. You cannot add products.", "AddProduct - Demo Account");
+      showInfoToast(
+        "This is a demo account. You cannot add products.",
+        "AddProduct - Demo Account"
+      );
       return; //  stop here
     }
 
@@ -411,6 +433,39 @@ const AddProduct = () => {
       console.error("Error fetching brands:", error);
     }
   };
+  useEffect(() => {
+    const price = Number(formData.price) || 0; // Seller ne diya hua price (GST included)
+    const discount = Number(formData.discount) || 0;
+    const gstPercentage = Number(formData.gstPercentage) || 0;
+
+    // Step 1: Discount ke baad ka price (Customer ko dena hoga)
+    let finalPrice = price;
+    if (discount > 0) {
+      finalPrice = price - (price * discount) / 100;
+    }
+
+    // Step 2: GST Amount calculate (sirf info ke liye, kyunki price already GST included hai)
+    const gstAmount = (finalPrice * gstPercentage) / (100 + gstPercentage);
+
+    // Step 3: Commission rate slab
+    const commissionRate = finalPrice > 10000 ? 4 : 7;
+
+    // Step 4: Commission amount
+    const commissionAmount = (finalPrice * commissionRate) / 100;
+
+    // Step 5: Seller earning (Final price - Commission)
+    const sellerEarning = finalPrice - commissionAmount;
+
+    // Update state
+    setFormData((prev) => ({
+      ...prev,
+      finalPrice: Number(finalPrice.toFixed(2)), // Discount ke baad customer price
+      gstAmount: Number(gstAmount.toFixed(2)), // Info ke liye GST part
+      commissionRate, // Slab wise rate
+      commissionAmount: Number(commissionAmount.toFixed(2)),
+      sellerEarning: Number(sellerEarning.toFixed(2)), // Seller ke haath me bacha
+    }));
+  }, [formData.price, formData.discount, formData.gstPercentage]);
 
   return (
     <div className="admin-products">
@@ -564,61 +619,75 @@ const AddProduct = () => {
               </div>
             </div>
 
-            <div className="form-section">
-              <h3 className="section-title">Pricing & Inventory</h3>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="price">Price (INR) *</label>
-                  <Input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    required
-                    min="0"
-                    step="0.01"
-                    placeholder="Enter product price in INR"
-                    className="form-input"
-                  />
-                </div>
+          {/* GST Percentage Field - only if gstVerified */}
+          {gstVerified && (
+            <div className="form-group">
+              <label htmlFor="gstPercentage">GST (%)</label>
+              <Input
+                type="number"
+                id="gstPercentage"
+                name="gstPercentage"
+                value={formData.gstPercentage}
+                onChange={handleChange}
+                min="0"
+                max="28"
+                step="0.01"
+                placeholder="Enter GST %"
+              />
+            </div>
+          )}
 
-                <div className="form-group">
-                  <label htmlFor="discount">Discount (%)</label>
-                  <Input
-                    type="number"
-                    id="discount"
-                    name="discount"
-                    value={formData.discount}
-                    onChange={handleChange}
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    placeholder="Enter discount percentage (optional)"
-                    className="form-input"
-                  />
-                </div>
+          {/* Final Price Preview */}
+          {/* <div className="form-group">
+            <label>Final Price (calculated)</label>
+            <Input type="text" value={formData.finalPrice} readOnly />
+          </div> */}
 
-                <div className="form-group">
-                  <label htmlFor="stock">Stock Quantity *</label>
-                  <Input
-                    type="number"
-                    id="stock"
-                    name="stock"
-                    value={formData.stock}
-                    onChange={handleChange}
-                    min="0"
-                    required
-                    placeholder="0"
-                    className="form-input"
-                  />
-                </div>
-              </div>
+          {/* Summary Section */}
+          <div className="summary-card">
+            <h3>Price Summary</h3>
+
+            <div className="summary-item">
+              <span>Final Price (after discount)</span>
+              <span className="value">{formData.finalPrice}</span>
             </div>
 
-            <div className="form-section">
-              <h3 className="section-title">Product Details</h3>
-              <div className="form-row">
+            {gstVerified && (
+              <div className="summary-item">
+                <span>GST Amount</span>
+                <span className="value">{formData.gstAmount}</span>
+              </div>
+            )}
+
+            <div className="summary-item">
+              <span>Commission Rate</span>
+              <span className="value">{formData.commissionRate}%</span>
+            </div>
+
+            <div className="summary-item">
+              <span>Commission Amount</span>
+              <span className="value">{formData.commissionAmount}</span>
+            </div>
+
+            <div className="summary-item highlight">
+              <span>Seller Earning</span>
+              <span>{formData.sellerEarning}</span>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="stock">Stock Quantity *</label>
+            <Input
+              type="number"
+              id="stock"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              min="0"
+              required
+              placeholder="0"
+            />
+          </div>
 
           {/* Technical Details Section */}
           <div className="form-group">
