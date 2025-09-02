@@ -143,7 +143,7 @@ const Categories = () => {
       };
 
       // Add HSN code fields if provided
-      if (subSuggestedHsnCodes.trim()) {
+      /* if (subSuggestedHsnCodes.trim()) {
         const hsnArray = subSuggestedHsnCodes
           .split(",")
           .map((code) => code.trim())
@@ -152,13 +152,13 @@ const Categories = () => {
       }
       if (subDefaultHsnCode.trim()) {
         subcategoryData.defaultHsnCode = subDefaultHsnCode.trim();
-      }
+      } */
 
       await axiosInstance.post(`/api/category/subcategory`, subcategoryData);
       setSubCategoryName("");
       setSelectedCategory("");
-      setSubSuggestedHsnCodes("");
-      setSubDefaultHsnCode("");
+      // setSubSuggestedHsnCodes("");
+      // setSubDefaultHsnCode("");
       // setSubDefaultHsnCode("");
       setGstPercentage("");
       setSelectedSubBrands([]);
@@ -198,12 +198,12 @@ const Categories = () => {
     setNewSubCategoryName(subcategory.name);
 
     // Populate HSN code fields for subcategory editing
-    setEditSubSuggestedHsnCodes(
+    /* setEditSubSuggestedHsnCodes(
       subcategory.suggestedHsnCodes
         ? subcategory.suggestedHsnCodes.join(", ")
         : ""
     );
-    setEditSubDefaultHsnCode(subcategory.defaultHsnCode || "");
+    setEditSubDefaultHsnCode(subcategory.defaultHsnCode || ""); */
 
     setShowEditCategoryModal(true);
   };
@@ -297,9 +297,9 @@ const Categories = () => {
       // Suggested HSN
 
       // Default HSN
-      if (editSubDefaultHsnCode.trim()) {
+      /* if (editSubDefaultHsnCode.trim()) {
         formData.append("defaultHsnCode", editSubDefaultHsnCode.trim());
-      }
+      } */
 
       // Image (if changed)
       if (editCategoryImage) {
@@ -343,8 +343,8 @@ const Categories = () => {
     setNewSubCategoryName("");
     setEditCategoryImage(null);
     setSelectedBrands([]); // Clear selected brands on reset
-    setEditSubSuggestedHsnCodes("");
-    setEditSubDefaultHsnCode("");
+    // setEditSubSuggestedHsnCodes("");
+    // setEditSubDefaultHsnCode("");
     setShowEditCategoryModal(false);
     setEditingBrand(null);
     setEditBrandName("");
@@ -607,7 +607,7 @@ const Categories = () => {
             onChange={(e) => setGstPercentage(e.target.value)}
             className="form-input"
           />
-          <div className="hsn-input-section">
+          {/* <div className="hsn-input-section">
             <input
               className="form-input"
               type="text"
@@ -615,7 +615,7 @@ const Categories = () => {
               value={subDefaultHsnCode}
               onChange={(e) => setSubDefaultHsnCode(e.target.value)}
             />
-          </div>
+          </div> */}
 
           {/* <div className="brand-input-container">
             <input
@@ -851,8 +851,7 @@ const Categories = () => {
             </div>
 
             {/* HSN Codes Section */}
-
-            <div className="form-group">
+            {/* <div className="form-group">
               <label>Default HSN Code</label>
               <input
                 type="text"
@@ -861,7 +860,7 @@ const Categories = () => {
                 placeholder="6403"
                 className="form-input"
               />
-            </div>
+            </div> */}
 
             {/* Selected Brands */}
             <div className="form-group">
@@ -1010,11 +1009,11 @@ const Categories = () => {
                               GST: {subCat.gstPercentage}%
                             </span>
                           )}
-                          {subCat.defaultHsnCode && (
+                          {/* {subCat.defaultHsnCode && (
                             <span className="hsn-badge">
                               HSN: {subCat.defaultHsnCode}
                             </span>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     ))}
@@ -1058,14 +1057,14 @@ const Categories = () => {
                       </span>
                     </div>
                   )}
-                  {viewingSubcategory.defaultHsnCode && (
+                  {/* {viewingSubcategory.defaultHsnCode && (
                     <div className="info-item">
                       <label>Default HSN Code:</label>
                       <span className="hsn-badge">
                         {viewingSubcategory.defaultHsnCode}
                       </span>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
 
