@@ -310,18 +310,46 @@
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
   overflow: hidden;
 }
 .modal-content {
   background: #fff;
   border-radius: 16px;
-  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  padding: 0;
   min-width: 320px;
   max-width: 95vw;
-  box-shadow: 0 8px 32px rgba(60, 72, 88, 0.18);
-  animation: fadeInModal 0.2s;
+  max-height: 85vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
   color: #1a237e;
+  overflow: hidden;
+}
+
+.product-edit-modal {
+  max-width: 800px;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @media (max-width: 600px) {
   .modal-content {
@@ -330,57 +358,50 @@
   }
 }
 .modal-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 1.2rem 2.5rem 0.5rem 2.5rem;
-  background: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 2;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 .modal-header h2 {
   margin: 0;
-  font-size: 2.1rem;
-  color: #0d1b2a;
-  font-weight: 800;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: 600;
   letter-spacing: 0.5px;
 }
 .close-btn {
-  background: rgba(255, 255, 255, 0.5);
+  background: none;
   border: none;
-  font-size: 2.2rem;
-  color: #888;
+  font-size: 1.5rem;
+  color: white;
   cursor: pointer;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: background 0.2s;
-  backdrop-filter: blur(8px);
+  transition: background-color 0.2s;
+  padding: 0.25rem;
 }
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #e57a00;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 .modal-body {
   display: flex;
   flex-direction: row;
   gap: 2.5rem;
   width: 100%;
-  margin-top: 2.8rem;
+  padding: 2rem;
   align-items: flex-start;
-  overflow: visible;
+  overflow-y: auto;
   max-width: 100vw;
   box-sizing: border-box;
-  overflow: visible;
-  max-height: 70vh;
-  align-items: flex-start;
+  max-height: calc(85vh - 120px);
 }
 @media (max-width: 900px) {
   .modal-body {
@@ -455,7 +476,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
-  margin-top: 1.2rem;
+  margin-top: 0;
+  padding: 2rem;
+  overflow-y: auto;
+  max-height: calc(85vh - 120px);
 }
 .detail-group {
   display: flex;
@@ -541,63 +565,172 @@
 .product-modal-form option {
   font-size: 1em;
 }
+/* Edit Form Styles */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  background: #f9fafb;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.readonly-info {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.readonly-info .detail-group {
+  margin-bottom: 0.5rem;
+}
+
+.readonly-info .detail-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Modal Actions */
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 1rem;
+  justify-content: flex-end;
   margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
 }
-.modal-actions .delete-btn {
-  background: linear-gradient(90deg, #e53935 0%, #ff7043 100%);
-  color: #fff;
+
+.modal-actions button {
+  padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 10px 22px;
-  box-shadow: 0 2px 8px rgba(229, 57, 53, 0.08);
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s, box-shadow 0.18s, transform 0.08s;
-  letter-spacing: 0.3px;
-  outline: none;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  min-width: 120px;
+  justify-content: center;
 }
-.modal-actions .delete-btn:hover,
-.modal-actions .delete-btn:focus {
-  background: linear-gradient(90deg, #ff7043 0%, #e53935 100%);
-  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.13);
-  transform: translateY(-1px) scale(1.01);
+
+.edit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 2px solid transparent;
 }
-.modal-actions button:not(.delete-btn) {
-  background: linear-gradient(90deg, #067d62 0%, #38a169 100%);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 10px 22px;
-  box-shadow: 0 2px 8px rgba(6, 125, 98, 0.08);
-  cursor: pointer;
-  transition: background 0.18s, box-shadow 0.18s, transform 0.08s;
-  letter-spacing: 0.3px;
-  outline: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+
+.edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
-.modal-actions button:not(.delete-btn):hover,
-.modal-actions button:not(.delete-btn):focus {
-  background: linear-gradient(90deg, #38a169 0%, #067d62 100%);
-  box-shadow: 0 4px 12px rgba(6, 125, 98, 0.13);
-  transform: translateY(-1px) scale(1.01);
+
+.save-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: 2px solid transparent;
 }
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+.cancel-btn {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #374151;
+  transform: translateY(-2px);
+}
+
+.cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 600px) {
-  .modal-actions .delete-btn,
-  .modal-actions button:not(.delete-btn) {
-    padding: 8px 14px;
-    font-size: 0.95rem;
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
   }
 }
 

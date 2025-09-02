@@ -421,185 +421,204 @@ const AddProduct = () => {
         </div>
       </div>
       <div className="products-container">
-        <form
-          onSubmit={handleSubmit}
-          className="add-product-form"
-          style={{ width: "100%" }}
-        >
-          <div className="form-group">
-            <label htmlFor="name">Product Name *</label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              maxLength={100}
-              placeholder="Enter product name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="category">Category *</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {subcategories.length > 0 && (
-            <div className="form-group">
-              <label htmlFor="subcategory">Subcategory</label>
-              <select
-                id="subcategory"
-                name="subcategory"
-                value={formData.subcategory}
-                onChange={handleChange}
-              >
-                <option value="">Select a subcategory</option>
-                {subcategories.map((subcat) => (
-                  <option key={subcat._id} value={subcat._id}>
-                    {subcat.name}
-                  </option>
-                ))}
-              </select>
+        <div className="form-wrapper">
+          <form
+            onSubmit={handleSubmit}
+            className="add-product-form enhanced-form"
+          >
+          <div className="form-section">
+            <h3 className="section-title">Basic Information</h3>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="name">Product Name *</label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  maxLength={100}
+                  placeholder="Enter product name"
+                  className="form-input"
+                />
+              </div>
             </div>
-          )}
 
-          {/* Brand Dropdown */}
-
-          {brands.length > 0 && (
-            <div className="form-group">
-              <label htmlFor="brand">Brand</label>
-              <select
-                name="brand"
-                value={formData.brand}
-                onChange={handleChange}
-                className="form-control"
-                disabled={!brands.length} // disable if no brands
-              >
-                <option value="">Select Brand</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* <div className="form-group">
-            <label htmlFor="hsnCode">HSN/SAC Code</label>
-            <div
-              className="hsn-search-container"
-              style={{ position: "relative" }}
-            >
-              <input
-                type="text"
-                id="hsnCode"
-                name="hsnCode"
-                value={hsnSearch}
-                onChange={handleHsnSearch}
-                onFocus={() => setShowHsnDropdown(true)}
-                onBlur={() => setTimeout(() => setShowHsnDropdown(false), 200)}
-                placeholder="Search HSN/SAC code or description"
-                className="hsn-search-input"
-              />
-              {showHsnDropdown && hsnCodes.length > 0 && (
-                <div
-                  className="hsn-dropdown"
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    backgroundColor: "white",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                    zIndex: 1000,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  }}
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="category">Category *</label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  className="form-select"
                 >
-                  {hsnCodes.map((hsn) => (
-                    <div
-                      key={hsn._id}
-                      onClick={() => selectHsnCode(hsn)}
-                      style={{
-                        padding: "8px 12px",
-                        cursor: "pointer",
-                        borderBottom: "1px solid #eee",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.target.style.backgroundColor = "#f5f5f5")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.target.style.backgroundColor = "white")
-                      }
-                    >
-                      <strong>{hsn.HSN_CD}</strong> - {hsn.HSN_Description}
-                    </div>
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
                   ))}
+                </select>
+              </div>
+
+              {subcategories.length > 0 && (
+                <div className="form-group">
+                  <label htmlFor="subcategory">Subcategory</label>
+                  <select
+                    id="subcategory"
+                    name="subcategory"
+                    value={formData.subcategory}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    <option value="">Select a subcategory</option>
+                    {subcategories.map((subcat) => (
+                      <option key={subcat._id} value={subcat._id}>
+                        {subcat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
             </div>
-          </div> */}
 
-          <div className="form-group">
-            <label htmlFor="price">Price (INR) *</label>
-            <Input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              required
-              min="0"
-              step="0.01"
-              placeholder="Enter product price in INR"
-            />
-          </div>
+            {brands.length > 0 && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="brand">Brand</label>
+                  <select
+                    id="brand"
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    <option value="">Select Brand</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
-          <div className="form-group">
-            <label htmlFor="discount">Discount (%)</label>
-            <Input
-              type="number"
-              id="discount"
-              name="discount"
-              value={formData.discount}
-              onChange={handleChange}
-              min="0"
-              max="100"
-              step="0.01"
-              placeholder="Enter discount percentage (optional)"
-            />
-          </div>
+              <div className="form-group">
+                <label htmlFor="hsnCode">HSN/SAC Code</label>
+                <div className="hsn-search-container" style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    id="hsnCode"
+                    name="hsnCode"
+                    value={hsnSearch}
+                    onChange={handleHsnSearch}
+                    onFocus={() => setShowHsnDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowHsnDropdown(false), 200)}
+                    placeholder="Search HSN/SAC code or description"
+                    className="form-input hsn-search-input"
+                  />
+                  {showHsnDropdown && hsnCodes.length > 0 && (
+                    <div
+                      className="hsn-dropdown"
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        backgroundColor: "white",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        zIndex: 1000,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {hsnCodes.map((hsn) => (
+                        <div
+                          key={hsn._id}
+                          onClick={() => selectHsnCode(hsn)}
+                          style={{
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid #eee",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.backgroundColor = "#f5f5f5")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.backgroundColor = "white")
+                          }
+                        >
+                          <strong>{hsn.HSN_CD}</strong> - {hsn.HSN_Description}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="stock">Stock Quantity *</label>
-            <Input
-              type="number"
-              id="stock"
-              name="stock"
-              value={formData.stock}
-              onChange={handleChange}
-              min="0"
-              required
-              placeholder="0"
-            />
-          </div>
+            <div className="form-section">
+              <h3 className="section-title">Pricing & Inventory</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="price">Price (INR) *</label>
+                  <Input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter product price in INR"
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="discount">Discount (%)</label>
+                  <Input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleChange}
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Enter discount percentage (optional)"
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="stock">Stock Quantity *</label>
+                  <Input
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                    placeholder="0"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="form-section">
+              <h3 className="section-title">Product Details</h3>
+              <div className="form-row">
 
           {/* Technical Details Section */}
           <div className="form-group">
@@ -763,7 +782,12 @@ const AddProduct = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
 
+      <div className="form-section">
+        <h3 className="section-title">Product Variants</h3>
+        <div className="form-row">
           <div className="form-group">
             <label>Variants (optional)</label>
             <Button type="button" onClick={addVariant}>
@@ -808,21 +832,24 @@ const AddProduct = () => {
               </div>
             ))}
           </div>
+        </div>
+      </div>
 
-          <div className="form-actions">
-            <Button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? "Adding..." : "Add Product"}
-            </Button>
-            <Button
-              type="button"
-              className="cancel-btn"
-              onClick={handleCancel}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+            <div className="form-actions">
+              <Button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? "Adding..." : "Add Product"}
+              </Button>
+              <Button
+                type="button"
+                className="cancel-btn"
+                onClick={handleCancel}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

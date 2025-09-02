@@ -523,35 +523,63 @@ const Categories = () => {
   };
 
   return (
-    <div className="categories-container">
-      <div className="admin-header">
-        <h1>Categories Management</h1>
-        <p className="admin-subtitle">
-          Manage product categories and subcategories
-        </p>
+    <div className="categories-container enhanced-categories">
+      <div className="admin-header modern-header">
+        <div className="header-content">
+          <h1>Categories Management</h1>
+          <p className="admin-subtitle">
+            Manage product categories and subcategories
+          </p>
+        </div>
+        <div className="header-stats">
+          <div className="stat-card">
+            <span className="stat-number">{categories.length}</span>
+            <span className="stat-label">Categories</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-number">
+              {categories.reduce((acc, cat) => acc + (cat.children?.length || 0), 0)}
+            </span>
+            <span className="stat-label">Subcategories</span>
+          </div>
+        </div>
       </div>
 
-      <div className="category-section">
-        <h2>Add New Category</h2>
+      <div className="form-section category-section">
+        <div className="section-header">
+          <h2><FaLayerGroup className="section-icon" /> Add New Category</h2>
+          <p className="section-description">Create a new product category with image and brand associations</p>
+        </div>
         <form
           onSubmit={handleAddCategory}
-          className="category-form"
+          className="enhanced-form category-form"
           encType="multipart/form-data"
         >
-          <input
-            className="form-input"
-            type="text"
-            placeholder="Category Name"
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            required
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleCategoryImageChange}
-            required
-          />
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="categoryName">Category Name *</label>
+              <input
+                type="text"
+                id="categoryName"
+                placeholder="Enter category name"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                className="form-input"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="categoryImage">Category Image *</label>
+              <input
+                type="file"
+                id="categoryImage"
+                accept="image/*"
+                onChange={handleCategoryImageChange}
+                className="form-input file-input"
+                required
+              />
+            </div>
+          </div>
           {/* <div className="brand-input-container">
             <input
               className="form-input"

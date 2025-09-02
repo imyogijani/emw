@@ -29,6 +29,9 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10); // You can make this dynamic if needed
   const [totalPages, setTotalPages] = useState(1);
@@ -159,6 +162,58 @@ const Products = () => {
   const closeProductModal = () => {
     setShowProductModal(false);
     setSelectedProduct(null);
+    setIsEditMode(false);
+    setEditFormData({});
+  };
+
+  const handleEditToggle = () => {
+    if (!isEditMode) {
+      setEditFormData({
+        name: selectedProduct.name || '',
+        description: selectedProduct.description || '',
+        price: selectedProduct.price || '',
+        stock: selectedProduct.stock || '',
+        status: selectedProduct.status || 'active'
+      });
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!selectedProduct || !editFormData.name || !editFormData.price) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await axios.put(`/api/admin/products/${selectedProduct._id}`, editFormData);
+      
+      if (response.data.success) {
+        toast.success('Product updated successfully');
+        // Update the product in the local state
+        setProducts(prev => prev.map(p => 
+          p._id === selectedProduct._id 
+            ? { ...p, ...editFormData }
+            : p
+        ));
+        setSelectedProduct({ ...selectedProduct, ...editFormData });
+        setIsEditMode(false);
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast.error(error.response?.data?.message || 'Failed to update product');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleModalDelete = async () => {
@@ -452,54 +507,179 @@ const Products = () => {
 
       {showProductModal && selectedProduct && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Product Details</h2>
+          <div className="modal-content product-edit-modal">
+            <div className="modal-header">
+              <h2>{isEditMode ? 'Edit Product' : 'Product Details'}</h2>
+              <button className="close-btn" onClick={closeProductModal}>
+                ×
+              </button>
+            </div>
+            
             <div className="product-details-view">
-              <div className="detail-group">
-                <strong>Product Name:</strong>
-                <span>{selectedProduct.name}</span>
-              </div>
-              <div className="detail-group">
-                <strong>Description:</strong>
-                <span>{selectedProduct.description}</span>
-              </div>
-              <div className="detail-group">
-                <strong>Category:</strong>
-                <span>{selectedProduct.category?.name || "N/A"}</span>
-              </div>
-              <div className="detail-group">
-                <strong>Price:</strong>
-                <span>₹{selectedProduct.price?.toFixed(2)}</span>
-              </div>
-              <div className="detail-group">
-                <strong>Stock:</strong>
-                <span>{selectedProduct.stock}</span>
-              </div>
-              <div className="detail-group">
-                <strong>Status:</strong>
-                <span
-                  className={`status ${selectedProduct.status
-                    ?.toLowerCase()
-                    .replace(" ", "-")}`}
-                >
-                  {selectedProduct.status}
-                </span>
-              </div>
-              <div className="detail-group">
-                <strong>Shop:</strong>
-                <span>{selectedProduct.seller?.shopName || "N/A"}</span>
-              </div>
+              {!isEditMode ? (
+                // View Mode
+                <>
+                  <div className="detail-group">
+                    <strong>Product Name:</strong>
+                    <span>{selectedProduct.name}</span>
+                  </div>
+                  <div className="detail-group">
+                    <strong>Description:</strong>
+                    <span>{selectedProduct.description}</span>
+                  </div>
+                  <div className="detail-group">
+                    <strong>Category:</strong>
+                    <span>{selectedProduct.category?.name || "N/A"}</span>
+                  </div>
+                  <div className="detail-group">
+                    <strong>Price:</strong>
+                    <span>₹{selectedProduct.price?.toFixed(2)}</span>
+                  </div>
+                  <div className="detail-group">
+                    <strong>Stock:</strong>
+                    <span>{selectedProduct.stock}</span>
+                  </div>
+                  <div className="detail-group">
+                    <strong>Status:</strong>
+                    <span
+                      className={`status ${selectedProduct.status
+                        ?.toLowerCase()
+                        .replace(" ", "-")}`}
+                    >
+                      {selectedProduct.status}
+                    </span>
+                  </div>
+                  <div className="detail-group">
+                    <strong>Shop:</strong>
+                    <span>{selectedProduct.seller?.shopName || "N/A"}</span>
+                  </div>
+                </>
+              ) : (
+                // Edit Mode
+                <div className="edit-form">
+                  <div className="form-group">
+                    <label htmlFor="name">Product Name *</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={editFormData.name}
+                      onChange={handleEditInputChange}
+                      placeholder="Enter product name"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="description">Description</label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={editFormData.description}
+                      onChange={handleEditInputChange}
+                      placeholder="Enter product description"
+                      rows="4"
+                    />
+                  </div>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="price">Price (₹) *</label>
+                      <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        value={editFormData.price}
+                        onChange={handleEditInputChange}
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="stock">Stock Quantity</label>
+                      <input
+                        type="number"
+                        id="stock"
+                        name="stock"
+                        value={editFormData.stock}
+                        onChange={handleEditInputChange}
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="status">Status</label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={editFormData.status}
+                      onChange={handleEditInputChange}
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="out of stock">Out of Stock</option>
+                    </select>
+                  </div>
+                  
+                  <div className="readonly-info">
+                    <div className="detail-group">
+                      <strong>Category:</strong>
+                      <span>{selectedProduct.category?.name || "N/A"}</span>
+                    </div>
+                    <div className="detail-group">
+                      <strong>Shop:</strong>
+                      <span>{selectedProduct.seller?.shopName || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="modal-actions">
-                <button
-                  type="button"
-                  onClick={handleModalDelete}
-                  className="delete-btn"
-                >
-                  <FaTrash /> Delete Product
-                </button>
-                <button type="button" onClick={closeProductModal}>
-                  Close
-                </button>
+                {!isEditMode ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleEditToggle}
+                      className="edit-btn"
+                    >
+                      <FaEdit /> Edit Product
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleModalDelete}
+                      className="delete-btn"
+                    >
+                      <FaTrash /> Delete Product
+                    </button>
+                    <button type="button" onClick={closeProductModal} className="cancel-btn">
+                      Close
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleUpdateProduct}
+                      className="save-btn"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Updating...' : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleEditToggle}
+                      className="cancel-btn"
+                      disabled={isUpdating}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
