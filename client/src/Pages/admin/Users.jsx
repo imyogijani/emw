@@ -29,6 +29,7 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterOnboarding, setFilterOnboarding] = useState("all");
@@ -52,6 +53,15 @@ const Users = () => {
   const [totalUsersCount, setTotalUsersCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const fetchUsers = useCallback(async (pageToFetch = 1, reset = false) => {
     try {
       setLoading(true);
@@ -66,7 +76,7 @@ const Users = () => {
         page: pageToFetch,
         limit: 20,
         role: filterRole !== "all" ? filterRole : undefined,
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
       };
       
       const response = await axios.get("/api/admin/users", {
@@ -91,7 +101,7 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterRole, searchTerm]);
+  }, [filterRole, debouncedSearchTerm]);
 
   useEffect(() => {
     // Initial fetch of users
@@ -306,7 +316,7 @@ const Users = () => {
         {/* Search and View Toggle Row */}
         <div className="search-row">
           <div className="search-box">
-            <FaSearch />
+            {/* <FaSearch /> */}
             <input
               type="text"
               placeholder="Search..."

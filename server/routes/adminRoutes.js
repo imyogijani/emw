@@ -89,8 +89,8 @@ router.get("/shops", getAllShops);
 
 // Users management
 router.get("/users", getAllUsers);
-router.delete("/users/:id", authenticateToken, authorizeAdmin, deleteUser);
-router.get("/sellers/:id", authenticateToken, authorizeAdmin, getSellerDetails);
+router.delete("/users/:id", deleteUser);
+router.get("/sellers/:id", getSellerDetails);
 router.patch("/users/:id", updateUser);
 router.patch("/users/:id/subscription", updateShopownerSubscription);
 

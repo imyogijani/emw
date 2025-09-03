@@ -17,7 +17,7 @@ export const getSystemSettings = async () => {
       return settingsCache;
     }
 
-    const response = await axios.get('/api/admin/settings');
+    const response = await axios.get('/api/settings');
     if (response.data.success) {
       settingsCache = response.data.settings;
       cacheTimestamp = Date.now();

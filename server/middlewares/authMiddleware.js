@@ -6,32 +6,104 @@ export const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).send({
+    // Check if authorization header exists and has correct format
+    if (!authHeader) {
+      return res.status(401).json({
         success: false,
-        message: "No token provided 🔒",
+        message: "No authorization header provided",
+        errorCode: "NO_AUTH_HEADER"
+      });
+    }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authorization header format. Expected 'Bearer <token>'",
+        errorCode: "INVALID_AUTH_FORMAT"
       });
     }
 
     const token = authHeader.split(" ")[1];
 
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No token provided in authorization header",
+        errorCode: "NO_TOKEN"
+      });
+    }
+
+    // Check if JWT_SECRET is configured
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not configured in environment variables");
+      return res.status(500).json({
+        success: false,
+        message: "Server configuration error",
+        errorCode: "JWT_SECRET_MISSING"
+      });
+    }
+
+    // Verify the token
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
-        return res.status(401).send({
-          success: false,
-          message: "Authentication Failed 🥲",
+        console.error("JWT Verification Error:", {
+          name: err.name,
+          message: err.message,
+          expiredAt: err.expiredAt
         });
-      } else {
-        req.userId = decoded.userId;
-        next();
+
+        // Handle specific JWT errors
+        if (err.name === 'TokenExpiredError') {
+          return res.status(401).json({
+            success: false,
+            message: "Token has expired. Please log in again.",
+            errorCode: "TOKEN_EXPIRED",
+            expiredAt: err.expiredAt
+          });
+        } else if (err.name === 'JsonWebTokenError') {
+          return res.status(401).json({
+            success: false,
+            message: "Invalid token. Please log in again.",
+            errorCode: "INVALID_TOKEN"
+          });
+        } else if (err.name === 'NotBeforeError') {
+          return res.status(401).json({
+            success: false,
+            message: "Token not active yet",
+            errorCode: "TOKEN_NOT_ACTIVE"
+          });
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: "Token verification failed",
+            errorCode: "TOKEN_VERIFICATION_FAILED"
+          });
+        }
       }
+
+      // Token is valid, check if decoded data is complete
+      if (!decoded.userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid token payload",
+          errorCode: "INVALID_TOKEN_PAYLOAD"
+        });
+      }
+
+      req.userId = decoded.userId;
+      next();
     });
   } catch (error) {
-    console.error("Auth Middleware Error:", error);
-    return res.status(401).send({
+    console.error("Auth Middleware Error:", {
+      message: error.message,
+      stack: error.stack,
+      url: req.url,
+      method: req.method
+    });
+    return res.status(500).json({
       success: false,
-      error,
-      message: "Authentication Failed",
+      message: "Internal authentication error",
+      errorCode: "AUTH_MIDDLEWARE_ERROR"
     });
   }
 };

@@ -7,6 +7,7 @@ import { processImageUrl } from "../../utils/apiConfig";
 import JumpingLoader from "../../Components/JumpingLoader";
 import "../../App.css";
 import "./SellerProducts.css";
+import MUICarousel from "../../Components/MUICarousel";
 
 const SellerProducts = () => {
   const [categories, setCategories] = useState([]);
@@ -202,92 +203,36 @@ const SellerProducts = () => {
         </div>
       </div>
 
-      <div className="products-container">
-        <div className="products-grid-container">
-          <div className="product-cards-container seller-horizontal-grid">
-            {filteredProducts.map((product) => (
-              <div key={product._id} className="product-card">
-                <div className="product-card-header">
-                  <img
-                    src={(() => {
-                      const imageUrl = processImageUrl(product.image);
-                      console.log(`Product ${product.name} - Images:`, product.image, "Processed URL:", imageUrl);
-                      return imageUrl;
-                    })()}
-                    alt={product.name}
-                    className="product-card-image"
-                    style={{
-                      width: "100%",
-                      height: 160,
-                      objectFit: "contain",
-                      background: "#fff",
-                      borderRadius: 8,
-                      border: "1.5px solid #f0f0f0",
-                    }}
-                  />
-                  <h3
-                    className="product-card-name"
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 20,
-                      margin: "12px 0 0 0",
-                      color: "#1a237e",
-                      textAlign: "left",
-                      textOverflow: "ellipsis",
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {product.name}
-                  </h3>
-                </div>
-                <div className="product-card-body" style={{ padding: 18 }}>
-                  <p className="product-card-detail">
-                    <strong>Category:</strong> {product.category?.name}
-                  </p>
-                  <p className="product-card-detail">
-                    <strong>Price:</strong> ₹{product.price?.toFixed(2)}
-                  </p>
-                  <p className="product-card-detail">
-                    <strong>Stock:</strong> {product.stock}
-                  </p>
-                  <p className="product-card-detail">
-                    <strong>Status:</strong>{" "}
-                    <span
-                      className={`status-badge ${product.status
-                        ?.toLowerCase()
-                        .replace(" ", "-")}`}
-                    >
-                      {product.status}
-                    </span>
-                  </p>
-                </div>
-                <div className="product-card-actions">
-                  <button
-                    className="btn btn-small btn-primary edit-product-btn"
-                    onClick={() => handleEdit(product)}
-                  >
-                    <span className="sparkle">
-                      <FaEdit />
-                    </span>
-                    <span className="text">Edit</span>
-                  </button>
-                  <button
-                    className="btn btn-small btn-danger delete-product-btn"
-                    onClick={() => handleDelete(product)}
-                    style={{ marginLeft: '8px' }}
-                  >
-                    <span className="sparkle">
-                      <FaTrash />
-                    </span>
-                    <span className="text">Delete</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <MUICarousel
+        items={filteredProducts.map(product => ({
+          id: product._id,
+          title: product.name,
+          description: `Category: ${product.category?.name || "Uncategorized"} | Stock: ${product.stock} units`,
+          image: processImageUrl(product.image),
+          price: product.price,
+          originalPrice: product.originalPrice,
+          discount: product.discount,
+          rating: 4.2,
+          reviewCount: Math.floor(Math.random() * 30) + 5,
+          isPremium: product.status === "Active",
+          tag: product.status
+        }))}
+        title="My Products"
+        subtitle="Manage and view your product inventory"
+        autoPlay={false}
+        itemsPerSlide={window.innerWidth > 1200 ? 4 : window.innerWidth > 768 ? 3 : 1}
+        onItemClick={(item) => {
+          const product = filteredProducts.find(p => p._id === item.id);
+          if (product) handleEdit(product);
+        }}
+        onAddToCart={(item) => {
+          const product = filteredProducts.find(p => p._id === item.id);
+          if (product) handleDelete(product);
+        }}
+        showActions={true}
+        height={420}
+        className="seller-products-carousel"
+      />
 
       {showEditModal && editProduct && (
         <div className="modal-overlay">

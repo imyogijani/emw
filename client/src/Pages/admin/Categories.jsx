@@ -517,10 +517,7 @@ const Categories = () => {
     if (!imageUrl) {
       return "/vite.svg"; // Default image
     }
-    if (imageUrl.startsWith("http")) {
-      return imageUrl;
-    }
-    return `http://localhost:8080/${imageUrl.replace(/\\/g, "/")}`;
+    return processImageUrlUnified(imageUrl, 'category');
   };
 
   return (

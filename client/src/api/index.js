@@ -1,5 +1,6 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '../utils/apiConfig.js';
 
-const API = axios.create({ baseURL: 'http://localhost:8080/api/v1' });
+const API = axios.create({ baseURL: `${getApiBaseUrl()}/api/v1` });
 
 export default API;

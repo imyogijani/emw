@@ -772,9 +772,15 @@ export const deleteUser = async (req, res) => {
       );
     }
 
-    const firebaseUser = await admin.auth().getUserByEmail(user.email);
-    if (firebaseUser) {
-      await admin.auth().deleteUser(firebaseUser.uid);
+    // Handle Firebase user deletion with better error handling
+    try {
+      const firebaseUser = await admin.auth().getUserByEmail(user.email);
+      if (firebaseUser) {
+        await admin.auth().deleteUser(firebaseUser.uid);
+      }
+    } catch (firebaseError) {
+      // Don't fail the entire operation if Firebase deletion fails
+      console.log('Firebase deletion error (non-critical):', firebaseError.message);
     }
 
     res.json({

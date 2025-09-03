@@ -1,37 +1,69 @@
-// Utility function to get the correct API base URL based on environment
+/* eslint-disable no-unused-vars */
+/**
+ * Get the appropriate API base URL based on the environment
+ * @returns {string} The API base URL
+ */
 export const getApiBaseUrl = () => {
   try {
     // Check if we're in development mode
-    const isDevelopment =
-      import.meta.env.DEV ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1" ||
-      window.location.hostname.includes("localhost");
-
-    let baseUrl;
-
-    if (isDevelopment) {
-      baseUrl =
-        import.meta.env.VITE_API_BASE_URL_LOCAL || "http://localhost:8080";
+    const isDevelopment = import.meta.env.DEV;
+    const mode = import.meta.env.MODE;
+    const hostname = window.location.hostname;
+    
+    console.log('Environment Detection:', {
+      isDevelopment,
+      mode,
+      hostname,
+      VITE_API_BASE_URL_LOCAL: import.meta.env.VITE_API_BASE_URL_LOCAL,
+      VITE_API_BASE_URL_PROD: import.meta.env.VITE_API_BASE_URL_PROD
+    });
+    
+    let apiBaseUrl;
+    
+    if (isDevelopment || mode === 'development') {
+      // Use local API URL for development
+      apiBaseUrl = import.meta.env.VITE_API_BASE_URL_LOCAL || 'http://localhost:8080';
     } else {
-      baseUrl =
-        import.meta.env.VITE_API_BASE_URL_PROD || "https://api.emallworld.com";
+      // Production environment detection
+      if (hostname === 'emallworld.com' || hostname === 'www.emallworld.com') {
+        apiBaseUrl = import.meta.env.VITE_API_BASE_URL_PROD || 'https://api.emallworld.com';
+      } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Local production build testing
+        apiBaseUrl = import.meta.env.VITE_API_BASE_URL_LOCAL || 'http://localhost:8080';
+      } else {
+        // Default to production API for any other domain
+        apiBaseUrl = import.meta.env.VITE_API_BASE_URL_PROD || 'https://api.emallworld.com';
+      }
     }
-
-    // Validate URL format
-    try {
-      new URL(baseUrl);
-    } catch {
-      console.error("❌ Invalid API base URL:", baseUrl);
-      return isDevelopment
-        ? "http://localhost:8080"
-        : "https://api.emallworld.com";
+    
+    // Validate the URL format
+    if (!isValidUrl(apiBaseUrl)) {
+      console.error('Invalid API base URL detected:', apiBaseUrl);
+      // Fallback to production URL if current URL is invalid
+      apiBaseUrl = 'https://api.emallworld.com';
     }
-
-    return baseUrl;
+    
+    console.log('Selected API Base URL:', apiBaseUrl);
+    return apiBaseUrl;
+    
   } catch (error) {
-    console.error("❌ Error determining API base URL:", error);
-    return "http://localhost:8080"; // Safe fallback
+    console.error('Error determining API base URL:', error);
+    // Fallback to production URL in case of any error
+    return 'https://api.emallworld.com';
+  }
+};
+
+/**
+ * Validate if a string is a valid URL
+ * @param {string} string - The string to validate
+ * @returns {boolean} True if valid URL, false otherwise
+ */
+const isValidUrl = (string) => {
+  try {
+    const url = new URL(string);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
   }
 };
 

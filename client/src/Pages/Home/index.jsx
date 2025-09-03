@@ -113,9 +113,10 @@ export default function Home() {
       const categoriesData = response.data.categories || [];
       setCategories(categoriesData);
 
-      if (categoriesData.length > 0) {
-        setActiveCategory(categoriesData[0].name);
-      }
+      // Set "All Categories" as default by keeping activeCategory empty
+      // if (categoriesData.length > 0) {
+      //   setActiveCategory(categoriesData[0].name);
+      // }
 
       const subCategoriesMap = {};
       categoriesData.forEach((category) => {
@@ -451,7 +452,8 @@ export default function Home() {
 
   return (
     <div className="amazon-home-container">
-      <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      {/* <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> */}
+      <SpotlightCarousel products={featuredProducts} />
       {/* <FeaturedCategories categories={categories} /> */}
       <div style={{ height: 80 }} /> {/* Placeholder for spacing where FeaturedCategories was */}
       <TrustBadges />
@@ -610,33 +612,160 @@ const ProductCard = ({ product }) => {
   );
 };
 
-const HeroSection = ({ searchQuery, setSearchQuery }) => (
-  <div className="hero-banner">
-    <div className="hero-content">
-      <div className="hero-text">
-        <h1>Welcome to E-Mall World</h1>
-        <p>Discover millions of products from thousands of brands</p>
-        <div className="hero-search-bar">
-          <div className="search-container">
-            <input
-              type="text"
-              placeholder="Search for products, brands and more..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="hero-search-input"
-            />
-            <button className="search-btn">
-              <Search />
+// const HeroSection = ({ searchQuery, setSearchQuery }) => (
+//   <div className="hero-banner">
+//     <div className="hero-content">
+//       <div className="hero-text">
+//         <h1>Welcome to E-Mall World</h1>
+//         <p>Discover millions of products from thousands of brands</p>
+//         <div className="hero-search-bar">
+//           <div className="search-container">
+//             <input
+//               type="text"
+//               placeholder="Search for products, brands and more..."
+//               value={searchQuery}
+//               onChange={(e) => setSearchQuery(e.target.value)}
+//               className="hero-search-input"
+//             />
+//             <button className="search-btn">
+//               <Search />
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//       <div className="hero-image">
+//         <img src={HeroImg} alt="Shopping Experience" />
+//       </div>
+//     </div>
+//   </div>
+// );
+
+const SpotlightCarousel = ({ products }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  const spotlightProducts = products.slice(0, 5); // Show first 5 products
+
+  useEffect(() => {
+    if (!isAutoPlaying || spotlightProducts.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % spotlightProducts.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, spotlightProducts.length]);
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 5000);
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % spotlightProducts.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 5000);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + spotlightProducts.length) % spotlightProducts.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 5000);
+  };
+
+  if (spotlightProducts.length === 0) return null;
+
+  return (
+    <div className="spotlight-carousel">
+      <div className="spotlight-container">
+        <div className="spotlight-content">
+          <div className="spotlight-text">
+            {/* <div className="spotlight-badge">
+              <span>ILLUMINATE</span>
+              <span>YOUR PATH</span>
+              <span>TO GREATNESS</span>
+            </div> */}
+            <h1 className="spotlight-title">
+              <span className="title-outline">Welcome to</span>
+              <span className="title-solid">E-Mall World</span>
+            </h1>
+            {/* <div className="spotlight-quote">
+              <span className="quote-mark">"</span>
+            </div> */}
+            {/* <p className="spotlight-description">
+              EMBRACE YOUR MOMENT IN THE GLARE OF THE SPOTLIGHT, WHERE YOUR
+              ACHIEVEMENTS ARE CAST IN RADIANT LIGHT. STAND WHERE TRIUMPH IS NOT ONLY
+              SEEN BUT FELT, A BEACON TO THOSE WHO CHASE GREATNESS.
+            </p> */}
+            {/* <div className="spotlight-stats">
+              <div className="stat-item">
+                <span className="stat-number">20</span>
+                <span className="stat-label">24</span>
+              </div>
+            </div> */}
+            <button className="spotlight-explore">
+              EXPLORE
             </button>
           </div>
+          <div className="spotlight-visual">
+            <div className="spotlight-image-container">
+              {spotlightProducts.map((product, index) => {
+                const getSlideClass = () => {
+                  if (index === currentSlide) return 'active';
+                  if (index === (currentSlide - 1 + spotlightProducts.length) % spotlightProducts.length) return 'prev';
+                  return '';
+                };
+                
+                return (
+                <div
+                  key={product._id || index}
+                  className={`spotlight-slide ${getSlideClass()}`}
+                >
+                  <img
+                    src={processImageUrl(product.image)}
+                    alt={product.name}
+                    className="spotlight-product-image"
+                    onError={(e) => {
+                      e.target.src = "https://images.pexels.com/photos/3119215/pexels-photo-3119215.jpeg";
+                    }}
+                  />
+                  <div className="spotlight-product-info">
+                    <h3>{product.name}</h3>
+                    <p className="spotlight-price">${product.price}</p>
+                  </div>
+                </div>
+                );
+              })}
+            </div>
+            <div className="spotlight-navigation">
+              <button className="nav-btn prev" onClick={prevSlide}>
+                <ChevronLeft size={24} />
+              </button>
+              <button className="nav-btn next" onClick={nextSlide}>
+                <ChevronRight size={24} />
+              </button>
+            </div>
+            {/* <div className="spotlight-dots">
+              {spotlightProducts.map((_, index) => (
+                <button
+                  key={index}
+                  className={`dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => goToSlide(index)}
+                />
+              ))}
+            </div> */}
+          </div>
+        </div>
+        <div className="spotlight-background-elements">
+          <div className="floating-orb orb-1"></div>
+          <div className="floating-orb orb-2"></div>
+          <div className="floating-orb orb-3"></div>
         </div>
       </div>
-      <div className="hero-image">
-        <img src={HeroImg} alt="Shopping Experience" />
-      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const TrustBadges = () => (
   <div className="trust-badges">

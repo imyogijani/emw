@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { getApiBaseUrl } from '../../utils/apiConfig.js';
 import './RoleSelection.css';
 
 const RoleSelection = () => {
@@ -27,7 +28,7 @@ const RoleSelection = () => {
 
     try {
       // Update user role in backend
-      const response = await axios.patch('http://localhost:8080/api/auth/update-role', 
+      const response = await axios.patch(`${getApiBaseUrl()}/api/auth/update-role`, 
         { role },
         {
           headers: {

@@ -157,7 +157,7 @@ class AlertManager {
 const alertManager = new AlertManager();
 
 // Environment check
-const isDevelopment = import.meta.env.MODE === 'development';
+const isDevelopment = import.meta.env.DEV;
 
 // Export functions that match the Sweet Alert API
 export const showErrorToast = (error, context = '') => {

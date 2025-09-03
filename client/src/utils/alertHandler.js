@@ -1,9 +1,8 @@
 /* eslint-disable no-unused-vars */
-/* global process */
 import Swal from 'sweetalert2';
 
 // Environment check
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = import.meta.env.DEV;
 
 // Sweet Alert configuration for different alert types
 const ALERT_CONFIG = {

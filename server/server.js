@@ -24,7 +24,12 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // MongoDB connection
-import connectDB from "./config/db.js";
+import connectDB, { checkDatabaseHealth } from "./config/db.js";
+import { initializeEnvironmentValidation } from "./utils/envValidator.js";
+
+// Initialize environment validation
+initializeEnvironmentValidation();
+
 await connectDB();
 
 // await importGujaratPincodes();
@@ -91,20 +96,50 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: [
+// Enhanced CORS configuration for production
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
       "http://localhost:5173",
+      "http://127.0.0.1:5173",
       "http://192.168.1.101:5173",
       "http://89.116.23.115:5173",
       "https://emallworld.com",
       "https://www.emallworld.com",
-    ], // Add production domain here if needed
+      "https://api.emallworld.com"
+    ];
+    
+    // Check if the origin is allowed
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "Cache-Control",
+    "X-HTTP-Method-Override"
+  ],
+  credentials: true,
+  exposedHeaders: ["Content-Disposition"],
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  preflightContinue: false
+};
 
-    credentials: true,
-    exposedHeaders: ["Content-Disposition"],
-  })
-);
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 app.use(morgan("dev"));
 
 // Static files for uploads
@@ -115,7 +150,8 @@ app.use(
     etag: true,
     lastModified: true,
     setHeaders: (res, path) => {
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      // Remove Cross-Origin-Resource-Policy header to fix ORB blocking
+      // res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       if (
         path.endsWith(".jpg") ||
         path.endsWith(".jpeg") ||
@@ -183,6 +219,34 @@ import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
 import "./cronJobs/checkExpiredSubscriptions.js";
 // import "./cronJobs/sellerDocumentCleanUp.js";
+
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+  const dbHealth = checkDatabaseHealth();
+  const healthStatus = {
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    version: process.env.npm_package_version || '1.0.0',
+    database: {
+      status: dbHealth.status,
+      readyState: dbHealth.readyState,
+      host: dbHealth.host,
+      name: dbHealth.name,
+      port: dbHealth.port
+    },
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+    }
+  };
+  
+  // Set status code based on database connectivity
+  const statusCode = dbHealth.status === 'connected' ? 200 : 503;
+  
+  res.status(statusCode).json(healthStatus);
+});
 
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
