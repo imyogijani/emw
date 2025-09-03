@@ -31,6 +31,10 @@ const SellerOnboarding = () => {
   const [uploadedDocs, setUploadedDocs] = useState([]);
   const [isDocsSubmitted, setIsDocsSubmitted] = useState(false);
 
+  const [settings, setSettings] = useState(null);
+  const [steps, setSteps] = useState([]);
+  const [stepIndex, setStepIndex] = useState(0);
+
   // Helper function to check if a step is required
   const isStepRequired = (stepNumber) => {
     const stepKey = getStepKey(stepNumber);
@@ -42,6 +46,41 @@ const SellerOnboarding = () => {
     return !isStepRequired(step);
   };
 
+  // const STEP_MAP = {
+  //   basicDetails: renderBasicDetailsForm,
+  //   shopTiming: renderTimingForm,
+  //   legalDocuments: renderGSTForm,
+  //   subscription: renderSubscriptionForm,
+  // };
+
+  // useEffect(() => {
+  //   const fetchSettings = async () => {
+  //     try {
+  //       const res = await axios.get("/api/settings");
+  //       if (res.data.success) {
+  //         // filter only enabled steps
+  //         const enabledSteps = res.data.settings.onboardingRequiredSteps
+  //           .filter((s) => s.enabled)
+  //           .map((s) => s.name);
+
+  //         // add subscription always at the end
+  //         enabledSteps.push("subscription");
+
+  //         setSteps(enabledSteps);
+  //         setSettings(res.data.settings);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching settings:", err);
+  //     }
+  //   };
+
+  //   fetchSettings();
+  // }, []);
+
+  // const currentStepName = steps[stepIndex];
+  // const renderStep = STEP_MAP[currentStepName];
+
+  // old :
   // Fetch system settings and check onboarding status
   useEffect(() => {
     const initializeOnboarding = async () => {
@@ -89,6 +128,7 @@ const SellerOnboarding = () => {
 
     initializeOnboarding();
   }, [navigate]);
+
   const [formData, setFormData] = useState({
     // Step 1 - Basic Details
     shopName: "",

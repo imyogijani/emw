@@ -34,7 +34,7 @@ export const addProduct = async (req, res) => {
       // isPremium,
     } = req.body;
 
-    console.log("Product Req Body Data : ", req.body);
+    // console.log("Product Req Body Data : ", req.body);
 
     // Get seller and user info
     const seller = await Seller.findOne({ user: req.userId }).populate(
@@ -114,18 +114,26 @@ export const addProduct = async (req, res) => {
     let hsnCodeConfirmed = false;
 
     // Step 1: Use seller's passed GST if available, but only if seller is KYC verified and has GST number
+
     if (
       req.body.gstPercentage !== undefined &&
       req.body.gstPercentage !== null
     ) {
-      if (seller.gstVerified && seller.gstNumber) {
-        gstPercentage = Number(req.body.gstPercentage) || 0;
+      const passedGst = Number(req.body.gstPercentage) || 0;
+
+      if (passedGst === 0) {
+        gstPercentage = 0;
       } else {
-        deleteUploadedFiles(req.files);
-        return res.status(400).json({
-          success: false,
-          message: "Seller GST not verified. Cannot add GST for this product.",
-        });
+        if (seller.gstVerified && seller.gstNumber) {
+          gstPercentage = passedGst;
+        } else {
+          deleteUploadedFiles(req.files);
+          return res.status(400).json({
+            success: false,
+            message:
+              "Seller GST not verified. Cannot add GST for this product.",
+          });
+        }
       }
     }
 
@@ -271,24 +279,30 @@ export const addProduct = async (req, res) => {
         .json({ message: "At least one image is required" });
     }
 
-    // Get seller and populate user info
-    const userPopulate = await Seller.findOne({ user: req.userId }).populate(
-      "user"
-    );
-    if (!userPopulate)
-      return res.status(404).json({ message: "Seller not found" });
+    let selectedAddress = null;
 
-    // Extract location from user's address
-    let locationData = {};
-    if (userPopulate.user && userPopulate.user.address) {
-      locationData = {
-        city: userPopulate.user.address.city || "",
-        state: userPopulate.user.address.state || "",
-        country: userPopulate.user.address.country || "",
-      };
-    } else {
-      return res.status(400).json({ message: "User address not found" });
+    if (seller.shopAddresses && seller.shopAddresses.length > 0) {
+      // pehle default check karo
+      selectedAddress = seller.shopAddresses.find((addr) => addr.isDefault);
+
+      // agar default nahi mila to first address le lo
+      if (!selectedAddress) {
+        selectedAddress = seller.shopAddresses[0];
+      }
     }
+
+    if (!selectedAddress) {
+      return res
+        .status(400)
+        .json({ message: "No shop address found for seller" });
+    }
+
+    // Step 3: Location data prepare karo
+    const locationData = {
+      city: selectedAddress.city || "",
+      state: selectedAddress.state || "",
+      country: selectedAddress.country || "India",
+    };
 
     // Create product
     const product = new Product({

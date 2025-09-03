@@ -10,7 +10,11 @@ import {
   FaSquare,
 } from "react-icons/fa";
 import axios from "../../utils/axios";
-import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/muiAlertHandler.jsx";
+import {
+  showErrorToast,
+  showSuccessToast,
+  showInfoToast,
+} from "../../utils/muiAlertHandler.jsx";
 import { Table, Switch } from "antd";
 import "./Settings.css";
 
@@ -20,7 +24,12 @@ const Settings = () => {
     customerEmailVerification: true,
     sellerEmailVerification: true,
     onboardingEnabled: false,
-    onboardingRequiredSteps: ['shopTiming', 'shopDetails', 'legalDocuments'],
+    onboardingRequiredSteps: [
+      { name: "shopTiming", enabled: true },
+      { name: "shopDetails", enabled: true },
+      { name: "legalDocuments", enabled: true },
+      { name: "basicDetails", enabled: false },
+    ],
   });
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +60,9 @@ const Settings = () => {
         });
       }
     } catch (error) {
-      showErrorToast(error, "Failed to fetch sellers", { operation: "fetchSellers" });
+      showErrorToast(error, "Failed to fetch sellers", {
+        operation: "fetchSellers",
+      });
     } finally {
       setLoading(false);
     }
@@ -76,7 +87,10 @@ const Settings = () => {
         );
       }
     } catch (error) {
-      showErrorToast(error, "Failed to update demo access", { operation: "toggleDemoAccess", userId });
+      showErrorToast(error, "Failed to update demo access", {
+        operation: "toggleDemoAccess",
+        userId,
+      });
     }
   };
 
@@ -93,11 +107,18 @@ const Settings = () => {
       if (response.data.success) {
         setSettings({
           ...response.data.settings,
-          onboardingRequiredSteps: response.data.settings.onboardingRequiredSteps || ['shopTiming', 'shopDetails', 'legalDocuments']
+          onboardingRequiredSteps: response.data.settings
+            .onboardingRequiredSteps || [
+            "shopTiming",
+            "shopDetails",
+            "legalDocuments",
+          ],
         });
       }
     } catch (error) {
-      showErrorToast(error, "Failed to load settings", { operation: "fetchSettings" });
+      showErrorToast(error, "Failed to load settings", {
+        operation: "fetchSettings",
+      });
       // Use default settings if API fails
       showInfoToast("Using default settings", "Settings Load");
     } finally {
@@ -138,7 +159,10 @@ const Settings = () => {
 
       // Agar role-based toggle ho aur master ON hai → ignore
       if (prev.emailVerificationEnabled) {
-        showInfoToast("Master toggle ON → role-based settings locked", "Settings Lock");
+        showInfoToast(
+          "Master toggle ON → role-based settings locked",
+          "Settings Lock"
+        );
         return prev;
       }
 
@@ -150,17 +174,27 @@ const Settings = () => {
     });
   };
 
+  // const handleOnboardingStepToggle = (step) => {
+  //   setSettings((prev) => {
+  //     const currentSteps = prev.onboardingRequiredSteps;
+  //     const newSteps = currentSteps.includes(step)
+  //       ? currentSteps.filter(s => s !== step)
+  //       : [...currentSteps, step];
+
+  //     return {
+  //       ...prev,
+  //       onboardingRequiredSteps: newSteps,
+  //     };
+  //   });
+  // };
+
   const handleOnboardingStepToggle = (step) => {
     setSettings((prev) => {
-      const currentSteps = prev.onboardingRequiredSteps || [];
-      const newSteps = currentSteps.includes(step)
-        ? currentSteps.filter(s => s !== step)
-        : [...currentSteps, step];
-      
-      return {
-        ...prev,
-        onboardingRequiredSteps: newSteps,
-      };
+      const currentSteps = prev.onboardingRequiredSteps;
+      const updatedSteps = currentSteps.map((s) =>
+        s.name === step ? { ...s, enabled: !s.enabled } : s
+      );
+      return { ...prev, onboardingRequiredSteps: updatedSteps };
     });
   };
 
@@ -168,19 +202,42 @@ const Settings = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem("token");
+
+      const payload = {
+        onboardingEnabled: settings.onboardingEnabled,
+        onboardingRequiredSteps: settings.onboardingRequiredSteps.map(
+          (step) => ({
+            name: step.name,
+            enabled: step.enabled,
+          })
+        ),
+      };
+
+      const rp = await axios.patch(
+        "/api/admin/settings/onboarding-skip",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log("RPPPPPPPPPP ", rp.data);
+
       const response = await axios.put("/api/admin/settings", settings, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // ✅ Only send required onboarding payload
 
       if (response.data.success) {
         showSuccessToast("Settings saved successfully!", "Settings Update");
         setSettings(response.data.settings); // refresh after save
       }
     } catch (error) {
-      showErrorToast(error, "Failed to save settings", { 
+      showErrorToast(error, "Failed to save settings", {
         operation: "saveSettings",
         settings: settings,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } finally {
       setSaving(false);
@@ -361,7 +418,9 @@ const Settings = () => {
             <div className="setting-item">
               <div className="setting-info">
                 <h4>Onboarding Process</h4>
-                <p>Enable or disable the seller onboarding process system-wide</p>
+                <p>
+                  Enable or disable the seller onboarding process system-wide
+                </p>
               </div>
               <div className="setting-control">
                 <button
@@ -391,27 +450,32 @@ const Settings = () => {
               <div className="setting-control">
                 <div className="onboarding-steps-grid">
                   {[
-                    { key: 'shopTiming', label: 'Shop Timing' },
-                    { key: 'shopDetails', label: 'Shop Details' },
-                    { key: 'legalDocuments', label: 'Legal Documents' },
-                    { key: 'basicDetails', label: 'Basic Details' }
-                  ].map((step) => (
-                    <button
-                      key={step.key}
-                      className={`step-toggle-btn ${
-                        (settings.onboardingRequiredSteps || []).includes(step.key) ? "active" : ""
-                      }`}
-                      onClick={() => handleOnboardingStepToggle(step.key)}
-                      disabled={!settings.onboardingEnabled}
-                    >
-                      {(settings.onboardingRequiredSteps || []).includes(step.key) ? (
-                        <FaCheckSquare className="step-icon active" />
-                      ) : (
-                        <FaSquare className="step-icon" />
-                      )}
-                      <span>{step.label}</span>
-                    </button>
-                  ))}
+                    { key: "shopTiming", label: "Shop Timing" },
+                    { key: "shopDetails", label: "Shop Details" },
+                    { key: "legalDocuments", label: "Legal Documents" },
+                    { key: "basicDetails", label: "Basic Details" },
+                  ].map((step) => {
+                    const stepData = settings.onboardingRequiredSteps.find(
+                      (s) => s.name === step.key
+                    );
+                    return (
+                      <button
+                        key={step.key}
+                        className={`step-toggle-btn ${
+                          stepData?.enabled ? "active" : ""
+                        }`}
+                        onClick={() => handleOnboardingStepToggle(step.key)}
+                        disabled={!settings.onboardingEnabled}
+                      >
+                        {stepData?.enabled ? (
+                          <FaCheckSquare className="step-icon active" />
+                        ) : (
+                          <FaSquare className="step-icon" />
+                        )}
+                        <span>{step.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -419,8 +483,10 @@ const Settings = () => {
             {!settings.onboardingEnabled && (
               <div className="onboarding-info-note">
                 <p>
-                  <strong>Note:</strong> When onboarding is disabled, sellers will have full dashboard access immediately after registration. 
-                  Only the selected essential steps above will be shown as optional reminders via toast notifications.
+                  <strong>Note:</strong> When onboarding is disabled, sellers
+                  will have full dashboard access immediately after
+                  registration. Only the selected essential steps above will be
+                  shown as optional reminders via toast notifications.
                 </p>
               </div>
             )}

@@ -1,7 +1,10 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { showErrorToast, showSuccessToast } from "../../utils/muiAlertHandler.jsx";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "../../utils/muiAlertHandler.jsx";
 import axios from "../../utils/axios";
 import { FaUserCircle } from "react-icons/fa";
 import "./Login.css";
@@ -116,7 +119,7 @@ const Login = () => {
           "systemSettings",
           JSON.stringify(res.data.settings)
         );
-        // console.log("⚙️ Loaded system settings:", res.data.settings);
+        console.log("⚙️ Loaded system settings:", res.data.settings);
       } catch (err) {
         console.error("❌ Failed to fetch system settings:", err);
       }
@@ -260,11 +263,26 @@ const Login = () => {
         }
 
         // //  Skip onboarding if demoAccess is true
-        if (response.data.demoAccess || response.data.user.demoAccess) {
+        if (
+          response.data.demoAccess ||
+          response.data.user.demoAccess ||
+          response.data.user.isOnboardingComplete
+        ) {
           if (response.data.user.role === "shopowner") {
             navigate("/seller/dashboard");
           } else {
             navigate("/");
+          }
+          return;
+        }
+
+        if (response.data.user.role === "shopowner") {
+          if (systemSettings?.onboardingEnabled) {
+            //  Onboarding required → go onboarding
+            navigateWithTransition(navigate, "/onboarding", { replace: true });
+          } else {
+            //  Onboarding disabled → go direct dashboard
+            navigate("/seller/dashboard");
           }
           return;
         }

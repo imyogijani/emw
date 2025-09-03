@@ -13,6 +13,7 @@ import Product from "../models/productModel.js";
 import {
   checkServiceability,
   getDeliveryCharge,
+  getExpectedTAT,
 } from "../controllers/shipmentController.js";
 
 export const checkoutSummary = asyncHandler(async (req, res) => {
@@ -49,13 +50,14 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
   }
 
   // // Serviceability check
-  // const serviceCheck = await checkServiceability(shippingAddress.pincode);
-  // if (!serviceCheck.serviceable) {
-  //   return res.status(400).json({
-  //     success: false,
-  //     message: `Delivery not available at pincode ${shippingAddress.pincode}`,
-  //   });
-  // }
+  const serviceCheck = await checkServiceability(shippingAddress.pincode);
+
+  if (!serviceCheck.serviceable) {
+    return res.status(400).json({
+      success: false,
+      message: `Delivery not available at pincode ${shippingAddress.pincode}`,
+    });
+  }
 
   // Get cart
   const cart = await Cart.findOne({ userId })
@@ -143,6 +145,9 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
         product.technicalDetails?.weight || product.weight || "0.5kg";
       // let quantity = product.quantity || 1;
 
+      rawWeight = rawWeight / 1000;
+      console.log("Product weight get ----> ", rawWeight);
+
       // Normalize → string ko lowercase karo aur space hatao
       rawWeight = rawWeight.toString().toLowerCase().trim();
 
@@ -167,7 +172,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
         sellerWeight
       );
 
-      // Agar API ko kg me bhejna hai to :
+      // If kg in send  --> finalWeightInKg :
       const finalWeightInKg = sellerWeight / 1000;
       console.log("Final Seller Weight (kg):", finalWeightInKg);
 
@@ -190,8 +195,8 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       pickupPincode,
       shippingAddress.pincode,
       sellerWeight,
-      false,
-      sellerSubTotal
+      false
+      // sellerSubTotal
     );
 
     // console.log(
@@ -201,6 +206,12 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
     //   sellerWeight,
     //   sellerSubTotal
     // );
+
+    const tatResult = await getExpectedTAT(
+      pickupPincode,
+      shippingAddress.pincode,
+      "E" // Express default, ya tum condition laga sakte ho
+    );
 
     totalDeliveryCharge += sellerDeliveryCharge;
     // totalDeliveryCharge += 100;
@@ -216,6 +227,8 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       sellerSubTotal,
       sellerGST,
       products: productsSummary,
+      expectedDeliveryDays: tatResult.expectedDays, //  yaha add
+      expectedDeliveryDate: tatResult.expectedDate,
     });
   }
 

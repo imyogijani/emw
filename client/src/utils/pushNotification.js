@@ -10,7 +10,7 @@ export const showFallbackNotification = (title, body) => {
       icon: "/favicon.png",
     });
   } else {
-    console.log(`📢 Notification: ${title}${body ? ' - ' + body : ''}`);
+    console.log(`📢 Notification: ${title}${body ? " - " + body : ""}`);
   }
 };
 
@@ -51,7 +51,7 @@ export const requestPushPermission = async (userId) => {
     }
 
     // Check if service worker is registered
-    if (!('serviceWorker' in navigator)) {
+    if (!("serviceWorker" in navigator)) {
       console.warn("🚫 Service Worker not supported");
       return;
     }
@@ -100,11 +100,16 @@ export const requestPushPermission = async (userId) => {
       }
     });
   } catch (err) {
-    if (err.name === 'AbortError' && err.message.includes('push service not available')) {
-      console.warn("⚠️ Push notifications not available in this environment (likely development mode)");
+    if (
+      err.name === "AbortError" &&
+      err.message.includes("push service not available")
+    ) {
+      console.warn(
+        "⚠️ Push notifications not available in this environment (likely development mode)"
+      );
       console.info("💡 Push notifications will work in production with HTTPS");
       console.info("🔄 Using fallback notification system for development");
-      
+
       // Set up fallback notification system
       window.showDevNotification = showFallbackNotification;
     } else {

@@ -20,6 +20,10 @@ import axios from "../../utils/axios";
 import { getCurrentUser } from "../../utils/user";
 import JumpingLoader from "../../Components/JumpingLoader";
 import "./Payment.css";
+import {
+  processImageUrl,
+  processCategoryImageUrl,
+} from "../../utils/apiConfig";
 
 export default function Payment() {
   const navigate = useNavigate();
@@ -143,12 +147,18 @@ export default function Payment() {
     const { cardNumber, expiryDate, cvv, cardholderName } = cardDetails;
 
     if (!cardNumber || cardNumber.replace(/\s/g, "").length < 13) {
-      showErrorToast("Please enter a valid card number", "Payment - Card Validation");
+      showErrorToast(
+        "Please enter a valid card number",
+        "Payment - Card Validation"
+      );
       return false;
     }
 
     if (!expiryDate || expiryDate.length !== 5) {
-      showErrorToast("Please enter a valid expiry date", "Payment - Card Validation");
+      showErrorToast(
+        "Please enter a valid expiry date",
+        "Payment - Card Validation"
+      );
       return false;
     }
 
@@ -176,7 +186,10 @@ export default function Payment() {
     }
 
     if (!cardholderName.trim()) {
-      showErrorToast("Please enter cardholder name", "Payment - Card Validation");
+      showErrorToast(
+        "Please enter cardholder name",
+        "Payment - Card Validation"
+      );
       return false;
     }
 
@@ -240,7 +253,7 @@ export default function Payment() {
         orderDate: new Date().toISOString(),
         status: "confirmed",
         estimatedDelivery: new Date(
-          Date.now() + 2 * 24 * 60 * 60 * 1000,
+          Date.now() + 2 * 24 * 60 * 60 * 1000
         ).toISOString(), // 2 days from now
       };
 
@@ -265,14 +278,17 @@ export default function Payment() {
       // Store order data for invoice
       sessionStorage.setItem(
         "completedOrder",
-        JSON.stringify(completeOrderData),
+        JSON.stringify(completeOrderData)
       );
 
       // Clear cart
       clearCart();
 
       // Show success message
-      showSuccessToast("Payment successful! Order placed.", "Payment - Success");
+      showSuccessToast(
+        "Payment successful! Order placed.",
+        "Payment - Success"
+      );
 
       // Redirect to invoice page
       navigate(`/invoice/${orderId}`);
@@ -332,7 +348,9 @@ export default function Payment() {
               {paymentMethods.map((method) => (
                 <div
                   key={method.id}
-                  className={`payment-method ${selectedPaymentMethod === method.id ? "selected" : ""}`}
+                  className={`payment-method ${
+                    selectedPaymentMethod === method.id ? "selected" : ""
+                  }`}
                   onClick={() => setSelectedPaymentMethod(method.id)}
                 >
                   <div className="payment-method-icon">{method.icon}</div>
@@ -484,44 +502,47 @@ export default function Payment() {
               <div className="address-info">
                 <p>
                   <strong>
-                    {orderData.billingDetails.firstName}{" "}
-                    {orderData.billingDetails.lastName}
+                    {orderData?.userData.firstName}{" "}
+                    {orderData?.userData.lastName}
                   </strong>
                 </p>
-                <p>{orderData.billingDetails.address}</p>
+                <p>{orderData?.userData.address}</p>
                 <p>
-                  {orderData.billingDetails.city},{" "}
-                  {orderData.billingDetails.state}{" "}
-                  {orderData.billingDetails.pincode}
+                  {orderData?.userData.city}, {orderData?.userData.state}{" "}
+                  {orderData?.userData.pincode}
                 </p>
-                <p>{orderData.billingDetails.phone}</p>
-                <p>{orderData.billingDetails.email}</p>
+                <p>{orderData?.userData.phone}</p>
+                <p>{orderData?.userData.email}</p>
               </div>
             </div>
 
             <div className="order-items-summary">
               <h3>Items ({orderData.items.length})</h3>
               {orderData.items.slice(0, 3).map((item) => {
-                const itemId = item.id || item._id;
+                console.log("Payment items Data : ", orderData.items);
+                const itemId = item.productId || item.id;
                 const itemPrice = parseFloat(
-                  item.price?.toString().replace(/[^0-9.]/g, "") || 0,
+                  item.finalPrice?.toString().replace(/[^0-9.]/g, "") || 0
                 );
                 return (
                   <div key={itemId} className="order-item-mini">
                     <img
-                      src={item.image || "/placeholder-image.jpg"}
+                      src={
+                        processImageUrl(item.image) || "/placeholder-image.jpg"
+                      }
                       alt={item.title || item.name}
                     />
                     <div className="item-info">
                       <span className="item-name">
-                        {item.title || item.name}
+                        {item.name || item.title}
                       </span>
                       <span className="item-qty">
                         Qty: {item.quantity || 1}
                       </span>
                     </div>
                     <span className="item-total">
-                      ₹{(itemPrice * (item.quantity || 1)).toFixed(2)}
+                      {/* ₹{(itemPrice * (item.quantity || 1)).toFixed(2)} */}₹
+                      {`${item?.productTotal}`}
                     </span>
                   </div>
                 );
@@ -536,42 +557,42 @@ export default function Payment() {
             <div className="price-summary">
               <div className="price-row">
                 <span>Subtotal</span>
-                <span>₹{orderData.pricing.subtotal.toFixed(2)}</span>
+                <span>₹{orderData.pricing?.subTotal.toFixed(2)}</span>
               </div>
 
               {orderData.pricing.couponDiscount > 0 && (
                 <div className="price-row discount">
                   <span>Coupon Discount</span>
-                  <span>-₹{orderData.pricing.couponDiscount.toFixed(2)}</span>
+                  <span>-₹{orderData.pricing?.couponDiscount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="price-row">
                 <span>GST (18%)</span>
-                <span>₹{orderData.pricing.gstAmount.toFixed(2)}</span>
+                <span>₹{orderData.pricing?.gstAmount.toFixed(2)}</span>
               </div>
 
-              <div className="price-row">
+              {/* <div className="price-row">
                 <span>Packaging</span>
-                <span>₹{orderData.pricing.packagingCharge.toFixed(2)}</span>
-              </div>
+                <span>₹{orderData.pricing?.packagingCharge.toFixed(2)}</span>
+              </div> */}
 
               <div className="price-row">
                 <span>Delivery</span>
                 <span
                   className={
-                    orderData.pricing.deliveryCharge === 0 ? "free" : ""
+                    orderData.pricing?.totalDeliveryCharge === 0 ? "free" : ""
                   }
                 >
-                  {orderData.pricing.deliveryCharge === 0
+                  {orderData.pricing?.totalDeliveryCharge === 0
                     ? "FREE"
-                    : `₹${orderData.pricing.deliveryCharge.toFixed(2)}`}
+                    : `₹${orderData.pricing?.totalDeliveryCharge.toFixed(2)}`}
                 </span>
               </div>
 
               <div className="price-row total">
                 <span>Total Amount</span>
-                <span>₹{orderData.pricing.grandTotal.toFixed(2)}</span>
+                <span>₹{orderData.pricing?.totalAmount.toFixed(2)}</span>
               </div>
             </div>
 
@@ -589,7 +610,7 @@ export default function Payment() {
                 <>
                   {selectedPaymentMethod === "cod"
                     ? "Place Order"
-                    : `Pay ₹${orderData.pricing.grandTotal.toFixed(2)}`}
+                    : `Pay ₹${orderData.pricing?.totalAmount.toFixed(2)}`}
                   <ArrowRight size={16} />
                 </>
               )}

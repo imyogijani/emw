@@ -28,7 +28,7 @@ const AddProduct = () => {
     variants: [],
     technicalDetailsId: "6878d66d910126f21713e286",
     hsnCode: "",
-    gstPercentage: "", // Input
+    gstPercentage: 0, // Input
     finalPrice: 0, // Auto calculate
     gstAmount: 0, // Auto calculate
     commissionRate: 0, // Auto calculate
@@ -434,7 +434,7 @@ const AddProduct = () => {
     }
   };
   useEffect(() => {
-    const price = Number(formData.price) || 0; // Seller ne diya hua price (GST included)
+    const price = Number(formData.price) || 0; // Seller give price (GST included)
     const discount = Number(formData.discount) || 0;
     const gstPercentage = Number(formData.gstPercentage) || 0;
 

@@ -19,7 +19,7 @@ export const checkServiceability = async (pincode) => {
     // console.log("full url : --",)
 
     console.log(" API Call Success");
-    console.log("📦 Full Response:", JSON.stringify(response.data, null, 2));
+    // console.log("📦 Full Response:", JSON.stringify(response.data, null, 2));
 
     if (
       response.data &&
@@ -47,9 +47,8 @@ export const checkServiceability = async (pincode) => {
 export const getDeliveryCharge = async (
   pickup_pincode,
   delivery_pincode,
-  weight, // expects only grams .
-  cod,
-  order_value
+  weight, // only in grams
+  cod
 ) => {
   console.log("🔄 [Delhivery] getDeliveryCharge START");
   console.log("📦 Request Params:", {
@@ -57,29 +56,33 @@ export const getDeliveryCharge = async (
     delivery_pincode,
     weight,
     cod,
-    order_value,
   });
 
   try {
-    const response = await apiClient.post(
+    const response = await apiClient.get(
       `/api/kinko/v1/invoice/charges/.json`,
       {
-        pickup_pincode,
-        delivery_pincode,
-        weight,
-        cod,
-        order_value,
+        params: {
+          md: "E", // Express (default use kar sakte ho)
+          ss: "Delivered", // Shipment status
+          o_pin: pickup_pincode,
+          d_pin: delivery_pincode,
+          cgm: weight, // grams me bhejna hai
+          pt: cod ? "COD" : "Pre-paid", // payment type
+        },
       }
     );
 
     console.log(" [Delhivery] API Response:", response.data);
 
-    if (response.data && response.data.delivery_charges) {
-      console.log("💰 [Delhivery] Total Charge:", response.data.total_amount);
+    if (response.data && response.data.total_amount) {
       return response.data.total_amount;
     }
+    return (
+      response.data[0]?.total_amount || response.data[0]?.gross_amount || 0
+    );
 
-    console.warn("⚠️ [Delhivery] Response me delivery_charges nahi mile.");
+    console.warn("⚠️ [Delhivery] Response me total_amount nahi mila.");
     return 0;
   } catch (error) {
     console.error("❌ [Delhivery] Rate API Error:", {
@@ -90,6 +93,42 @@ export const getDeliveryCharge = async (
     return 0; // fallback
   } finally {
     console.log("🔚 [Delhivery] getDeliveryCharge END");
+  }
+};
+
+// Delhivery Expected TAT API call
+export const getExpectedTAT = async (
+  origin_pin,
+  destination_pin,
+  mot = "E"
+) => {
+  console.log("🔄 [Delhivery] getExpectedTAT START");
+
+  try {
+    const response = await apiClient.get(`/api/dc/expected_tat`, {
+      params: {
+        origin_pin,
+        destination_pin,
+        mot, // "E" = Express, "S" = Surface
+        pdt: "B2C", // optional (default B2C)
+      },
+    });
+
+    console.log("📦 [Delhivery] TAT Response:", response.data);
+
+    return {
+      expectedDays: response.data?.expected_tat_days || null,
+      expectedDate: response.data?.expected_delivery_date || null,
+    };
+  } catch (error) {
+    console.error("❌ [Delhivery] TAT API Error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return { expectedDays: null, expectedDate: null };
+  } finally {
+    console.log("🔚 [Delhivery] getExpectedTAT END");
   }
 };
 
