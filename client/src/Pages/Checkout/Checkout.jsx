@@ -282,7 +282,7 @@ export default function Checkout() {
         setSummaryData(resp.data);
         const items = buildCartItemsFromResponse(resp.data);
         setCartItems(items);
-        console.log("fetchCheckoutSummary ---> ---> ", resp.data.subTotal);
+        console.log("fetchCheckoutSummary ---> ---> ", resp.data);
       } else {
         showErrorToast(
           resp.data.message || "Failed to fetch summary",
@@ -354,7 +354,12 @@ export default function Checkout() {
       });
 
       if (resp.data.success) {
-        setAppliedCoupon(resp.data.coupon);
+        setAppliedCoupon({
+          code: resp.data.coupon,
+          discount: resp.data.discount,
+          description: resp.data.description,
+          offerId: resp.data.offerId,
+        });
 
         //  Backend se updated summary lo (ye important hai)
         if (resp.data) {
@@ -379,12 +384,12 @@ export default function Checkout() {
   const removeCoupon = () => {
     // setAppliedCoupon(null);
     // fetchCheckoutSummary(billingDetails); // refresh without coupon
+    // console.log("code: 000-0-", appliedCoupon.code);
 
     setAppliedCoupon(null);
     setUserData((prev) => ({ ...prev, code: "" })); // reset code
     fetchCheckoutSummary({ ...userData, code: "" });
   };
-
   const validateCheckoutForm = () => {
     const validationRules = {
       firstName: {
@@ -409,30 +414,66 @@ export default function Checkout() {
         minLengthMessage: "Please enter a valid 10-digit phone number",
         maxLengthMessage: "Please enter a valid 10-digit phone number",
       },
-      address: {
-        required: true,
-        requiredMessage: "Address is required",
-      },
-      city: {
-        required: true,
-        requiredMessage: "City is required",
-      },
-      state: {
-        required: true,
-        requiredMessage: "State is required",
-      },
-      pincode: {
-        required: true,
-        requiredMessage: "Pincode is required",
-        minLength: 6,
-        maxLength: 6,
-        minLengthMessage: "Please enter a valid 6-digit pincode",
-        maxLengthMessage: "Please enter a valid 6-digit pincode",
+      // Shipping Address validation
+      shippingAddress: {
+        addressLine1: {
+          required: true,
+          requiredMessage: "Address Line 1 is required",
+        },
+        city: {
+          required: true,
+          requiredMessage: "City is required",
+        },
+        state: {
+          required: true,
+          requiredMessage: "State is required",
+        },
+        pincode: {
+          required: true,
+          requiredMessage: "Pincode is required",
+          minLength: 6,
+          maxLength: 6,
+          minLengthMessage: "Please enter a valid 6-digit pincode",
+          maxLengthMessage: "Please enter a valid 6-digit pincode",
+        },
       },
     };
 
-    const { isValid } = validateForm(billingDetails, validationRules);
-    return isValid;
+    // Custom validate function for nested fields
+    const validateData = (data, rules) => {
+      let isValid = true;
+
+      for (const key in rules) {
+        if (typeof rules[key] === "object" && !Array.isArray(rules[key])) {
+          // Nested object validation
+          if (data[key] && typeof data[key] === "object") {
+            const nestedValid = validateData(data[key], rules[key]);
+            if (!nestedValid) isValid = false;
+          }
+        } else {
+          // Simple field validation
+          const value = data[key];
+          const rule = rules[key];
+          if (rule.required && (!value || value.toString().trim() === "")) {
+            showErrorToast(rule.requiredMessage);
+            isValid = false;
+          } else if (rule.pattern && !rule.pattern.test(value)) {
+            showErrorToast(rule.patternMessage);
+            isValid = false;
+          } else if (rule.minLength && value.length < rule.minLength) {
+            showErrorToast(rule.minLengthMessage);
+            isValid = false;
+          } else if (rule.maxLength && value.length > rule.maxLength) {
+            showErrorToast(rule.maxLengthMessage);
+            isValid = false;
+          }
+        }
+      }
+
+      return isValid;
+    };
+
+    return validateData(userData, validationRules);
   };
 
   const handleProceedToPayment = () => {
@@ -440,16 +481,21 @@ export default function Checkout() {
 
     const orderData = {
       items: cartItems,
-      billingDetails,
+      // billingDetails,
+      userData,
       pricing: {
-        subtotal,
-        gstAmount: finalGstAmount,
+        // subtotal,
+        subTotal: summaryData?.subTotal,
+        totalDeliveryCharge: summaryData?.totalDeliveryCharge,
+        gstAmount: summaryData?.totalGST,
         deliveryCharge,
-        packagingCharge,
-        couponDiscount,
+        // packagingCharge,
+        couponDiscount: appliedCoupon?.discount,
         couponCode: appliedCoupon?.code || null,
-        grandTotal,
+        // grandTotal,
+        totalAmount: summaryData?.totalAmount,
       },
+      appliedCoupon: appliedCoupon,
     };
 
     // Store order data in sessionStorage for payment page

@@ -14,19 +14,12 @@ export const createCategoryController = async (req, res) => {
   try {
     // console.log("[DEBUG] req.body:", req.body);
     // console.log("[DEBUG] req.file:", req.file);
-    let {
-      name,
-      parent,
-      brands,
-      gstPercentage,
-      suggestedHsnCodes,
-      defaultHsnCode,
-    } = req.body;
+    let { name, parent, brands, suggestedHsnCodes, defaultHsnCode } = req.body;
     // Convert gstPercentage to number if string
 
-    if (gstPercentage) {
-      gstPercentage = Number(gstPercentage) || 0;
-    }
+    // if (gstPercentage) {
+    //   gstPercentage = Number(gstPercentage) || 0;
+    // }
 
     let image = "";
     let imageId = null;
@@ -76,7 +69,6 @@ export const createCategoryController = async (req, res) => {
       parent: parent || null,
       image,
       brands: brands || [],
-      gstPercentage,
     };
 
     // Only add HSN codes for subcategories (when parent exists)

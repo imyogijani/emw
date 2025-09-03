@@ -13,6 +13,8 @@ export const upsertShopTiming = async (req, res) => {
       incrementOnboarding,
     } = req.body;
 
+    console.log(" Shoptiming body: ", req.body);
+
     // Validate mode
     if (!["24/7", "scheduled", "appointment"].includes(shopTimingMode)) {
       return res

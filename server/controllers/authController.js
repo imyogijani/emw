@@ -915,7 +915,7 @@ const updateRoleController = async (req, res) => {
   try {
     const { role } = req.body;
     const userId = req.userId; // From auth middleware
-    console.log("Updating role for user:", userId, "New role:", role);
+    console.log("Updating role for user:", req.userId, "New role:", role);
 
     if (!role || !["client", "shopowner"].includes(role)) {
       return res.status(400).send({

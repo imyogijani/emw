@@ -8,10 +8,24 @@ const settingsSchema = new mongoose.Schema(
     maintenanceMode: { type: Boolean, default: false },
     allowRegistration: { type: Boolean, default: true },
     onboardingEnabled: { type: Boolean, default: false, required: true },
+    // onboardingRequiredSteps: {
+    //   type: [String],
+    //   default: ['shopTiming', 'shopDetails', 'legalDocuments'],
+    //   required: true
+    // },
+
     onboardingRequiredSteps: {
-      type: [String],
-      default: ['shopTiming', 'shopDetails', 'legalDocuments'],
-      required: true
+      type: [
+        {
+          name: { type: String, required: true },
+          enabled: { type: Boolean, default: true },
+        },
+      ],
+      default: [
+        { name: "shopTiming", enabled: true },
+        { name: "shopDetails", enabled: true },
+        { name: "legalDocuments", enabled: true },
+      ],
     },
   },
   { timestamps: true }

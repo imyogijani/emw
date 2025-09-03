@@ -52,6 +52,8 @@ import {
   adminUpdateDocumentStatus,
 } from "../controllers/sellerDocumentController.js";
 
+import { updateOnboardingSettings } from "../controllers/settingsController.js";
+
 // Settings controller import removed - using updateSettings from adminController instead
 
 const router = express.Router();
@@ -125,6 +127,7 @@ router.patch("/documents/:docId/status", adminUpdateDocumentStatus);
 // Settings management
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
+router.patch("/settings/onboarding-skip", updateOnboardingSettings);
 
 // Onboarding management
 router.get("/onboarding/incomplete", getIncompleteOnboardingUsers);

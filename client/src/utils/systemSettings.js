@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import axios from './axios';
+import axios from "./axios";
 
 // Cache for system settings to avoid repeated API calls
 let settingsCache = null;
@@ -13,24 +13,28 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 export const getSystemSettings = async () => {
   try {
     // Check if we have valid cached settings
-    if (settingsCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
+    if (
+      settingsCache &&
+      cacheTimestamp &&
+      Date.now() - cacheTimestamp < CACHE_DURATION
+    ) {
       return settingsCache;
     }
 
-    const response = await axios.get('/api/settings');
+    const response = await axios.get("/api/settings");
     if (response.data.success) {
       settingsCache = response.data.settings;
       cacheTimestamp = Date.now();
       return settingsCache;
     } else {
-      throw new Error('Failed to fetch system settings');
+      throw new Error("Failed to fetch system settings");
     }
   } catch (error) {
-    console.error('Error fetching system settings:', error);
+    console.error("Error fetching system settings:", error);
     // Return default settings if API fails
     return {
       onboardingEnabled: true,
-      onboardingRequiredSteps: ['basicDetails', 'legalDocuments']
+      onboardingRequiredSteps: ["basicDetails", "legalDocuments"],
     };
   }
 };
@@ -58,10 +62,18 @@ export const isOnboardingEnabled = async () => {
  */
 export const getRequiredOnboardingSteps = async () => {
   const settings = await getSystemSettings();
-  // Always include basicDetails and legalDocuments as required steps
-  return settings.onboardingRequiredSteps || ['basicDetails'];
-};
 
+  // Agar onboardingRequiredSteps exist kare
+  if (settings?.onboardingRequiredSteps?.length) {
+    // Sirf enabled true ke names nikal lo
+    return settings.onboardingRequiredSteps
+      .filter((step) => step.enabled) // enabled=true wale filter
+      .map((step) => step.name); // sirf name return
+  }
+
+  // fallback agar kuch nahi mila toh
+  return ["basicDetails"];
+};
 /**
  * Map step keys to step numbers for the onboarding flow
  */
@@ -69,7 +81,7 @@ export const STEP_MAPPING = {
   basicDetails: 1,
   shopTiming: 2,
   legalDocuments: 3,
-  subscription: 4
+  subscription: 4,
 };
 
 /**
@@ -89,5 +101,5 @@ export const getStepNumber = (stepKey) => {
 export const getStepKey = (stepNumber) => {
   const entries = Object.entries(STEP_MAPPING);
   const found = entries.find(([key, num]) => num === stepNumber);
-  return found ? found[0] : 'basicDetails';
+  return found ? found[0] : "basicDetails";
 };

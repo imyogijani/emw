@@ -15,7 +15,7 @@ export const checkServiceability = async (pincode) => {
     // console.log("full url : --",)
 
     console.log(" API Call Success");
-    console.log("📦 Full Response:", JSON.stringify(response.data, null, 2));
+    // console.log("📦 Full Response:", JSON.stringify(response.data, null, 2));
 
     if (
       response.data &&

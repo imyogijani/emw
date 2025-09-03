@@ -15,7 +15,7 @@ router.post(
   authenticateToken,
   fetchUser,
   demoGuard,
-  checkOnboardingSettings,
+  // checkOnboardingSettings,
   addShopAddress
 );
 router.patch(
@@ -23,7 +23,7 @@ router.patch(
   authenticateToken,
   fetchUser,
   demoGuard,
-  checkOnboardingSettings,
+  // checkOnboardingSettings,
   updateShopAddress
 );
 router.delete(
@@ -31,7 +31,7 @@ router.delete(
   authenticateToken,
   fetchUser,
   demoGuard,
-  checkOnboardingSettings,
+  // checkOnboardingSettings,
   deleteShopAddress
 );
 

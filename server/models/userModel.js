@@ -62,7 +62,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     address: {
-      addressLine: { type: String, required: false },
+      addressLine1: { type: String, required: false },
       addressLine2: { type: String, required: false },
       city: { type: String, required: false },
       state: { type: String, required: false },
