@@ -104,7 +104,7 @@ const About = () => {
             <div className="feature-item">
               <Truck size={50} />
               <h3>Free Shipping</h3>
-              <p>Free delivery on orders over $50</p>
+              <p>Free delivery on orders over ₹50</p>
             </div>
             <div className="feature-item">
               <Shield size={50} />

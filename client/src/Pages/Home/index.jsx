@@ -732,7 +732,7 @@ const SpotlightCarousel = ({ products }) => {
                   />
                   <div className="spotlight-product-info">
                     <h3>{product.name}</h3>
-                    <p className="spotlight-price">${product.price}</p>
+                    <p className="spotlight-price">₹{product.price}</p>
                   </div>
                 </div>
                 );

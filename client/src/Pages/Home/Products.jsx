@@ -279,9 +279,9 @@ export default function Products() {
           </div>
           
           <div className="product-pricing">
-            <span className="current-price">${product.price}</span>
+            <span className="current-price">₹{product.price}</span>
             {product.originalPrice > product.price && (
-              <span className="original-price">${product.originalPrice}</span>
+              <span className="original-price">₹{product.originalPrice}</span>
             )}
           </div>
           

@@ -234,7 +234,7 @@ export const startFreeTrial = async (req, res) => {
 
     await Seller.findOneAndUpdate(
       { user: userId }, // seller linked to this user
-      { isOnboardingComplete: true }
+      { isOnboardingComplete: true, status: "active" }
     );
 
     res.status(200).json({

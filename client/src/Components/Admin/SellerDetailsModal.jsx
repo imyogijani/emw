@@ -51,7 +51,7 @@ const SellerDetailsModal = ({ sellerId, onClose }) => {
           {sellerDetails.subscription ? (
             <>
               <p><strong>Plan Name:</strong> {sellerDetails.subscription.planName}</p>
-              <p><strong>Price:</strong> ${sellerDetails.subscription.price}</p>
+              <p><strong>Price:</strong> ₹{sellerDetails.subscription.price}</p>
               <p><strong>Duration:</strong> {sellerDetails.subscription.duration}</p>
               <p><strong>Features:</strong> {sellerDetails.subscription.features.join(', ')}</p>
               <p><strong>Subscription Start Date:</strong> {new Date(sellerDetails.subscriptionStartDate).toLocaleDateString()}</p>

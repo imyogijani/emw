@@ -17,7 +17,7 @@ import mallimage from "../images/Mall1.png";
 
 const navLinks = [
   { name: "Home", path: "/" },
-  { name: "Browse Products", path: "/products" },
+  { name: "Shop", path: "/products" },
   { name: "Today's Deals", path: "/Offer" },
   { name: "All Stores", path: "/shops" },
 ];
@@ -78,8 +78,8 @@ const Navbar = () => {
   }, [showMobileMenu]);
 
   const handleLogout = async () => {
-    const { showSuccessToast } = await import('../utils/muiAlertHandler.jsx');
-    
+    const { showSuccessToast } = await import("../utils/muiAlertHandler.jsx");
+
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -191,7 +191,9 @@ const Navbar = () => {
                           setShowProfile(true);
                         }}
                       >
-                        <span className="sparkle"><FaCog /></span>
+                        <span className="sparkle">
+                          <FaCog />
+                        </span>
                         <span className="text">My Profile</span>
                       </button>
                       <button
@@ -201,14 +203,18 @@ const Navbar = () => {
                           navigate("/profile-edit"); // Assuming a route for editing profile
                         }}
                       >
-                        <span className="sparkle"><FaCog /></span>
+                        <span className="sparkle">
+                          <FaCog />
+                        </span>
                         <span className="text">Edit Profile</span>
                       </button>
                       <button
                         className="btn btn-small btn-danger menu-item dashboard-dropdown logout"
                         onClick={handleLogout}
                       >
-                        <span className="sparkle"><FaSignOutAlt /></span>
+                        <span className="sparkle">
+                          <FaSignOutAlt />
+                        </span>
                         <span className="text">Logout</span>
                       </button>
                     </div>
@@ -221,12 +227,17 @@ const Navbar = () => {
                 className="btn btn-medium btn-primary login-button"
                 style={{ textDecoration: "none" }}
               >
-                <span className="sparkle"><FaSignInAlt /></span>
+                <span className="sparkle">
+                  <FaSignInAlt />
+                </span>
                 <span className="text">Sign In</span>
               </Link>
             )}
 
-            <button className="btn btn-small btn-secondary mobile-menu-toggle" onClick={toggleMobileMenu}>
+            <button
+              className="btn btn-small btn-secondary mobile-menu-toggle"
+              onClick={toggleMobileMenu}
+            >
               <span></span>
               <span></span>
               <span></span>
@@ -254,7 +265,10 @@ const Navbar = () => {
             <span className="logo-main">E-Mall</span>
             <span className="logo-uk">World</span>
           </Link>
-          <button className="btn btn-small btn-secondary mobile-menu-close" onClick={closeMobileMenu}>
+          <button
+            className="btn btn-small btn-secondary mobile-menu-close"
+            onClick={closeMobileMenu}
+          >
             <span className="text">×</span>
           </button>
         </div>
@@ -283,11 +297,18 @@ const Navbar = () => {
                   setShowProfile(true);
                 }}
               >
-                <span className="sparkle"><FaCog /></span>
+                <span className="sparkle">
+                  <FaCog />
+                </span>
                 <span className="text">Profile Settings</span>
               </button>
-              <button className="btn btn-medium btn-danger nav-pill-link logout" onClick={handleLogout}>
-                <span className="sparkle"><FaSignOutAlt /></span>
+              <button
+                className="btn btn-medium btn-danger nav-pill-link logout"
+                onClick={handleLogout}
+              >
+                <span className="sparkle">
+                  <FaSignOutAlt />
+                </span>
                 <span className="text">Logout</span>
               </button>
             </>
@@ -297,7 +318,9 @@ const Navbar = () => {
               className="btn btn-medium btn-primary login-button"
               onClick={closeMobileMenu}
             >
-              <span className="sparkle"><FaSignInAlt /></span>
+              <span className="sparkle">
+                <FaSignInAlt />
+              </span>
               <span className="text">Sign In</span>
             </Link>
           )}

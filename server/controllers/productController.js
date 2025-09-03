@@ -436,6 +436,7 @@ export const updateProduct = async (req, res) => {
       technicalDetailsId,
       isPremium,
       hsnCode,
+      gstPercentage,
     } = req.body;
 
     const product = await Product.findById(productId);
@@ -516,6 +517,19 @@ export const updateProduct = async (req, res) => {
     if (brand !== undefined) product.brand = brand === "" ? undefined : brand;
     if (hsnCode !== undefined)
       product.hsnCode = hsnCode === "" ? undefined : hsnCode;
+    
+    // Handle GST percentage update - only if seller is GST verified
+    if (gstPercentage !== undefined) {
+      const seller = await Seller.findOne({ user: req.userId });
+      if (seller && seller.gstVerified && seller.gstNumber) {
+        product.gstPercentage = Number(gstPercentage) || 0;
+      } else if (gstPercentage !== product.gstPercentage) {
+        return res.status(400).json({
+          success: false,
+          message: "Seller GST not verified. Cannot update GST percentage.",
+        });
+      }
+    }
 
     // Get seller
     const seller = await Seller.findOne({ user: req.userId });

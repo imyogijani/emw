@@ -975,7 +975,7 @@ const updateRoleController = async (req, res) => {
           categories: [],
           location: "",
           specialist: [],
-          status: "inactive", // Inactive until onboarding is complete
+          status: "pending", // Pending until onboarding is complete
           kycVerified: false,
           onboardingStep: 0, // Track onboarding progress
         });

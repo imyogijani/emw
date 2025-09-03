@@ -60,8 +60,8 @@ const sellerSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "inactive", "banned"],
-      default: "active",
+      enum: ["pending", "active", "inactive", "banned"],
+      default: "pending",
     },
     brands: [
       {

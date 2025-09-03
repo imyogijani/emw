@@ -267,6 +267,13 @@ const AddProduct = () => {
       );
       return false;
     }
+    if (gstVerified && (!formData.gstPercentage || parseFloat(formData.gstPercentage) < 0 || parseFloat(formData.gstPercentage) > 28)) {
+      showErrorToast(
+        "Please enter a valid GST percentage (0-28%)",
+        "Add Product - Form Validation"
+      );
+      return false;
+    }
     return true;
   };
   // assuming you save email on login
@@ -658,23 +665,29 @@ const AddProduct = () => {
                     className="form-input"
                   />
                 </div>
-                {/* GST Percentage Field - only if gstVerified */}
-                {gstVerified && (
-                  <div className="form-group">
-                    <label htmlFor="gstPercentage">GST (%)</label>
-                    <Input
-                      type="number"
-                      id="gstPercentage"
-                      name="gstPercentage"
-                      value={formData.gstPercentage}
-                      onChange={handleChange}
-                      min="0"
-                      max="28"
-                      step="0.01"
-                      placeholder="Enter GST %"
-                    />
-                  </div>
-                )}
+                {/* GST Percentage Field */}
+                <div className="form-group">
+                  <label htmlFor="gstPercentage">GST (%) *</label>
+                  <Input
+                    type="number"
+                    id="gstPercentage"
+                    name="gstPercentage"
+                    value={formData.gstPercentage}
+                    onChange={handleChange}
+                    min="0"
+                    max="28"
+                    step="0.01"
+                    placeholder="Enter GST percentage"
+                    className="form-input"
+                    required
+                    disabled={!gstVerified}
+                  />
+                  {!gstVerified && (
+                    <small className="form-help-text" style={{color: '#e74c3c'}}>
+                      Complete GST verification to enable this field
+                    </small>
+                  )}
+                </div>
 
                 {/* Final Price Preview */}
                 {/* <div className="form-group">
@@ -691,12 +704,10 @@ const AddProduct = () => {
                     <span className="value">{formData.finalPrice}</span>
                   </div>
 
-                  {gstVerified && (
-                    <div className="summary-item">
-                      <span>GST Amount</span>
-                      <span className="value">{formData.gstAmount}</span>
-                    </div>
-                  )}
+                  <div className="summary-item">
+                    <span>GST Amount</span>
+                    <span className="value">₹{formData.gstAmount}</span>
+                  </div>
 
                   <div className="summary-item">
                     <span>Commission Rate</span>

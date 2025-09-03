@@ -39,7 +39,7 @@ const Account = () => {
       id: 'ORD-001',
       date: '2024-01-15',
       status: 'Delivered',
-      total: '$299.99',
+      total: '₹299.99',
       items: 3,
       image: '/api/placeholder/60/60'
     },
@@ -47,7 +47,7 @@ const Account = () => {
       id: 'ORD-002',
       date: '2024-01-10',
       status: 'In Transit',
-      total: '$149.50',
+      total: '₹149.50',
       items: 2,
       image: '/api/placeholder/60/60'
     },
@@ -55,7 +55,7 @@ const Account = () => {
       id: 'ORD-003',
       date: '2024-01-05',
       status: 'Processing',
-      total: '$89.99',
+      total: '₹89.99',
       items: 1,
       image: '/api/placeholder/60/60'
     }
@@ -65,7 +65,7 @@ const Account = () => {
     {
       id: 1,
       name: 'Wireless Headphones',
-      price: '$199.99',
+      price: '₹199.99',
       image: '/api/placeholder/100/100',
       rating: 4.5,
       inStock: true
@@ -73,7 +73,7 @@ const Account = () => {
     {
       id: 2,
       name: 'Smart Watch',
-      price: '$299.99',
+      price: '₹299.99',
       image: '/api/placeholder/100/100',
       rating: 4.8,
       inStock: false
@@ -81,7 +81,7 @@ const Account = () => {
     {
       id: 3,
       name: 'Laptop Stand',
-      price: '$49.99',
+      price: '₹49.99',
       image: '/api/placeholder/100/100',
       rating: 4.2,
       inStock: true
