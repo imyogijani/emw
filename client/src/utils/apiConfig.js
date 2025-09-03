@@ -20,16 +20,14 @@ export const getApiBaseUrl = () => {
     
     let apiBaseUrl;
     
-    if (isDevelopment || mode === 'development') {
-      // Use local API URL for development
+    // Force localhost usage when running on localhost, regardless of mode
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || isDevelopment || mode === 'development') {
+      // Use local API URL for development or localhost
       apiBaseUrl = import.meta.env.VITE_API_BASE_URL_LOCAL || 'http://localhost:8080';
     } else {
       // Production environment detection
       if (hostname === 'emallworld.com' || hostname === 'www.emallworld.com') {
         apiBaseUrl = import.meta.env.VITE_API_BASE_URL_PROD || 'https://api.emallworld.com';
-      } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        // Local production build testing
-        apiBaseUrl = import.meta.env.VITE_API_BASE_URL_LOCAL || 'http://localhost:8080';
       } else {
         // Default to production API for any other domain
         apiBaseUrl = import.meta.env.VITE_API_BASE_URL_PROD || 'https://api.emallworld.com';

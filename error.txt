@@ -1,300 +1,631 @@
-react-dom_client.js?v=aef28c6a:17987 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
-apiConfig.js:13 Environment Detection: {isDevelopment: true, mode: 'development', hostname: 'localhost', VITE_API_BASE_URL_LOCAL: 'http://localhost:8080', VITE_API_BASE_URL_PROD: 'https://api.emallworld.com'}
-apiConfig.js:46 Selected API Base URL: http://localhost:8080
-axios.js:17 Using API Base URL: http://localhost:8080
-axios.js:19 Axios Instance Configuration: {baseURL: 'http://localhost:8080', timeout: 15000, headers: {…}}
-main.jsx:13 ✅ Firebase SW registered: ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'http://localhost:5173/', …}
-chext_driver.js:496 Initialized driver at: Wed Sep 03 2025 10:52:30 GMT+0530 (India Standard Time)
-firebase.js:26 Firebase Messaging initialized
-chext_loader.js:69 Initialized chextloader at: 1756876950625
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-SellerDashboard.jsx:122 All dashboard data loaded
-SellerDashboard.jsx:122 All dashboard data loaded
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:122 All dashboard data loaded
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-SellerDashboard.jsx:140 Dashboard Stats: {totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0, totalDeliveredProducts: 0, totalSales: '0.00', …}
-pushNotification.js:33 🔍 Current Notification Permission: granted
-pushNotification.js:69 ✅ FCM Token retrieved successfully
-pushNotification.js:77 ✅ Push token updated on server
-Dashboard.jsx:68 dashboard‑stats → {stats: {…}}
-Dashboard.jsx:128 recent-orders → {success: true, currentPage: 1, totalPages: 1, totalOrders: 1, orders: Array(1)}
-Dashboard.jsx:102 Trends → {success: true, period: 'daily', lastDays: 7, usersTrend: Array(7), sellersTrend: Array(7), …}
-Dashboard.jsx:68 dashboard‑stats → {stats: {…}}
-Dashboard.jsx:128 recent-orders → {success: true, currentPage: 1, totalPages: 1, totalOrders: 1, orders: Array(1)}
-Dashboard.jsx:102 Trends → {success: true, period: 'daily', lastDays: 7, usersTrend: Array(7), sellersTrend: Array(7), …}
-Settings.jsx:91 Settings response: {success: true, settings: {…}}
-Settings.jsx:91 Settings response: {success: true, settings: {…}}
-Dashboard.jsx:68 dashboard‑stats → {stats: {…}}
-Dashboard.jsx:102 Trends → {success: true, period: 'daily', lastDays: 7, usersTrend: Array(7), sellersTrend: Array(7), …}lastDays: 7period: "daily"revenueTrend: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]sellersTrend: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]success: trueusersTrend: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}][[Prototype]]: Object
-Dashboard.jsx:68 dashboard‑stats → {stats: {…}}
-Dashboard.jsx:128 recent-orders → {success: true, currentPage: 1, totalPages: 1, totalOrders: 1, orders: Array(1)}
-Dashboard.jsx:128 recent-orders → {success: true, currentPage: 1, totalPages: 1, totalOrders: 1, orders: Array(1)}
-Dashboard.jsx:102 Trends → {success: true, period: 'daily', lastDays: 7, usersTrend: Array(7), sellersTrend: Array(7), …}
-Users.jsx:118  DELETE http://localhost:8080/api/admin/users/68b7ce37ee270b64eee61934 500 (Internal Server Error)
-dispatchXhrRequest @ axios.js?v=aef28c6a:1648
-xhr @ axios.js?v=aef28c6a:1528
-dispatchRequest @ axios.js?v=aef28c6a:2003
+index.qqTZqMLQ.js:206 Using API Base URL: https://api.emallworld.com
+index.qqTZqMLQ.js:206 Axios Instance Configuration: {baseURL: 'https://api.emallworld.com', timeout: 15000, headers: {…}}
+index.qqTZqMLQ.js:3975 ✅ Firebase SW registered: ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'https://emallworld.com/', …}
+chext_driver.js:496 Initialized driver at: Wed Sep 03 2025 12:02:50 GMT+0530 (India Standard Time)
+index.qqTZqMLQ.js:2583 Firebase Messaging initialized
+chext_loader.js:69 Initialized chextloader at: 1756881170569
+index.qqTZqMLQ.js:53  GET https://api.emallworld.com/api/admin/settings 403 (Forbidden)
+(anonymous) @ index.qqTZqMLQ.js:53
+xhr @ index.qqTZqMLQ.js:53
+_k @ index.qqTZqMLQ.js:55
 Promise.then
-_request @ axios.js?v=aef28c6a:2206
-request @ axios.js?v=aef28c6a:2115
-Axios.<computed> @ axios.js?v=aef28c6a:2243
-wrap @ axios.js?v=aef28c6a:8
-handleDeleteUser @ Users.jsx:118
-await in handleDeleteUser
-onClick @ Users.jsx:583
-executeDispatch @ react-dom_client.js?v=aef28c6a:11736
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-processDispatchQueue @ react-dom_client.js?v=aef28c6a:11772
-(anonymous) @ react-dom_client.js?v=aef28c6a:12182
-batchedUpdates$1 @ react-dom_client.js?v=aef28c6a:2628
-dispatchEventForPluginEventSystem @ react-dom_client.js?v=aef28c6a:11877
-dispatchEvent @ react-dom_client.js?v=aef28c6a:14792
-dispatchDiscreteEvent @ react-dom_client.js?v=aef28c6a:14773
-<button>
-exports.jsxDEV @ react_jsx-dev-runtime.js?v=aef28c6a:250
-Users @ Users.jsx:581
-react-stack-bottom-frame @ react-dom_client.js?v=aef28c6a:17424
-renderWithHooksAgain @ react-dom_client.js?v=aef28c6a:4281
-renderWithHooks @ react-dom_client.js?v=aef28c6a:4217
-updateFunctionComponent @ react-dom_client.js?v=aef28c6a:6619
-beginWork @ react-dom_client.js?v=aef28c6a:7654
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-performUnitOfWork @ react-dom_client.js?v=aef28c6a:10868
-workLoopSync @ react-dom_client.js?v=aef28c6a:10728
-renderRootSync @ react-dom_client.js?v=aef28c6a:10711
-performWorkOnRoot @ react-dom_client.js?v=aef28c6a:10330
-performSyncWorkOnRoot @ react-dom_client.js?v=aef28c6a:11635
-flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aef28c6a:11536
-processRootScheduleInMicrotask @ react-dom_client.js?v=aef28c6a:11558
-(anonymous) @ react-dom_client.js?v=aef28c6a:11649
-muiAlertHandler.jsx:241 API Error: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
-handleApiError @ muiAlertHandler.jsx:241
-(anonymous) @ axios.js:55
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:205 API Error: un {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+Jq @ index.qqTZqMLQ.js:205
+(anonymous) @ index.qqTZqMLQ.js:206
 Promise.then
-_request @ axios.js?v=aef28c6a:2206
-request @ axios.js?v=aef28c6a:2115
-Axios.<computed> @ axios.js?v=aef28c6a:2243
-wrap @ axios.js?v=aef28c6a:8
-handleDeleteUser @ Users.jsx:118
-await in handleDeleteUser
-onClick @ Users.jsx:583
-executeDispatch @ react-dom_client.js?v=aef28c6a:11736
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-processDispatchQueue @ react-dom_client.js?v=aef28c6a:11772
-(anonymous) @ react-dom_client.js?v=aef28c6a:12182
-batchedUpdates$1 @ react-dom_client.js?v=aef28c6a:2628
-dispatchEventForPluginEventSystem @ react-dom_client.js?v=aef28c6a:11877
-dispatchEvent @ react-dom_client.js?v=aef28c6a:14792
-dispatchDiscreteEvent @ react-dom_client.js?v=aef28c6a:14773
-<button>
-exports.jsxDEV @ react_jsx-dev-runtime.js?v=aef28c6a:250
-Users @ Users.jsx:581
-react-stack-bottom-frame @ react-dom_client.js?v=aef28c6a:17424
-renderWithHooksAgain @ react-dom_client.js?v=aef28c6a:4281
-renderWithHooks @ react-dom_client.js?v=aef28c6a:4217
-updateFunctionComponent @ react-dom_client.js?v=aef28c6a:6619
-beginWork @ react-dom_client.js?v=aef28c6a:7654
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-performUnitOfWork @ react-dom_client.js?v=aef28c6a:10868
-workLoopSync @ react-dom_client.js?v=aef28c6a:10728
-renderRootSync @ react-dom_client.js?v=aef28c6a:10711
-performWorkOnRoot @ react-dom_client.js?v=aef28c6a:10330
-performSyncWorkOnRoot @ react-dom_client.js?v=aef28c6a:11635
-flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aef28c6a:11536
-processRootScheduleInMicrotask @ react-dom_client.js?v=aef28c6a:11558
-(anonymous) @ react-dom_client.js?v=aef28c6a:11649
-muiAlertHandler.jsx:245 Request metadata: {method: 'DELETE', url: '/api/admin/users/68b7ce37ee270b64eee61934', baseURL: 'http://localhost:8080', timeout: 15000}
-handleApiError @ muiAlertHandler.jsx:245
-(anonymous) @ axios.js:55
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:205 Request metadata: {method: 'GET', url: '/api/admin/settings', baseURL: 'https://api.emallworld.com', timeout: 15000}
+Jq @ index.qqTZqMLQ.js:205
+(anonymous) @ index.qqTZqMLQ.js:206
 Promise.then
-_request @ axios.js?v=aef28c6a:2206
-request @ axios.js?v=aef28c6a:2115
-Axios.<computed> @ axios.js?v=aef28c6a:2243
-wrap @ axios.js?v=aef28c6a:8
-handleDeleteUser @ Users.jsx:118
-await in handleDeleteUser
-onClick @ Users.jsx:583
-executeDispatch @ react-dom_client.js?v=aef28c6a:11736
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-processDispatchQueue @ react-dom_client.js?v=aef28c6a:11772
-(anonymous) @ react-dom_client.js?v=aef28c6a:12182
-batchedUpdates$1 @ react-dom_client.js?v=aef28c6a:2628
-dispatchEventForPluginEventSystem @ react-dom_client.js?v=aef28c6a:11877
-dispatchEvent @ react-dom_client.js?v=aef28c6a:14792
-dispatchDiscreteEvent @ react-dom_client.js?v=aef28c6a:14773
-<button>
-exports.jsxDEV @ react_jsx-dev-runtime.js?v=aef28c6a:250
-Users @ Users.jsx:581
-react-stack-bottom-frame @ react-dom_client.js?v=aef28c6a:17424
-renderWithHooksAgain @ react-dom_client.js?v=aef28c6a:4281
-renderWithHooks @ react-dom_client.js?v=aef28c6a:4217
-updateFunctionComponent @ react-dom_client.js?v=aef28c6a:6619
-beginWork @ react-dom_client.js?v=aef28c6a:7654
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-performUnitOfWork @ react-dom_client.js?v=aef28c6a:10868
-workLoopSync @ react-dom_client.js?v=aef28c6a:10728
-renderRootSync @ react-dom_client.js?v=aef28c6a:10711
-performWorkOnRoot @ react-dom_client.js?v=aef28c6a:10330
-performSyncWorkOnRoot @ react-dom_client.js?v=aef28c6a:11635
-flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aef28c6a:11536
-processRootScheduleInMicrotask @ react-dom_client.js?v=aef28c6a:11558
-(anonymous) @ react-dom_client.js?v=aef28c6a:11649
-Users.jsx:136 Error deleting user: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}code: "ERR_BAD_RESPONSE"config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 15000, …}message: "Request failed with status code 500"name: "AxiosError"request: XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 15000, withCredentials: false, upload: XMLHttpRequestUpload, …}response: {data: {…}, status: 500, statusText: 'Internal Server Error', headers: AxiosHeaders, config: {…}, …}status: 500stack: "AxiosError: Request failed with status code 500\n    at settle (http://localhost:5173/node_modules/.vite/deps/axios.js?v=aef28c6a:1229:12)\n    at XMLHttpRequest.onloadend (http://localhost:5173/node_modules/.vite/deps/axios.js?v=aef28c6a:1561:7)\n    at Axios.request (http://localhost:5173/node_modules/.vite/deps/axios.js?v=aef28c6a:2119:41)\n    at async handleDeleteUser (http://localhost:5173/src/Pages/admin/Users.jsx?t=1756876632392:116:9)"[[Prototype]]: Error
-handleDeleteUser @ Users.jsx:136
-await in handleDeleteUser
-onClick @ Users.jsx:583
-executeDispatch @ react-dom_client.js?v=aef28c6a:11736
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-processDispatchQueue @ react-dom_client.js?v=aef28c6a:11772
-(anonymous) @ react-dom_client.js?v=aef28c6a:12182
-batchedUpdates$1 @ react-dom_client.js?v=aef28c6a:2628
-dispatchEventForPluginEventSystem @ react-dom_client.js?v=aef28c6a:11877
-dispatchEvent @ react-dom_client.js?v=aef28c6a:14792
-dispatchDiscreteEvent @ react-dom_client.js?v=aef28c6a:14773
-<button>
-exports.jsxDEV @ react_jsx-dev-runtime.js?v=aef28c6a:250
-Users @ Users.jsx:581
-react-stack-bottom-frame @ react-dom_client.js?v=aef28c6a:17424
-renderWithHooksAgain @ react-dom_client.js?v=aef28c6a:4281
-renderWithHooks @ react-dom_client.js?v=aef28c6a:4217
-updateFunctionComponent @ react-dom_client.js?v=aef28c6a:6619
-beginWork @ react-dom_client.js?v=aef28c6a:7654
-runWithFiberInDEV @ react-dom_client.js?v=aef28c6a:1485
-performUnitOfWork @ react-dom_client.js?v=aef28c6a:10868
-workLoopSync @ react-dom_client.js?v=aef28c6a:10728
-renderRootSync @ react-dom_client.js?v=aef28c6a:10711
-performWorkOnRoot @ react-dom_client.js?v=aef28c6a:10330
-performSyncWorkOnRoot @ react-dom_client.js?v=aef28c6a:11635
-flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=aef28c6a:11536
-processRootScheduleInMicrotask @ react-dom_client.js?v=aef28c6a:11558
-(anonymous) @ react-dom_client.js?v=aef28c6a:11649
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:3799 Error fetching system settings: un {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+NS @ index.qqTZqMLQ.js:3799
+await in NS
+(anonymous) @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:53  GET https://api.emallworld.com/api/admin/settings 403 (Forbidden)
+(anonymous) @ index.qqTZqMLQ.js:53
+xhr @ index.qqTZqMLQ.js:53
+_k @ index.qqTZqMLQ.js:55
+Promise.then
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+GJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:205 API Error: un {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+Jq @ index.qqTZqMLQ.js:205
+(anonymous) @ index.qqTZqMLQ.js:206
+Promise.then
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+GJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:205 Request metadata: {method: 'GET', url: '/api/admin/settings', baseURL: 'https://api.emallworld.com', timeout: 15000}
+Jq @ index.qqTZqMLQ.js:205
+(anonymous) @ index.qqTZqMLQ.js:206
+Promise.then
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+GJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:3799 Error fetching system settings: un {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+NS @ index.qqTZqMLQ.js:3799
+await in NS
+GJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:53  GET https://api.emallworld.com/api/admin/settings 403 (Forbidden)
+(anonymous) @ index.qqTZqMLQ.js:53
+xhr @ index.qqTZqMLQ.js:53
+_k @ index.qqTZqMLQ.js:55
+Promise.then
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+XJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:205 API Error: un {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+Jq @ index.qqTZqMLQ.js:205
+(anonymous) @ index.qqTZqMLQ.js:206
+Promise.then
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+XJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:205 Request metadata: {method: 'GET', url: '/api/admin/settings', baseURL: 'https://api.emallworld.com', timeout: 15000}
+Jq @ index.qqTZqMLQ.js:205
+(anonymous) @ index.qqTZqMLQ.js:206
+Promise.then
+_request @ index.qqTZqMLQ.js:56
+request @ index.qqTZqMLQ.js:55
+yu.<computed> @ index.qqTZqMLQ.js:56
+(anonymous) @ index.qqTZqMLQ.js:51
+NS @ index.qqTZqMLQ.js:3799
+XJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25
+index.qqTZqMLQ.js:3799 Error fetching system settings: un {message: 'Request failed with status code 403', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+NS @ index.qqTZqMLQ.js:3799
+await in NS
+XJ @ index.qqTZqMLQ.js:3799
+(anonymous) @ index.qqTZqMLQ.js:3799
+await in (anonymous)
+(anonymous) @ index.qqTZqMLQ.js:3799
+up @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+Fo @ index.qqTZqMLQ.js:48
+GI @ index.qqTZqMLQ.js:48
+p6 @ index.qqTZqMLQ.js:48
+(anonymous) @ index.qqTZqMLQ.js:48
+M @ index.qqTZqMLQ.js:25

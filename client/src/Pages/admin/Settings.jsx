@@ -91,7 +91,10 @@ const Settings = () => {
       console.log("Settings response:", response.data);
 
       if (response.data.success) {
-        setSettings(response.data.settings);
+        setSettings({
+          ...response.data.settings,
+          onboardingRequiredSteps: response.data.settings.onboardingRequiredSteps || ['shopTiming', 'shopDetails', 'legalDocuments']
+        });
       }
     } catch (error) {
       showErrorToast(error, "Failed to load settings", { operation: "fetchSettings" });
@@ -149,7 +152,7 @@ const Settings = () => {
 
   const handleOnboardingStepToggle = (step) => {
     setSettings((prev) => {
-      const currentSteps = prev.onboardingRequiredSteps;
+      const currentSteps = prev.onboardingRequiredSteps || [];
       const newSteps = currentSteps.includes(step)
         ? currentSteps.filter(s => s !== step)
         : [...currentSteps, step];
@@ -396,12 +399,12 @@ const Settings = () => {
                     <button
                       key={step.key}
                       className={`step-toggle-btn ${
-                        settings.onboardingRequiredSteps.includes(step.key) ? "active" : ""
+                        (settings.onboardingRequiredSteps || []).includes(step.key) ? "active" : ""
                       }`}
                       onClick={() => handleOnboardingStepToggle(step.key)}
                       disabled={!settings.onboardingEnabled}
                     >
-                      {settings.onboardingRequiredSteps.includes(step.key) ? (
+                      {(settings.onboardingRequiredSteps || []).includes(step.key) ? (
                         <FaCheckSquare className="step-icon active" />
                       ) : (
                         <FaSquare className="step-icon" />
