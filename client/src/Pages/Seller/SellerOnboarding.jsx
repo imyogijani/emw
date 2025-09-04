@@ -786,6 +786,29 @@ const SellerOnboarding = () => {
     }
   };
 
+  // Handle subscription skip
+  const handleSkipSubscription = () => {
+    // Store skipped subscription in localStorage for dashboard reminders
+    const existingSkippedSteps = JSON.parse(
+      localStorage.getItem("skippedOnboardingSteps") || "[]"
+    );
+    if (!existingSkippedSteps.includes("subscription")) {
+      existingSkippedSteps.push("subscription");
+      localStorage.setItem(
+        "skippedOnboardingSteps",
+        JSON.stringify(existingSkippedSteps)
+      );
+    }
+
+    showInfoToast(
+      "Subscription step skipped. You can choose a plan later from your dashboard.",
+      "Subscription Skipped"
+    );
+
+    // Navigate to seller dashboard
+    navigate("/seller/dashboard");
+  };
+
   // -------------------- STEP 1 API --------------------
   const submitStep1 = async () => {
     try {
@@ -2293,15 +2316,28 @@ const SellerOnboarding = () => {
               {isCurrentStepRequired() ? "Next" : "Continue"}
             </button>
           ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{ marginLeft: "10px" }}
-            >
-              {loading ? "Starting Trial..." : "Start 7-Day Free Trial"}
-            </button>
+            <>
+              {/* Skip button for subscription step */}
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={handleSkipSubscription}
+                disabled={loading}
+                style={{ marginLeft: "10px" }}
+              >
+                <FaForward style={{ marginRight: "5px" }} />
+                Skip for Now
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{ marginLeft: "10px" }}
+              >
+                {loading ? "Starting Trial..." : "Start 7-Day Free Trial"}
+              </button>
+            </>
           )}
         </div>
       </div>

@@ -27,7 +27,7 @@ const EnhancedSellerOnboarding = () => {
   const [documents, setDocuments] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [plans, setPlans] = useState([]);
+  // Removed subscription plans state
 
   // Fetch onboarding configuration and seller progress
   useEffect(() => {
@@ -75,7 +75,7 @@ const EnhancedSellerOnboarding = () => {
         }
 
         // Fetch additional data
-        await Promise.all([fetchCategories(), fetchBrands(), fetchPlans()]);
+  await Promise.all([fetchCategories(), fetchBrands()]);
       } catch (error) {
         console.error("Onboarding initialization error:", error);
         showErrorToast(
@@ -108,14 +108,7 @@ const EnhancedSellerOnboarding = () => {
     }
   };
 
-  const fetchPlans = async () => {
-    try {
-      const response = await axios.get("/api/subscriptions");
-      setPlans(response.data.subscriptions || []);
-    } catch (error) {
-      console.error("Failed to fetch plans:", error);
-    }
-  };
+  // Removed fetchPlans function
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -167,9 +160,16 @@ const EnhancedSellerOnboarding = () => {
           break;
         case "document_verification":
           response = await submitDocuments(stepData);
-          break;
-        case "subscription":
-          response = await submitSubscription(stepData);
+          // After document upload, redirect to dashboard
+          if (response.success) {
+            showSuccessToast(
+              "Documents uploaded successfully! Redirecting to dashboard...",
+              "Onboarding Complete"
+            );
+            // Use role-based navigation if needed
+            navigate("/seller/dashboard");
+            return;
+          }
           break;
         default:
           throw new Error(`Unknown step type: ${step.stepId}`);
@@ -361,15 +361,6 @@ const EnhancedSellerOnboarding = () => {
             formData={formData}
             setFormData={setFormData}
             config={onboardingConfig}
-          />
-        );
-      case "subscription":
-        return (
-          <SubscriptionStep
-            onSubmit={handleStepSubmit}
-            formData={formData}
-            setFormData={setFormData}
-            plans={plans}
           />
         );
       default:
@@ -1059,62 +1050,6 @@ const DocumentVerificationStep = ({
   );
 };
 
-const SubscriptionStep = ({ onSubmit, formData, setFormData, plans }) => {
-  const [selectedPlan, setSelectedPlan] = useState(
-    formData.selectedPlan || null
-  );
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!selectedPlan) {
-      showErrorToast("Please select a subscription plan");
-      return;
-    }
-
-    const dataToSubmit = { ...formData, selectedPlan };
-    setFormData(dataToSubmit);
-    onSubmit(dataToSubmit);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="form-step">
-      <div className="plans-grid">
-        {plans.map((plan) => (
-          <div
-            key={plan._id}
-            className={`plan-card ${
-              selectedPlan === plan._id ? "selected" : ""
-            }`}
-            onClick={() => setSelectedPlan(plan._id)}
-          >
-            <div className="plan-header">
-              <h3>{plan.name}</h3>
-              <div className="plan-price">
-                <span className="currency">₹</span>
-                <span className="amount">{plan.price}</span>
-                <span className="period">/{plan.duration}</span>
-              </div>
-            </div>
-
-            <ul className="plan-features">
-              {plan.includedFeatures?.map((feature, index) => (
-                <li key={index}>✓ {feature}</li>
-              ))}
-            </ul>
-
-            {selectedPlan === plan._id && (
-              <div className="selected-badge">Selected</div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <button type="submit" className="btn btn-large btn-primary">
-        Complete Onboarding
-      </button>
-    </form>
-  );
-};
 
 export default EnhancedSellerOnboarding;

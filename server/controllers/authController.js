@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import userModel from "../models/userModel.js";
-import Subscription from "../models/subscriptionModel.js"; // Changed to default import
+// import Subscription from "../models/subscriptionModel.js"; // Changed to default import
 import Seller from "../models/sellerModel.js";
 import Category from "../models/categoryModel.js";
 import crypto from "crypto";

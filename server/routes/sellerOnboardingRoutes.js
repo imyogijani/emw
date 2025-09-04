@@ -1,6 +1,6 @@
 import express from "express";
 import Seller from "../models/sellerModel.js";
-import Subscription from "../models/subscriptionModel.js";
+// import Subscription from "../models/subscriptionModel.js";
 
 import {
   authenticateToken,

@@ -5,7 +5,7 @@ import Product from "../models/productModel.js";
 // controllers/adminController.js
 // import Product from "../models/productModel.js";
 import Seller from "../models/sellerModel.js";
-import Subscription from "../models/subscriptionModel.js";
+// import Subscription from "../models/subscriptionModel.js";
 import User from "../models/userModel.js";
 
 //Admind Side

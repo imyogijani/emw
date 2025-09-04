@@ -2,7 +2,7 @@ import User from "../models/userModel.js";
 import asyncHandler from "express-async-handler";
 import Product from "../models/productModel.js";
 import Order from "../models/orderModel.js";
-import Subscription from "../models/subscriptionModel.js";
+// import Subscription from "../models/subscriptionModel.js";
 import Seller from "../models/sellerModel.js";
 import Category from "../models/categoryModel.js";
 import Review from "../models/reviewModel.js";

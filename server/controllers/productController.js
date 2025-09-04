@@ -6,7 +6,7 @@ import TechnicalDetails from "../models/technicalDetails.js";
 import { fileURLToPath } from "url";
 import Seller from "../models/sellerModel.js";
 import User from "../models/userModel.js";
-import UserSubscription from "../models/userSubscriptionModel.js";
+// import UserSubscription from "../models/userSubscriptionModel.js";
 import Brand from "../models/brandModel.js";
 import mongoose from "mongoose";
 

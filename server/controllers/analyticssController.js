@@ -4,7 +4,7 @@ import Review from "../models/reviewModel.js";
 import Product from "../models/productModel.js";
 import User from "../models/userModel.js";
 import Seller from "../models/sellerModel.js";
-import UserSubscription from "../models/userSubscriptionModel.js";
+// import UserSubscription from "../models/userSubscriptionModel.js";
 import mongoose from "mongoose";
 import Category from "../models/categoryModel.js";
 

@@ -52,7 +52,7 @@ import {
   adminUpdateDocumentStatus,
 } from "../controllers/sellerDocumentController.js";
 
-import { updateOnboardingSettings } from "../controllers/settingsController.js";
+// import { updateOnboardingSettings } from "../controllers/settingsController.js";
 
 // Settings controller import removed - using updateSettings from adminController instead
 

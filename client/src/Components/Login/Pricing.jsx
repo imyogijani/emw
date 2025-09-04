@@ -44,145 +44,152 @@ const Pricing = () => {
     fetchPlans();
   }, [formData, navigate]);
 
-  const handleBillingToggle = (type) => setBillingType(type);
+  const handlePlanSelection = (planId) => {
+    setSelectedPlanId(planId);
+  };
 
-  const handleSelectPlan = async (planId) => {
+  const handleSubscription = async () => {
+    if (!selectedPlanId) {
+      toast.error("Please select a plan");
+      return;
+    }
+
     setSubmitting(true);
-    setError("");
     try {
-      const submitData = {
+      const registrationData = {
         ...formData,
-        subscriptionId: planId,
-        billingType,
-        names:
-          formData.shopownerName ||
-          `${formData.firstName || ""} ${formData.lastName || ""}`.trim(),
+        subscriptionPlanId: selectedPlanId,
+        billingType: billingType
       };
-      const response = await axios.post("/api/auth/register", submitData);
-      if (response.data.success) {
-        toast.success("Registration successful! Please login.");
+
+      const res = await axios.post("/api/auth/register", registrationData);
+      
+      if (res.data.success) {
+        toast.success("Registration successful!");
         navigate("/login");
       } else {
-        setError(response.data.message || "Registration failed");
-        toast.error(response.data.message || "Registration failed");
+        setError(res.data.message || "Registration failed");
+        toast.error(res.data.message || "Registration failed");
       }
     } catch (err) {
-      const msg =
-        err.response?.data?.message || "Registration failed. Please try again.";
-      setError(msg);
-      toast.error(msg);
+      const errorMessage = err.response?.data?.message || "Registration failed. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
 
-  return (
-    <div className="register-container pricing-page">
-      <div className="register-card pricing-card-wrapper">
-        <div className="register-header">
-          <h2>Plans and Pricing</h2>
-          <p>Choose a subscription plan to continue your registration</p>
-          <div className="pricing-toggle-row">
-            <button
-              className={`role-select${
-                billingType === "monthly" ? " active" : ""
-              }`}
-              onClick={() => handleBillingToggle("monthly")}
-              disabled={billingType === "monthly"}
-            >
-              Monthly
-            </button>
-            <button
-              className={`role-select${
-                billingType === "annual" ? " active" : ""
-              }`}
-              onClick={() => handleBillingToggle("annual")}
-              disabled={billingType === "annual"}
-            >
-              Annual <span className="save-badge">Save 35%</span>
-            </button>
-          </div>
-        </div>
-        <button
-          className="back-to-register-btn"
-          onClick={() => navigate("/register")}
-        >
-          ← Back to Registration
-        </button>
-        {loading ? (
-          <p>Loading plans...</p>
-        ) : error ? (
-          <div className="error-message">
-            <p>{error}</p>
-          </div>
-        ) : (
-          <div className="pricing-cards-row">
-            {plans.map((plan, idx) => (
-              <div
-                key={plan._id}
-                className={`pricing-card${
-                  selectedPlanId === plan._id ? " selected" : ""
-                }`}
-                style={{
-                  background: "#fff",
-                  color: "#18181b",
-                  border:
-                    selectedPlanId === plan._id
-                      ? "2.5px solid #e48a00"
-                      : "2px solid #eee",
-                }}
-              >
-                {plan.planName.toLowerCase().includes("pro") && (
-                  <span className="popular-badge">Popular</span>
-                )}
-                <h3>{plan.planName}</h3>
-                <div className="plan-price">
-                  {plan.pricing.monthly === 0 ? (
-                    <span>Free</span>
-                  ) : (
-                    <>
-                      ₹
-                      {billingType === "annual"
-                        ? Math.round(plan.pricing.monthly * 12 * 0.65)
-                        : plan.pricing.monthly}
-                      <span className="plan-duration">
-                        / {billingType === "annual" ? "year" : "month"}
-                      </span>
-                    </>
-                  )}
-                </div>
-                <ul className="plan-features">
-                  {plan.includedFeatures &&
-                    plan.includedFeatures.map((f, i) => (
-                      <li key={i}>
-                        <span className="feature-check">✔</span> {f}
-                      </li>
-                    ))}
-                </ul>
-                <button
-                  className="register-button select-plan-btn"
-                  disabled={submitting}
-                  onClick={() => {
-                    setSelectedPlanId(plan._id);
-                    handleSelectPlan(plan._id);
-                  }}
-                  style={{
-                    background: "var(--primary-color)",
-                    color: "#fff",
-                  }}
-                >
-                  {submitting && selectedPlanId === plan._id
-                    ? "Processing..."
-                    : plan.monthlyPrice === 0
-                    ? "Continue with Free"
-                    : `Select ${plan.planName}`}
-                </button>
+  const handleSkipPricing = () => {
+    navigate("/register", { 
+      state: { 
+        ...location.state, 
+        skipPricing: true 
+      } 
+    });
+  };
 
-                {/* <h1>Hello Meet</h1> */}
+  if (loading) {
+    return (
+      <div className="pricing-container">
+        <div className="loading-spinner">Loading plans...</div>
+      </div>
+    );
+  }
+
+  if (error && plans.length === 0) {
+    return (
+      <div className="pricing-container">
+        <div className="error-message">
+          <h2>Error Loading Plans</h2>
+          <p>{error}</p>
+          <button onClick={() => navigate("/register")} className="btn-secondary">
+            Back to Registration
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pricing-container">
+      <div className="pricing-header">
+        <h1>Choose Your Plan</h1>
+        <p>Select a subscription plan to complete your registration</p>
+      </div>
+
+      <div className="billing-toggle">
+        <button
+          className={billingType === "monthly" ? "active" : ""}
+          onClick={() => setBillingType("monthly")}
+        >
+          Monthly
+        </button>
+        <button
+          className={billingType === "yearly" ? "active" : ""}
+          onClick={() => setBillingType("yearly")}
+        >
+          Yearly
+        </button>
+      </div>
+
+      <div className="plans-grid">
+        {plans.map((plan) => (
+          <div
+            key={plan._id}
+            className={`plan-card ${selectedPlanId === plan._id ? "selected" : ""}`}
+            onClick={() => handlePlanSelection(plan._id)}
+          >
+            <div className="plan-header">
+              <h3>{plan.name}</h3>
+              <div className="plan-price">
+                <span className="currency">$</span>
+                <span className="amount">
+                  {billingType === "monthly" ? plan.monthlyPrice : plan.yearlyPrice}
+                </span>
+                <span className="period">/{billingType === "monthly" ? "mo" : "yr"}</span>
               </div>
-            ))}
+            </div>
+            
+            <div className="plan-features">
+              <ul>
+                {plan.features?.map((feature, index) => (
+                  <li key={index}>{feature}</li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              className={`select-plan-btn ${selectedPlanId === plan._id ? "selected" : ""}`}
+              onClick={() => handlePlanSelection(plan._id)}
+            >
+              {selectedPlanId === plan._id ? "Selected" : "Select Plan"}
+            </button>
           </div>
-        )}
+        ))}
+      </div>
+
+      {error && (
+        <div className="error-banner">
+          {error}
+        </div>
+      )}
+
+      <div className="pricing-actions">
+        <button
+          onClick={handleSkipPricing}
+          className="btn-secondary"
+          disabled={submitting}
+        >
+          Skip for Now
+        </button>
+        <button
+          onClick={handleSubscription}
+          className="btn-primary"
+          disabled={!selectedPlanId || submitting}
+        >
+          {submitting ? "Processing..." : "Complete Registration"}
+        </button>
       </div>
     </div>
   );

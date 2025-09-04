@@ -177,7 +177,6 @@ app.use(
 import testRoutes from "./routes/testRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
-import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
@@ -256,7 +255,6 @@ app.use("/api/products", productRoutes);
 app.use("/api/variants", productVariantRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/invoice", invoiceRoutes);
-app.use("/api", subscriptionRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/cart", cartRoutes);
