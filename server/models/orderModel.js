@@ -82,6 +82,7 @@ const shippingAddressSchema = new mongoose.Schema({
   state: { type: String, required: true },
   pincode: { type: String, required: true },
   phone: { type: String, required: true },
+  country: { type: String, required: true },
 });
 
 const orderSchema = new mongoose.Schema(

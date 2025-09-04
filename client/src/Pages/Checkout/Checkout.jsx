@@ -483,19 +483,21 @@ export default function Checkout() {
       items: cartItems,
       // billingDetails,
       userData,
-      pricing: {
-        // subtotal,
-        subTotal: summaryData?.subTotal,
-        totalDeliveryCharge: summaryData?.totalDeliveryCharge,
-        gstAmount: summaryData?.totalGST,
-        deliveryCharge,
-        // packagingCharge,
-        couponDiscount: appliedCoupon?.discount,
-        couponCode: appliedCoupon?.code || null,
-        // grandTotal,
-        totalAmount: summaryData?.totalAmount,
-      },
+      // pricing: {
+      //   // subtotal,
+      //   subTotal: summaryData?.subTotal,
+      //   totalDeliveryCharge: summaryData?.totalDeliveryCharge,
+      //   gstAmount: summaryData?.totalGST,
+      //   deliveryCharge,
+      //   // packagingCharge,
+      //   couponDiscount: appliedCoupon?.discount,
+      //   couponCode: appliedCoupon?.code || null,
+      //   // grandTotal,
+      //   totalAmount: summaryData?.totalAmount,
+      // },
+      pricing: summaryData,
       appliedCoupon: appliedCoupon,
+     
     };
 
     // Store order data in sessionStorage for payment page

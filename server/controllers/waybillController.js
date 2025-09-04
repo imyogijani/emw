@@ -41,20 +41,13 @@ export const createWaybill = async (req, res) => {
       return res.json({ success: true, waybill: existing.waybill });
     }
 
-    // // 3️⃣ Generate new waybill from Delhivery API
-    // const apiRes = await axios.get(
-    //   "https://staging-express.delhivery.com/waybill/api/bulk/json/?count=1"
-    // );
-    // const newWaybill = apiRes.data?.waybill;
-
-    // if (!newWaybill) {
-    //   return res
-    //     .status(500)
-    //     .json({ success: false, message: "Waybill not generated" });
-    // }
-
-    // 4️⃣ Save waybill in DB
-    const waybillDoc = new Waybill({ sellerId, orderId, waybill: waybill });
+    //  Save waybill in DB
+    const cleanWaybill = waybill.replace(/"/g, "").trim();
+    const waybillDoc = new Waybill({
+      sellerId,
+      orderId,
+      waybill: cleanWaybill,
+    });
     await waybillDoc.save();
 
     res.json({ success: true, waybill: waybill });

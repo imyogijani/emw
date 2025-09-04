@@ -91,12 +91,14 @@ export default function Payment() {
   useEffect(() => {
     // Get order data from session storage
     const checkoutData = sessionStorage.getItem("checkoutData");
+
     if (!checkoutData) {
       showErrorToast("No order data found!", "Payment - Data Validation");
       navigate("/checkout");
       return;
     }
     setOrderData(JSON.parse(checkoutData));
+    console.log("Order Data payment page  : -> ", JSON.parse(checkoutData));
   }, [navigate]);
 
   const formatCardNumber = (value) => {
@@ -259,27 +261,42 @@ export default function Payment() {
 
       // Send order to backend
       const token = localStorage.getItem("token");
+      // const backendOrder = {
+      //   items: orderData.items.map((item) => ({
+      //     name: item.title || item.name,
+      //     price: parseFloat(item.finalPrice),
+      //     quantity: item.quantity || 1,
+      //     image: item.image || "",
+      //   })),
+      //   total: orderData.pricing.grandTotal,
+      // };
+
       const backendOrder = {
-        items: orderData.items.map((item) => ({
-          name: item.title || item.name,
-          price: parseFloat(item.price),
-          quantity: item.quantity || 1,
-          image: item.image || "",
-        })),
-        total: orderData.pricing.grandTotal,
+        // shippingAddress: orderData.userData, // or a formatted address object
+        shippingAddress: {
+          fullName:
+            orderData.userData?.firstName + orderData.userData?.lastName,
+          addressLine:
+            orderData.userData.shippingAddress?.addressLine1 +
+            orderData.userData.shippingAddress?.addressLine2,
+          city: orderData.userData.shippingAddress?.city,
+          state: orderData.userData.shippingAddress?.state,
+          pincode: orderData.userData.shippingAddress?.pincode,
+          phone: orderData.userData?.phone,
+        }, // or a formatted address object
+        paymentMethod: selectedPaymentMethod.toUpperCase(), // e.g., "CARD", "UPI", "NETBANKING", "COD"
+        appliedCoupon: orderData.appliedCoupon || null,
       };
-      const response = await axios.post("/api/orders/create", backendOrder, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post("/api/orders/create", backendOrder);
       if (!response.data.success) {
         throw new Error(response.data.message || "Order creation failed");
       }
 
       // Store order data for invoice
-      sessionStorage.setItem(
-        "completedOrder",
-        JSON.stringify(completeOrderData)
-      );
+      // sessionStorage.setItem(
+      //   "completedOrder",
+      //   JSON.stringify(completeOrderData)
+      // );
 
       // Clear cart
       clearCart();
@@ -560,16 +577,16 @@ export default function Payment() {
                 <span>₹{orderData.pricing?.subTotal.toFixed(2)}</span>
               </div>
 
-              {orderData.pricing.couponDiscount > 0 && (
+              {orderData.appliedCoupon.discount > 0 && (
                 <div className="price-row discount">
                   <span>Coupon Discount</span>
-                  <span>-₹{orderData.pricing?.couponDiscount.toFixed(2)}</span>
+                  <span>-₹{orderData.appliedCoupon?.discount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="price-row">
                 <span>GST (18%)</span>
-                <span>₹{orderData.pricing?.gstAmount.toFixed(2)}</span>
+                <span>₹{orderData.pricing?.totalGST.toFixed(2)}</span>
               </div>
 
               {/* <div className="price-row">
@@ -596,7 +613,7 @@ export default function Payment() {
               </div>
             </div>
 
-            <button
+            {/* <button
               className="pay-now-btn"
               onClick={handlePayment}
               disabled={loading}
@@ -614,8 +631,29 @@ export default function Payment() {
                   <ArrowRight size={16} />
                 </>
               )}
-            </button>
+            </button> */}
+            <button
+              className="pay-now-btn"
+              onClick={handlePayment}
+              disabled={loading}
+            >
+              {/* {loading ? (
+                <>
+                  <JumpingLoader size="small" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {selectedPaymentMethod === "cod"
+                    ? "Place Order"
+                    : `Pay ₹${orderData.pricing?.totalAmount.toFixed(2)}`}
+                  <ArrowRight size={16} />
+                </>
+              )} */}
 
+              {"Place Order"}
+              <ArrowRight size={16} />
+            </button>
             <div className="security-info">
               <div className="security-item">
                 <Shield size={16} />

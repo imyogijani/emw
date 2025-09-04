@@ -6,6 +6,8 @@ import Order from "../models/orderModel.js";
 import Seller from "../models/sellerModel.js";
 import Category from "../models/categoryModel.js";
 import Review from "../models/reviewModel.js";
+import { registerOrUpdatePickup } from "../services/delhiveryService.js";
+
 import mongoose from "mongoose";
 // Helper Function
 function calculateGrowth(current, previous) {
@@ -1155,7 +1157,6 @@ export const getSellerInfo = async (req, res) => {
   try {
     const userId = req.user._id; // login after get userId in middleware
 
-    
     const seller = await Seller.findOne({ user: userId })
       .populate("user", "names email phone") // userModel se name, email, phone
       .populate("categories", "name") // agar category ka naam chahiye
@@ -1204,5 +1205,46 @@ export const getSellerInfo = async (req, res) => {
       message: "Error fetching seller info",
       error: error.message,
     });
+  }
+};
+
+// Delivey in pick up address update or register
+
+export const addOrUpdateSellerAddress = async (req, res) => {
+  try {
+    const { sellerId, newAddress } = req.body;
+    const seller = await Seller.findById(sellerId);
+    if (!seller)
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+
+    // Old addresses set isDefault=false
+    seller.shopAddresses.forEach((a) => (a.isDefault = false));
+
+    // Check if address already exists
+    let existing = seller.shopAddresses.find(
+      (a) =>
+        a.addressLine1 === newAddress.addressLine1 &&
+        a.pincode === newAddress.pincode
+    );
+
+    if (existing) {
+      existing.isDefault = true;
+      existing.updatedAt = new Date();
+      const pickupId = await registerOrUpdatePickup(seller, existing);
+      existing.delhiveryPickupId = pickupId;
+    } else {
+      newAddress.isDefault = true;
+      seller.shopAddresses.push(newAddress);
+      const pickupId = await registerOrUpdatePickup(seller, newAddress);
+      newAddress.delhiveryPickupId = pickupId;
+    }
+
+    await seller.save();
+    res.json({ success: true, seller });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };

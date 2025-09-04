@@ -13,7 +13,11 @@ import Variant from "../models/variantsModel.js";
 import { generateInvoicesForOrder } from "./invoiceController.js";
 import { createNotification } from "./notificationController.js";
 import Counter from "../models/counterModel.js";
-import { processShipmentsForOrder } from "../services/delhiveryService.js";
+import {
+  processShipmentsForOrder,
+  generateShipmentsForOrder,
+} from "./shipmentController.js";
+import { backendClient } from "../utils/backendApi.js";
 
 export const getAllOrdersAdmin = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -140,6 +144,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     deliveryPartner = "Manual",
     appliedCoupon = null, // { code, discount, offerId, description }
   } = req.body;
+
+  console.log("Orde body : --> ", req.body);
 
   if (!shippingAddress || !paymentMethod) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -437,6 +443,10 @@ export const createOrder = asyncHandler(async (req, res) => {
   //  Ab order ke liye shipment process karo
   console.log("Check Order Id =--=-=", order._id);
   // await processShipmentsForOrder(order._id);
+  // await generateShipmentsForOrder(order._id);
+  // const responseShip = await backendClient.post(`/api/shipments/generate`, {
+  //   orderId: order._id,
+  // });
 
   // await createNotification({
   //   recipient: userId,
@@ -477,8 +487,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     })
   );
 
-  cart.items = [];
-  await cart.save();
+  // cart.items = [];
+  // await cart.save();
 
   res.status(201).json({ success: true, order });
 });

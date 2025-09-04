@@ -195,7 +195,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       pickupPincode,
       shippingAddress.pincode,
       sellerWeight,
-      false
+      true
       // sellerSubTotal
     );
 

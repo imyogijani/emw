@@ -47,6 +47,7 @@ const sellerSchema = new mongoose.Schema(
         pincode: { type: String },
         country: { type: String, default: "India" },
         isDefault: { type: Boolean, default: false }, // main address
+        delhiveryPickupId: { type: String, default: null }, // pickup_id from Delhivery
         type: {
           type: String,
           enum: ["store", "warehouse", "pickup"],
