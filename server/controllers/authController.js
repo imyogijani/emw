@@ -140,7 +140,6 @@ const loginController = async (req, res) => {
   try {
     const user = await userModel
       .findOne({ email: req.body.email })
-      .populate("subscription")
       .populate("sellerId");
 
     // Email check
@@ -254,21 +253,13 @@ const loginController = async (req, res) => {
     // Check subscription status for shopowners (only if they have completed onboarding)
     if (
       user.role === "shopowner" &&
-      user.subscription &&
       user.isOnboardingComplete
     ) {
       const oneMonth = 30 * 24 * 60 * 60 * 1000; // milliseconds in a month
       const now = new Date();
-      const subscriptionEndDate = new Date(
-        user.subscriptionStartDate.getTime() + oneMonth
-      );
+    
 
-      if (now > subscriptionEndDate) {
-        return res.status(403).send({
-          success: false,
-          message: "Your subscription has expired. Please renew to continue.",
-        });
-      }
+    
     }
 
     // Generate token
@@ -332,7 +323,6 @@ const currentUserController = async (req, res) => {
     let userQuery = userModel.findById(req.userId);
     // Always populate subscription for shopowners
     userQuery = userQuery
-      .populate("subscription")
       .populate(
         "sellerId",
         "shopName ownerName shopAddresses shopImage shopImages gstNumber"
@@ -559,7 +549,6 @@ export const updateProfileController = async (req, res) => {
       // === Update User ===
       const updatedUser = await userModel
         .findByIdAndUpdate(userId, updateUserData, { new: true })
-        .populate("subscription");
 
       return res.status(200).json({
         success: true,
@@ -572,7 +561,6 @@ export const updateProfileController = async (req, res) => {
     // === Update user (non-shopowner) ===
     const updatedUser = await userModel
       .findByIdAndUpdate(userId, updateUserData, { new: true })
-      .populate("subscription");
 
     return res.status(200).json({
       success: true,
@@ -716,40 +704,40 @@ export const clearNotification = async (req, res) => {
 };
 
 // Seller accepts updated plan (from review page)
-export const acceptPlanUpdateController = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { planName } = req.body;
-    const user = await userModel.findById(userId);
-    if (!user || user.role !== "shopowner") {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-    const plan = await Subscription.findOne({ planName });
-    if (!plan) {
-      return res.status(404).json({ message: "Plan not found" });
-    }
+// export const acceptPlanUpdateController = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     const { planName } = req.body;
+//     const user = await userModel.findById(userId);
+//     if (!user || user.role !== "shopowner") {
+//       return res.status(403).json({ message: "Unauthorized" });
+//     }
+//     const plan = await Subscription.findOne({ planName });
+//     if (!plan) {
+//       return res.status(404).json({ message: "Plan not found" });
+//     }
 
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + 1); // Assuming 1-month plan duration
+//     const startDate = new Date();
+//     const endDate = new Date(startDate);
+//     endDate.setMonth(endDate.getMonth() + 1); // Assuming 1-month plan duration
 
-    user.subscription = plan._id;
-    user.subscriptionFeatures = plan.includedFeatures;
-    user.subscriptionStartDate = new Date();
-    user.subscriptionEndDate = endDate;
+//     user.subscription = plan._id;
+//     user.subscriptionFeatures = plan.includedFeatures;
+//     user.subscriptionStartDate = new Date();
+//     user.subscriptionEndDate = endDate;
 
-    await user.save();
-    return res.status(200).json({
-      success: true,
-      message: "Plan updated successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Error updating plan",
-      error: error.message,
-    });
-  }
-};
+//     await user.save();
+//     return res.status(200).json({
+//       success: true,
+//       message: "Plan updated successfully",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: "Error updating plan",
+//       error: error.message,
+//     });
+//   }
+// };
 
 // POST /api/v1/auth/forgot-password
 export const forgotPassword = async (req, res) => {

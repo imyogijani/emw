@@ -101,7 +101,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     const allowedOrigins = [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
@@ -109,15 +109,15 @@ const corsOptions = {
       "http://89.116.23.115:5173",
       "https://emallworld.com",
       "https://www.emallworld.com",
-      "https://api.emallworld.com"
+      "https://api.emallworld.com",
     ];
-    
+
     // Check if the origin is allowed
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -128,18 +128,18 @@ const corsOptions = {
     "Accept",
     "Authorization",
     "Cache-Control",
-    "X-HTTP-Method-Override"
+    "X-HTTP-Method-Override",
   ],
   credentials: true,
   exposedHeaders: ["Content-Disposition"],
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
-  preflightContinue: false
+  preflightContinue: false,
 };
 
 app.use(cors(corsOptions));
 
 // Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(morgan("dev"));
 
 // Static files for uploads
@@ -216,34 +216,34 @@ import webhookRoutes from "./routes/webhookRoutes.js";
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
 import "./cronJobs/disableExpiredPremiums.js";
-import "./cronJobs/checkExpiredSubscriptions.js";
+// import "./cronJobs/checkExpiredSubscriptions.js";
 // import "./cronJobs/sellerDocumentCleanUp.js";
 
 // Health Check Endpoint
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   const dbHealth = checkDatabaseHealth();
   const healthStatus = {
-    status: 'OK',
+    status: "OK",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
+    environment: process.env.NODE_ENV || "development",
+    version: process.env.npm_package_version || "1.0.0",
     database: {
       status: dbHealth.status,
       readyState: dbHealth.readyState,
       host: dbHealth.host,
       name: dbHealth.name,
-      port: dbHealth.port
+      port: dbHealth.port,
     },
     memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
-    }
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + " MB",
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + " MB",
+    },
   };
-  
+
   // Set status code based on database connectivity
-  const statusCode = dbHealth.status === 'connected' ? 200 : 503;
-  
+  const statusCode = dbHealth.status === "connected" ? 200 : 503;
+
   res.status(statusCode).json(healthStatus);
 });
 

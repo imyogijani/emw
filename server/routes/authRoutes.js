@@ -8,7 +8,7 @@ import {
   uploadAvatarController,
   verifyToken,
   clearNotification,
-  acceptPlanUpdateController,
+  // acceptPlanUpdateController,
   forgotPassword,
   resetPassword,
   verifyEmailController,
@@ -77,11 +77,11 @@ router.patch(
 );
 
 // Seller accepts updated plan
-router.patch(
-  "/accept-plan-update",
-  authenticateToken,
-  acceptPlanUpdateController
-);
+// router.patch(
+//   "/accept-plan-update",
+//   authenticateToken,
+//   acceptPlanUpdateController
+// );
 
 // Serve avatar images
 router.get("/uploads/avatars/:filename", (req, res) => {

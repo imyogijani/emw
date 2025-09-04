@@ -582,7 +582,6 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
     totalSellers,
     totalProducts,
     deliveredOrderData,
-    activeSubscriptions,
   ] = await Promise.all([
     Order.countDocuments(),
     Order.countDocuments({ orderStatus: "delivered" }),
@@ -600,35 +599,31 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
         },
       },
     ]),
-    UserSubscription.aggregate([
-      { $match: { isActive: true, paymentStatus: "paid" } },
-      {
-        $lookup: {
-          from: "subscriptions",
-          localField: "subscription",
-          foreignField: "_id",
-          as: "subscriptionDetails",
-        },
-      },
-      { $unwind: "$subscriptionDetails" },
-      {
-        $group: {
-          _id: "$billingCycle",
-          totalRevenue: { $sum: "$subscriptionDetails.price" },
-          activeCount: { $sum: 1 },
-        },
-      },
-    ]),
+    // UserSubscription.aggregate([
+    //   { $match: { isActive: true, paymentStatus: "paid" } },
+    //   {
+    //     $lookup: {
+    //       from: "subscriptions",
+    //       localField: "subscription",
+    //       foreignField: "_id",
+    //       as: "subscriptionDetails",
+    //     },
+    //   },
+    //   { $unwind: "$subscriptionDetails" },
+    //   {
+    //     $group: {
+    //       _id: "$billingCycle",
+    //       totalRevenue: { $sum: "$subscriptionDetails.price" },
+    //       activeCount: { $sum: 1 },
+    //     },
+    //   },
+    // ]),
   ]);
 
   const totalRevenue = deliveredOrderData[0]?.totalRevenue || 0;
   const totalGST = deliveredOrderData[0]?.totalGST || 0;
 
   // Normalize subscription revenue
-  let subscriptionRevenue = 0;
-  for (const sub of activeSubscriptions) {
-    subscriptionRevenue += sub.totalRevenue || 0;
-  }
 
   //  Weekly growth calculation
   const now = new Date();
@@ -684,13 +679,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
       revenue: {
         fromOrders: totalRevenue,
         gstCollected: totalGST,
-        fromSubscriptions: subscriptionRevenue,
       },
-      subscriptions: activeSubscriptions.map((sub) => ({
-        billingCycle: sub._id,
-        totalRevenue: sub.totalRevenue || 0,
-        activeCount: sub.activeCount,
-      })),
     },
   });
 });

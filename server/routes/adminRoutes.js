@@ -127,7 +127,7 @@ router.patch("/documents/:docId/status", adminUpdateDocumentStatus);
 // Settings management
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
-router.patch("/settings/onboarding-skip", updateOnboardingSettings);
+// router.patch("/settings/onboarding-skip", updateOnboardingSettings);
 
 // Onboarding management
 router.get("/onboarding/incomplete", getIncompleteOnboardingUsers);

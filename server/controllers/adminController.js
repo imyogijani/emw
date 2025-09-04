@@ -702,18 +702,6 @@ export const getSellerDetails = async (req, res) => {
         status: sellerUser.status,
         lastLogin: sellerUser.lastLogin,
         createdAt: sellerUser.createdAt,
-        subscription: sellerUser.subscription
-          ? {
-              _id: sellerUser.subscription._id,
-              planName: sellerUser.subscription.planName,
-              price: sellerUser.subscription.price,
-              duration: sellerUser.subscription.duration,
-              features: sellerUser.subscription.features,
-            }
-          : null,
-        subscriptionStartDate: sellerUser.subscriptionStartDate,
-        subscriptionEndDate: sellerUser.subscriptionEndDate,
-        subscriptionFeatures: sellerUser.subscriptionFeatures,
       },
       shopDetails: sellerTable
         ? {
@@ -780,7 +768,10 @@ export const deleteUser = async (req, res) => {
       }
     } catch (firebaseError) {
       // Don't fail the entire operation if Firebase deletion fails
-      console.log('Firebase deletion error (non-critical):', firebaseError.message);
+      console.log(
+        "Firebase deletion error (non-critical):",
+        firebaseError.message
+      );
     }
 
     res.json({
@@ -958,7 +949,9 @@ export const getShopownerDetails = async (req, res) => {
     let sellerDetails = null;
     if (user.sellerId) {
       // If populated, sellerId is the seller document
-      sellerDetails = user.sellerId.toObject ? user.sellerId.toObject() : user.sellerId;
+      sellerDetails = user.sellerId.toObject
+        ? user.sellerId.toObject()
+        : user.sellerId;
     }
     res.json({
       success: true,

@@ -199,65 +199,6 @@ export const addProduct = async (req, res) => {
       }
     }
 
-    // console.log("1111", req.userId);
-
-    //  Step : Get ALL active, paid subscriptions for this user
-    const userSubs = await UserSubscription.find({
-      user: req.userId,
-      isActive: true,
-      paymentStatus: { $in: ["paid", "free"] },
-      endDate: { $gt: new Date() },
-    }).populate("subscription");
-
-    // console.log("Seller userSubs  ", userSubs);
-
-    //  If no active subscriptions found
-    if (!userSubs || userSubs.length === 0) {
-      deleteUploadedFiles(req.files);
-      return res.status(403).json({
-        success: false,
-        message: "No active subscription found. Please purchase a plan.",
-      });
-    }
-
-    //  Step 2: Combine limits from all subscriptions
-    let totalProductLimit = 0;
-    let totalProductsUsed = 0;
-    let allowPremium = false;
-
-    userSubs.forEach((sub) => {
-      // Parse included features from subscription
-      const featuresMap = {};
-      sub.subscription.includedFeatures.forEach((f) => {
-        const [key, value] = f.split(":");
-        featuresMap[key] = value ? parseInt(value) : true;
-      });
-
-      // Accumulate limits and usage
-      totalProductLimit += featuresMap["productLimit"] || 0;
-      // totalProductsUsed += sub.featuresUsed?.productsAdded || 0;
-      totalProductsUsed += sub.featuresUsed?.get("productsAdded") || 0;
-
-      // If any subscription allows featured listing
-      if (featuresMap["featuredListing"] === true) {
-        allowPremium = true;
-      }
-    });
-
-    // console.log(" Subscription Info:");
-    // console.log(" totalProductLimit:", totalProductLimit);
-    // console.log(" totalProductsUsed:", totalProductsUsed);
-    // console.log(" allowPremium:", allowPremium);
-
-    //  Step 3: Validate total product usage
-    if (totalProductsUsed >= totalProductLimit) {
-      deleteUploadedFiles(req.files);
-      return res.status(403).json({
-        success: false,
-        message: `Product limit (${totalProductLimit}) reached. Upgrade your plan.`,
-      });
-    }
-
     // Optional technical details
     let techRef = null;
     if (technicalDetailsId) {
@@ -319,7 +260,7 @@ export const addProduct = async (req, res) => {
       image: images,
       variants: parsedVariants,
       technicalDetails: techRef,
-      isPremium: allowPremium,
+      isPremium: true,
       gstPercentage,
       hsnCode,
       hsnCodeSource,
@@ -332,24 +273,6 @@ export const addProduct = async (req, res) => {
     });
 
     await product.save();
-
-    //  Step 5: Distribute usage to first available subscription
-    const subToUpdate = userSubs.find((sub) => {
-      const limit = parseInt(
-        sub.subscription.includedFeatures
-          .find((f) => f.startsWith("productLimit:"))
-          ?.split(":")[1] || "0"
-      );
-      const used = sub.featuresUsed?.productsAdded || 0;
-      return used < limit;
-    });
-
-    if (subToUpdate) {
-      await UserSubscription.findByIdAndUpdate(subToUpdate._id, {
-        $inc: { "featuresUsed.productsAdded": 1 },
-        $set: { updatedAt: new Date() },
-      });
-    }
 
     return res.status(201).json({
       success: true,
@@ -531,7 +454,7 @@ export const updateProduct = async (req, res) => {
     if (brand !== undefined) product.brand = brand === "" ? undefined : brand;
     if (hsnCode !== undefined)
       product.hsnCode = hsnCode === "" ? undefined : hsnCode;
-    
+
     // Handle GST percentage update - only if seller is GST verified
     if (gstPercentage !== undefined) {
       const seller = await Seller.findOne({ user: req.userId });
@@ -559,22 +482,9 @@ export const updateProduct = async (req, res) => {
         .json({ success: false, message: "Seller profile not found" });
     }
 
-    const userSubs = await UserSubscription.find({
-      user: req.userId,
-      isActive: true,
-      paymentStatus: "paid",
-      endDate: { $gt: new Date() },
-    }).populate("subscription");
-
     // console.log("Seller userSubs  ", userSubs);
 
     //  If no active subscriptions found
-    if (!userSubs || userSubs.length === 0) {
-      return res.status(403).json({
-        success: false,
-        message: "No active subscription found. Please purchase a plan.",
-      });
-    }
 
     // Handle technicalDetails
     if (technicalDetailsId) {
