@@ -664,8 +664,7 @@ export const getOnboardingStats = async (req, res) => {
 export const getSellerDetails = async (req, res) => {
   try {
     // 1. Find the user
-    const sellerUser = await User.findById(req.params.id)
-      .select("-password");
+    const sellerUser = await User.findById(req.params.id).select("-password");
 
     if (!sellerUser || sellerUser.role !== "shopowner") {
       return res.status(404).json({
@@ -1394,7 +1393,8 @@ export const updateOnboardingSettings = async (req, res) => {
     // Since onboarding has been simplified, just return success
     res.json({
       success: true,
-      message: "Onboarding settings updated (simplified system - no changes needed)",
+      message:
+        "Onboarding settings updated (simplified system - no changes needed)",
     });
   } catch (error) {
     console.error("Error in updateOnboardingSettings:", error);

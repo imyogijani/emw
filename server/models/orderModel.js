@@ -49,6 +49,13 @@ const orderItemSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  pickupRequested: { type: Boolean, default: false },
+  pickupRequest: {
+    requestedAt: { type: Date, default: null },
+    waybills: [String],
+    pickupDate: { type: Date, default: null },
+    delhiveryResponse: { type: Object, default: null }, // full API response
+  },
 
   //  Return/Cancel Info
   isReturnRequested: { type: Boolean, default: false },

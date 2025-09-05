@@ -8,6 +8,7 @@ import { backendClient } from "../utils/backendApi.js";
 import { sendShipmentLabelEmail } from "../utils/sendEmail.js";
 import axios from "axios";
 // import { generateLabel } from "../utils/labelPdfGenerator.js";
+import { registerOrUpdatePickup } from "../services/delhiveryService.js";
 
 export const checkServiceability = async (pincode) => {
   console.log("🔍 Checking Serviceability for:", pincode);
@@ -156,7 +157,6 @@ export const getExpectedTAT = async (
 };
 
 // Way bill
-
 const getOrCreateWaybill = async (sellerId, orderId) => {
   try {
     console.log("🚀 getOrCreateWaybill called");
@@ -203,7 +203,7 @@ const getOrCreateWaybill = async (sellerId, orderId) => {
       throw new Error("Waybill not received from Delhivery API");
     }
 
-    console.log("✅ New Waybill Generated:", newWaybill);
+    console.log(" New Waybill Generated:", newWaybill);
 
     // 3️⃣ Save in backend DB
     console.log("💾 Saving new waybill in backend DB...");
@@ -234,77 +234,23 @@ const getOrCreateWaybill = async (sellerId, orderId) => {
 };
 
 //  Shipment Create
-// export const createShipment = async (order, item, seller, shippingAddress) => {
-//   try {
-//     const waybill = await getOrCreateWaybill(seller._id, order._id);
-//     if (!waybill) throw new Error("Waybill not available for this order");
 
-//     let weightInKg = 0.5;
-//     if (item.productId?.technicalDetails?.weight) {
-//       const w = item.productId.technicalDetails.weight; // grams
-//       weightInKg = Math.max(0.1, w / 1000); // guard min weight
-//     }
-
-//     const payload = {
-//       format: "json",
-//       shipments: [
-//         {
-//           waybill,
-//           order: order._id,
-//           payment_mode: order.paymentMethod === "COD" ? "COD" : "Prepaid",
-//           total_amount: item.finalPrice * item.quantity,
-//           cod_amount:
-//             order.paymentMethod === "COD" ? item.finalPrice * item.quantity : 0,
-//           consignee: {
-//             name: order.shippingAddress.fullName,
-//             address: order.shippingAddress.addressLine,
-//             city: order.shippingAddress.city,
-//             state: order.shippingAddress.state,
-//             country: "India",
-//             phone: order.shippingAddress.phone,
-//             pincode: order.shippingAddress.pincode,
-//           },
-//           pickup_location: {
-//             name: seller.shopName,
-//             city: seller.shopAddresses?.[0]?.city,
-//             state: seller.shopAddresses?.[0]?.state,
-//             country: "India",
-//             phone: seller.phone,
-//             pin: seller.shopAddresses?.[0]?.pincode,
-//             address: seller.shopAddresses?.[0]?.addressLine1,
-//           },
-//           weight: weightInKg,
-//           product_details:
-//             item.productId?.name || item.productId?.title || "Product",
-//         },
-//       ],
-//     };
-
-//     const res = await apiClient.post("/api/cmu/create.json", payload);
-//     // Expecting res.data.shipments[0].waybill etc.
-//     return { success: true, data: res.data, waybill };
-//   } catch (err) {
-//     console.error("❌ Shipment Error:", err.response?.data || err.message);
-//     return { success: false, error: err };
-//   }
-// };
 export const createShipment = async (order, item, seller, shippingAddress) => {
   try {
     const waybill = await getOrCreateWaybill(seller._id, order._id);
     if (!waybill) throw new Error("Waybill not available for this order");
-    // console.log("Create Shipment oder seller --> ", seller);
 
     let weightInKg = 0.5;
     if (item.productId?.technicalDetails?.weight) {
       const w = item.productId.technicalDetails.weight; // grams
-      weightInKg = Math.max(0.1, w / 1000); // guard min weight
+      weightInKg = Math.max(0.1, w / 1000);
     }
-    // ✅ Seller ka default shop address pick karo
+
+    //  Seller ka default shop address
     const defaultAddress =
       seller.shopAddresses?.find((a) => a.isDefault) ||
       seller.shopAddresses?.[0];
 
-    // build shipment body exactly as Delhivery expects
     const shipmentBody = {
       shipments: [
         {
@@ -316,18 +262,21 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
             order.paymentMethod === "COD" ? item.finalPrice * item.quantity : 0,
           name: order.shippingAddress.fullName,
           add: order.shippingAddress.addressLine,
+          address1:
+            order.shippingAddress.addressLine1 ||
+            order.shippingAddress.addressLine, //  primary
+          address2: order.shippingAddress.addressLine2 || "", //Secondary
           city: order.shippingAddress.city,
           state: order.shippingAddress.state,
           country: "India",
           phone: order.shippingAddress.phone,
+          mobile: order.shippingAddress.phone,
           pin: order.shippingAddress.pincode,
           products_desc:
             item.productId?.name || item.productId?.title || "Product",
           weight: weightInKg,
         },
       ],
-
-      //  Pickup from seller shop using COMPANY account
       pickup_location: {
         name: seller.shopName,
         add:
@@ -342,19 +291,37 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
       },
     };
 
-    // wrap into format + data (stringified JSON)
     const payload = qs.stringify({
       format: "json",
       data: JSON.stringify(shipmentBody),
     });
 
-    console.log("Create Shipping order  : --> ", JSON.stringify(shipmentBody));
+    console.log("📦 Shipment Payload:", JSON.stringify(shipmentBody));
 
     const res = await apiClient.post("/api/cmu/create.json", payload, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
+
+    //  Agar Delhivery fail kare pickup location missing ke wajah se
+    if (
+      res.data?.rmk?.includes("ClientWarehouse matching query does not exist.")
+    ) {
+      console.log("⚠️ Pickup not registered → registering now...");
+
+      const pickupId = await registerOrUpdatePickup(seller, defaultAddress);
+
+      console.log("SHipment Controller --> ", pickupId);
+      if (pickupId) {
+        const idx = seller.shopAddresses.findIndex((a) =>
+          a._id.equals(defaultAddress._id)
+        );
+        if (idx !== -1) {
+          seller.shopAddresses[idx].delhiveryPickupId = pickupId;
+          await seller.save();
+          console.log(" Pickup ID DB save ->:", pickupId);
+        }
+      }
+    }
 
     return { success: true, data: res.data, waybill };
   } catch (err) {
@@ -392,53 +359,6 @@ export const processShipmentsForOrder = async (orderId) => {
   }
 };
 
-// label  : Seller panel in download to this call and download. or automatic generate and email in send.
-
-// export const generateLabel = async (waybill) => {
-//   try {
-//     console.log("🖨️ Generating Label for:", waybill);
-
-//     const res = await apiClient.get(
-//       `/api/p/packing_slip?wbns=${waybill}&pdf=true`
-//     );
-
-//     // ⚠️ Response will be PDF (Buffer)
-//     const filePath = `labels/${waybill}.pdf`;
-//     fs.writeFileSync(filePath, res.data);
-//     console.log("✅ Label Saved at:", filePath);
-
-//     return filePath;
-//   } catch (err) {
-//     console.error("❌ Label Generation Failed:", err.message);
-//     return null;
-//   }
-// };
-
-// Pickup Request:
-// 👉 Use case:
-// Seller ne apne dashboard me "Schedule Pickup" click kiya
-// System auto Delhivery ko request bhej dega.
-
-//  Generate Label (PDF)
-// export const generateLabel = async (waybill) => {
-//   try {
-//     const res = await apiClient.get(
-//       `/api/p/packing_slip?wbns=${waybill}&pdf=true`,
-//       {
-//         responseType: "arraybuffer",
-//       }
-//     );
-//     const dir = path.join(process.cwd(), "labels");
-//     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-//     const filePath = path.join(dir, `${waybill}.pdf`);
-//     fs.writeFileSync(filePath, res.data);
-//     return filePath;
-//   } catch (err) {
-//     console.error("❌ Label Generation Failed:", err.message);
-//     return null;
-//   }
-// };
-
 export const generateLabel = async (waybill, orderId, sellerId) => {
   try {
     const res = await apiClient.get(
@@ -460,12 +380,14 @@ export const generateLabel = async (waybill, orderId, sellerId) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
     const timestamp = Date.now();
-    const fileName = `${sellerId}_${orderId}_${waybill}_${timestamp}.pdf`;
+    // const fileName = `${sellerId}_${orderId}_${waybill}_${timestamp}.pdf`;
+    // const filePath = path.join(dir, fileName);
+    const fileName = `${waybill}.pdf`; // easy matching for download
     const filePath = path.join(dir, fileName);
 
     fs.writeFileSync(filePath, Buffer.from(pdfRes.data));
 
-    console.log("✅ PDF downloaded:", filePath);
+    console.log(" PDF downloaded:", filePath);
     return filePath;
   } catch (err) {
     console.error("❌ Label Generation Failed:", err.message);
@@ -481,7 +403,7 @@ export const trackShipment = async (waybill) => {
       `/api/v1/packages/json/?waybill=${waybill}`
     );
 
-    console.log("✅ Tracking Data:", res.data);
+    console.log(" Tracking Data:", res.data);
     return res.data;
   } catch (err) {
     console.error("❌ Tracking Failed:", err.message);
@@ -521,7 +443,7 @@ export const generateShipmentsForOrder = async (req, res) => {
 
       // Skip if already shipped
       if (item.shipmentStatus === "success" && item.deliveryTrackingId) {
-        console.log("✅ Already shipped:", item.deliveryTrackingId);
+        console.log(" Already shipped:", item.deliveryTrackingId);
         results.push({
           sellerId: seller._id,
           waybill: item.deliveryTrackingId,
@@ -542,12 +464,16 @@ export const generateShipmentsForOrder = async (req, res) => {
 
       if (
         !shipmentRes.success ||
-        shipmentRes.data?.packages?.[0]?.status === "Fail"
+        shipmentRes.data?.packages?.[0]?.status === "Fail" ||
+        shipmentRes.data?.error === true ||
+        shipmentRes.data?.success === false
       ) {
         const errorMsg =
           shipmentRes.data?.packages?.[0]?.remarks?.join(", ") ||
           "Shipment creation failed";
         item.shipmentStatus = "failed";
+        item.deliveryStatus = "cancelled"; //  order side bhi reflect ho
+        item.shippedAt = null;
         await order.save();
         results.push({
           sellerId: seller._id,
@@ -582,11 +508,13 @@ export const generateShipmentsForOrder = async (req, res) => {
       item.deliveryTrackingId = apiWaybill;
       item.deliveryTrackingURL = `https://www.delhivery.com/track/package/${apiWaybill}`;
       item.shipmentStatus = "success";
+      item.deliveryStatus = "shipped";
+
       item.shippedAt = new Date();
       if (labelPath) item.labelPath = labelPath;
 
       await order.save();
-      console.log("✅ Order updated with shipment info");
+      console.log(" Order updated with shipment info");
 
       // Send label email to seller (if email exists)
       if (sellerUser && sellerUser.email) {
@@ -626,134 +554,64 @@ export const generateShipmentsForOrder = async (req, res) => {
   }
 };
 
-export const requestPickup = async (req, res) => {
-  try {
-    const { orderId, pickupLocation } = req.body;
-
-    // Order find karo
-    const order = await Order.findById(orderId).lean();
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
-
-    // Waybills nikalo jo shipment success hain
-    const waybills = order.items
-      .filter((it) => it.shipmentStatus === "success" && it.deliveryTrackingId)
-      .map((it) => it.deliveryTrackingId);
-
-    if (waybills.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No ready parcels for pickup" });
-    }
-
-    // Payload banao
-    const payload = {
-      pickup_location: {
-        name: pickupLocation.name,
-        city: pickupLocation.city,
-        state: pickupLocation.state,
-        country: "India",
-        phone: pickupLocation.phone,
-        pin: pickupLocation.pincode,
-        address: pickupLocation.address,
-      },
-      waybills, // sare waybills bhej rahe hain
-    };
-
-    // Delhivery ko call karo
-    // const data = await createPickupRequest(payload);
-    const res = await apiClient.post("/api/cmu/pickup", payload);
-
-    res.json({ success: !!data, data });
-  } catch (err) {
-    console.error("Pickup Request Error:", err);
-    res.status(500).json({ success: false, message: "Pickup request failed" });
-  }
-};
-
-// export const requestPickup = async (req, res) => {
-//   try {
-//     const { orderId } = req.body;
-
-//     // Order find karo
-//     const order = await Order.findById(orderId).lean();
-//     if (!order) {
-//       return res.status(404).json({ success: false, message: "Order not found" });
-//     }
-
-//     // Ready shipments ke waybills nikalo
-//     const waybills = order.items
-//       .filter((it) => it.shipmentStatus === "success" && it.deliveryTrackingId)
-//       .map((it) => it.deliveryTrackingId);
-
-//     if (waybills.length === 0) {
-//       return res.status(400).json({ success: false, message: "No parcels for pickup" });
-//     }
-
-//     // Seller ka address le lo (direct pickup ke liye)
-//     const seller = order.items[0].sellerId; // maan lo ek seller ke liye
-//     const sellerAddr = seller.shopAddresses?.[0];
-
-//     const payload = {
-//       pickup_location: {
-//         name: "KENAYO SURFACE" // ✅ yahi rehna chahiye
-//       },
-//       waybills,
-//       pickup_date: new Date().toISOString().slice(0, 19).replace("T", " "), // format yyyy-mm-dd hh:mm
-//       pickup_address: {
-//         name: seller.shopName,
-//         add: sellerAddr?.addressLine1,
-//         city: sellerAddr?.city,
-//         pin: sellerAddr?.pincode,
-//         phone: seller.phone,
-//         state: sellerAddr?.state,
-//         country: "India"
-//       }
-//     };
-
-//     const resp = await apiClient.post("/api/cmu/pickup", payload);
-//     return res.json({ success: true, data: resp.data });
-//   } catch (err) {
-//     console.error("Pickup Request Error:", err.response?.data || err.message);
-//     return res.status(500).json({ success: false, message: "Pickup request failed" });
-//   }
-// };
-
-// 👉 Tracking Status
-
-// 👉 Use case:  User / Seller dono ko live status dikhane ke liye.
-// User app me "Track Order" button click kare → ye API call hogi
-// Seller ko bhi apne panel me dikhana.
-
 export const listSellerShipments = async (req, res) => {
   try {
     const { sellerId } = req.params;
+
+    // Query params from frontend
+    const page = parseInt(req.query.page) || 1; // default page 1
+    const limit = parseInt(req.query.limit) || 10; // default 10 per page
+    const status = req.query.status; // optional filter e.g. ?status=success
+
+    const skip = (page - 1) * limit;
+
+    // Orders laao jisme seller ka item ho
     const orders = await Order.find({ "items.sellerId": sellerId })
-      .select("orderId items createdAt")
+      .select("orderId items createdAt _id")
       .lean();
 
-    const rows = [];
+    let rows = [];
     for (const o of orders) {
       for (const it of o.items) {
         if (String(it.sellerId) !== String(sellerId)) continue;
+
+        //  Hide delivered shipments
+        if (it.deliveryStatus === "delivered") continue;
+
+        //  Hide cancelled bhi agar chaho
+        if (it.deliveryStatus === "cancelled") continue;
+
         rows.push({
           orderId: o.orderId,
+          customeOrderId: o._id,
           sellerId,
           waybill: it.deliveryTrackingId,
           trackingUrl: it.deliveryTrackingURL,
-          status: it.shipmentStatus,
-          labelPath: it.labelPath,
-          labelUrl: it.labelUrl,
+          status: it.shipmentStatus, // pending / success / failed
+          deliveryStatus: it.deliveryStatus, // processing / shipped / delivered / cancelled
+          labelPath: it.deliveryStatus !== "delivered" ? it.labelPath : null, //  delivered hone ke baad label hide
+          labelUrl: it.deliveryStatus !== "delivered" ? it.labelUrl : null,
           shippedAt: it.shippedAt,
           createdAt: o.createdAt,
         });
       }
     }
-    res.json({ success: true, shipments: rows });
+
+    //  Sort by createdAt (latest first)
+    rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    //  Pagination slice
+    const paginatedRows = rows.slice(skip, skip + limit);
+
+    res.json({
+      success: true,
+      page,
+      limit,
+      total: rows.length, // total count before pagination
+      shipments: paginatedRows,
+    });
   } catch (e) {
+    console.error("Error loading shipments:", e);
     res
       .status(500)
       .json({ success: false, message: "Failed to load shipments" });
@@ -764,11 +622,13 @@ export const downloadLabel = async (req, res) => {
   try {
     const { waybill } = req.params;
     const labelPath = path.join(process.cwd(), "labels", `${waybill}.pdf`);
+
     if (!fs.existsSync(labelPath)) {
       return res
         .status(404)
         .json({ success: false, message: "Label not found" });
     }
+
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -780,4 +640,137 @@ export const downloadLabel = async (req, res) => {
   }
 };
 
+const formatPickupDate = (date = null) => {
+  const now = new Date();
+  const d = date ? new Date(date) : new Date();
 
+  // Agar date explicitly diya gaya hai
+  if (date) {
+    d.setHours(10, 0, 0, 0);
+    return d.toISOString().slice(0, 16).replace("T", " ");
+  }
+
+  // Same-day vs Next-day logic
+  if (now.getHours() < 12) {
+    // Agar subah 12 baje se pehle → same-day pickup 3PM fix karte hain
+    d.setHours(15, 0, 0, 0);
+  } else {
+    // Agar 12 ke baad → next-day 10AM
+    d.setDate(d.getDate() + 1);
+    d.setHours(10, 0, 0, 0);
+  }
+
+  return d.toISOString().slice(0, 16).replace("T", " ");
+};
+
+export const requestPickupForOrder = async (req, res) => {
+  try {
+    const { orderId, pickupDate } = req.body;
+
+    const order = await Order.findById(orderId).populate({
+      path: "items.sellerId",
+      populate: { path: "user", model: "users" },
+    });
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    const results = [];
+    const sellers = {};
+
+    // group waybills per seller
+    for (const it of order.items) {
+      if (it.shipmentStatus === "success" && it.deliveryTrackingId) {
+        if (it.pickupRequested) {
+          //  Prevent repeat request
+          results.push({
+            sellerId: String(it.sellerId._id),
+            success: false,
+            message: "Pickup already requested for this item",
+          });
+          continue;
+        }
+
+        const sid = String(it.sellerId._id);
+        sellers[sid] = sellers[sid] || {
+          seller: it.sellerId,
+          items: [],
+          waybills: [],
+        };
+        sellers[sid].items.push(it);
+        sellers[sid].waybills.push(it.deliveryTrackingId);
+      }
+    }
+
+    for (const sid of Object.keys(sellers)) {
+      const { seller, items, waybills } = sellers[sid];
+      const addr =
+        seller.shopAddresses?.find((a) => a.isDefault) ||
+        seller.shopAddresses?.[0];
+      if (!addr) {
+        results.push({
+          sellerId: sid,
+          success: false,
+          message: "No pickup address",
+        });
+        continue;
+      }
+
+      let pickup_location;
+      if (addr.delhiveryPickupId) {
+        // Agar Delhivery pickup_id string hi store hai to direct string bhej do
+        pickup_location = addr.delhiveryPickupId;
+      } else {
+        pickup_location = seller.shopName;
+      }
+
+      //  Updated pickup_date logic
+      const pickup_date = formatPickupDate(pickupDate);
+      const [datePart, timePart] = pickup_date.split(" ");
+
+      const payload = {
+        pickup_location,
+        waybills,
+        pickup_date: datePart, // “YYYY-MM-DD”
+        pickup_time: `${timePart}:00`,
+      };
+      console.log("Request PickUp request --> ", payload);
+
+      try {
+        const dlResp = await apiClient.post("/fm/request/new/", payload);
+
+        for (const it of items) {
+          it.pickupRequested = true;
+          it.pickupRequest = {
+            requestedAt: new Date(),
+            waybills,
+            pickupDate: new Date(pickup_date),
+            delhiveryResponse: dlResp.data,
+          };
+        }
+        await order.save();
+
+        results.push({
+          sellerId: sid,
+          success: true,
+          apiResponse: dlResp.data,
+        });
+      } catch (err) {
+        console.error("Pickup error:", err.response?.data || err.message);
+        results.push({
+          sellerId: sid,
+          success: false,
+          error: err.response?.data || err.message,
+        });
+      }
+    }
+
+    res.json({ success: true, orderId: order._id, results });
+  } catch (err) {
+    console.error("requestPickupForOrder failed:", err);
+    res.status(500).json({ success: false, message: "Pickup request failed" });
+  }
+};

@@ -4,8 +4,8 @@ import {
   generateShipmentsForOrder,
   listSellerShipments,
   downloadLabel,
-  requestPickup,
   trackShipment,
+  requestPickupForOrder,
 } from "../controllers/shipmentController.js";
 import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 
@@ -16,7 +16,7 @@ router.post("/generate", authenticateToken, generateShipmentsForOrder);
 
 // Seller panel list
 router.get(
-  "/seller/:sellerId",
+  "/seller/:sellerId/shipments-list",
   authenticateToken,
   fetchUser,
   listSellerShipments
@@ -32,7 +32,12 @@ router.get("/label/:waybill", authenticateToken, downloadLabel);
 // });
 
 // Improve logic : Cron job - daily check any seller forget manually  not pickup request sends .
-router.post("/request-pickup", authenticateToken, fetchUser, requestPickup);
+router.post(
+  "/request-pickup",
+  authenticateToken,
+  fetchUser,
+  requestPickupForOrder
+);
 
 // Track:
 router.get("/track/:waybill", authenticateToken, async (req, res) => {

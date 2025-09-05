@@ -1248,3 +1248,20 @@ export const addOrUpdateSellerAddress = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const getSellerAddresses = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+
+    res.json({ success: true, addresses: seller.shopAddresses });
+  } catch (err) {
+    console.error("❌ Get Seller Addresses Error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
