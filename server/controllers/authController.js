@@ -250,18 +250,6 @@ const loginController = async (req, res) => {
       });
     }
 
-    // Check subscription status for shopowners (only if they have completed onboarding)
-    if (
-      user.role === "shopowner" &&
-      user.isOnboardingComplete
-    ) {
-      const oneMonth = 30 * 24 * 60 * 60 * 1000; // milliseconds in a month
-      const now = new Date();
-    
-
-    
-    }
-
     // Generate token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -321,7 +309,7 @@ const loginController = async (req, res) => {
 const currentUserController = async (req, res) => {
   try {
     let userQuery = userModel.findById(req.userId);
-    // Always populate subscription for shopowners
+    // Populate seller data for shopowners
     userQuery = userQuery
       .populate(
         "sellerId",

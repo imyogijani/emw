@@ -432,9 +432,8 @@ export const getAllUsers = async (req, res) => {
     // 3. Count total documents for pagination
     const totalUsers = await User.countDocuments(filter);
 
-    // 4. Fetch users with filters, populate subscription, and pagination
+    // 4. Fetch users with filters and pagination (subscription removed)
     const users = await User.find(filter)
-      .populate("subscription")
       .select("-password")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -485,7 +484,6 @@ export const getIncompleteOnboardingUsers = async (req, res) => {
     const totalUsers = await User.countDocuments(filter);
 
     const users = await User.find(filter)
-      .populate("subscription")
       .select("-password")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -500,13 +498,6 @@ export const getIncompleteOnboardingUsers = async (req, res) => {
       createdAt: user.createdAt,
       isOnboardingComplete: user.isOnboardingComplete || false,
       registrationStatus: user.emailVerified ? "verified" : "pending",
-      subscription:
-        user.role === "shopowner" && user.subscription
-          ? {
-              planName: user.subscription.planName,
-              _id: user.subscription._id,
-            }
-          : undefined,
     }));
 
     res.json({
@@ -674,7 +665,6 @@ export const getSellerDetails = async (req, res) => {
   try {
     // 1. Find the user
     const sellerUser = await User.findById(req.params.id)
-      .populate("subscription")
       .select("-password");
 
     if (!sellerUser || sellerUser.role !== "shopowner") {
@@ -894,43 +884,7 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Update user role
-
-// Update shopowner subscription plan and features
-export const updateShopownerSubscription = async (req, res) => {
-  try {
-    const { subscriptionId } = req.body;
-    const user = await User.findById(req.params.id);
-    if (!user || user.role !== "shopowner") {
-      return res.status(404).json({
-        success: false,
-        message: "Shopowner not found",
-      });
-    }
-    const subscription = await Subscription.findById(subscriptionId);
-    if (!subscription) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid subscription plan",
-      });
-    }
-    user.subscription = subscriptionId;
-    user.subscriptionFeatures = subscription.includedFeatures;
-    user.subscriptionStartDate = new Date();
-    await user.save();
-    res.json({
-      success: true,
-      message: "Shopowner subscription updated successfully",
-      user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error updating shopowner subscription",
-      error: error.message,
-    });
-  }
-};
+// Update user role (subscription function removed)
 
 // Get full details of a shopowner by ID (for admin)
 export const getShopownerDetails = async (req, res) => {
@@ -1431,5 +1385,22 @@ export const isEmailVerificationRequired = async (userType = "customer") => {
   } catch (error) {
     console.error("Error checking email verification requirement:", error);
     return true; // Default to requiring verification on error
+  }
+};
+
+// Simple handler for onboarding settings (legacy frontend support)
+export const updateOnboardingSettings = async (req, res) => {
+  try {
+    // Since onboarding has been simplified, just return success
+    res.json({
+      success: true,
+      message: "Onboarding settings updated (simplified system - no changes needed)",
+    });
+  } catch (error) {
+    console.error("Error in updateOnboardingSettings:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update onboarding settings",
+    });
   }
 };

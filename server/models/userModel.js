@@ -77,23 +77,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    subscription: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Subscription",
-      default: null,
-    },
-    subscriptionStartDate: {
-      type: Date,
-      default: null,
-    },
-    subscriptionEndDate: {
-      type: Date,
-      default: null,
-    },
-    subscriptionFeatures: {
-      type: [String],
-      default: [],
-    },
     notification: {
       type: String,
       default: null,

@@ -109,9 +109,10 @@ const Settings = () => {
           ...response.data.settings,
           onboardingRequiredSteps: response.data.settings
             .onboardingRequiredSteps || [
-            "shopTiming",
-            "shopDetails",
-            "legalDocuments",
+            { name: "shopTiming", enabled: true },
+            { name: "shopDetails", enabled: true },
+            { name: "legalDocuments", enabled: true },
+            { name: "basicDetails", enabled: false },
           ],
         });
       }
@@ -190,7 +191,7 @@ const Settings = () => {
 
   const handleOnboardingStepToggle = (step) => {
     setSettings((prev) => {
-      const currentSteps = prev.onboardingRequiredSteps;
+      const currentSteps = prev.onboardingRequiredSteps || [];
       const updatedSteps = currentSteps.map((s) =>
         s.name === step ? { ...s, enabled: !s.enabled } : s
       );
@@ -205,7 +206,7 @@ const Settings = () => {
 
       const payload = {
         onboardingEnabled: settings.onboardingEnabled,
-        onboardingRequiredSteps: settings.onboardingRequiredSteps.map(
+        onboardingRequiredSteps: (settings.onboardingRequiredSteps || []).map(
           (step) => ({
             name: step.name,
             enabled: step.enabled,
@@ -455,9 +456,9 @@ const Settings = () => {
                     { key: "legalDocuments", label: "Legal Documents" },
                     { key: "basicDetails", label: "Basic Details" },
                   ].map((step) => {
-                    const stepData = settings.onboardingRequiredSteps.find(
+                    const stepData = settings.onboardingRequiredSteps?.find(
                       (s) => s.name === step.key
-                    );
+                    ) || { name: step.key, enabled: false };
                     return (
                       <button
                         key={step.key}

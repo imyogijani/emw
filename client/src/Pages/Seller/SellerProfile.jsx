@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "../../utils/axios";
 import { toast } from "react-toastify";
 import { processImageUrl } from "../../utils/apiConfig";
@@ -32,17 +33,80 @@ const SellerProfile = () => {
   });
 
   const [editAddressIndex, setEditAddressIndex] = useState(null);
+  
+  // Add a ref to track if documents are already being fetched
+  const [isFetchingDocs, setIsFetchingDocs] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-    fetchDocuments();
+  // Add CSS for animations
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .seller-profile-input {
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: #ffffff;
+      }
+      .seller-profile-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+      .seller-profile-input:disabled {
+        background: #f8fafc;
+        color: #64748b;
+      }
+      .seller-profile-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+        font-size: 14px;
+      }
+      .seller-profile-row {
+        margin-bottom: 20px;
+      }
+      .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-1px);
+      }
+      .btn-secondary {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
-  useEffect(() => {
-    console.log("editMode:", editMode);
-  }, [editMode]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -50,7 +114,6 @@ const SellerProfile = () => {
       setProfile(res.data.user);
       setGstNumber(res.data.user.sellerId?.gstNumber || "");
       setShopImages(res.data.user.sellerId?.shopImages || []);
-      console.log("User profile data:", res.data.user);
 
       setForm({
         names: res.data.user.names || "",
@@ -67,22 +130,53 @@ const SellerProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
+    if (isFetchingDocs) {
+      return;
+    }
+    
     try {
+      setIsFetchingDocs(true);
       setDocLoading(true);
       const res = await axios.get("/api/seller-documents");
       if (res.data.success) {
-        setDocuments(res.data.data || []);
+        const allDocuments = res.data.data || [];
+        // Remove duplicates based on document ID
+        const uniqueDocuments = allDocuments.filter((doc, index, self) => 
+          index === self.findIndex(d => d._id === doc._id)
+        );
+        setDocuments(uniqueDocuments);
       }
     } catch (err) {
+      console.error("Error fetching documents:", err);
       toast.error("Failed to load documents");
       setDocuments([]);
     } finally {
       setDocLoading(false);
+      setIsFetchingDocs(false);
     }
-  };
+  }, [isFetchingDocs]);
+
+  useEffect(() => {
+    const initializeProfile = async () => {
+      if (hasInitialized) return;
+      setHasInitialized(true);
+      
+      // Fetch profile and documents in parallel but only once
+      await Promise.all([
+        fetchProfile(),
+        fetchDocuments()
+      ]);
+    };
+    
+    initializeProfile();
+  }, [fetchProfile, fetchDocuments, hasInitialized]);
+
+  useEffect(() => {
+    console.log("editMode:", editMode);
+  }, [editMode]);
 
   const handleChange = (e) => {
     const { name, value, dataset } = e.target;
@@ -356,31 +450,76 @@ const SellerProfile = () => {
             className="seller-profile-card"
             style={{
               padding: "2.5rem 1.5rem",
-              boxShadow: "0 8px 32px rgba(60,72,88,0.13)",
+              boxShadow: "0 12px 40px rgba(60,72,88,0.15)",
               borderRadius: 24,
-              border: "1.5px solid #e3e8ee",
-              background: "#fff",
+              border: "1px solid #e2e8f0",
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              position: "relative",
+              overflow: "hidden"
             }}
           >
+            {/* Background Pattern */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                opacity: 0.1,
+                borderRadius: "24px 24px 0 0"
+              }}
+            />
+            
             <div
               className="seller-profile-avatar"
-              style={{ margin: "0 auto 18px auto" }}
+              style={{ 
+                margin: "0 auto 24px auto",
+                position: "relative",
+                zIndex: 1
+              }}
             >
-              <img
-                src={shopImagePreview}
-                alt="shop avatar"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "2.5px solid #e3e8ee",
-                }}
-              />
+              <div style={{ position: "relative", display: "inline-block" }}>
+                <img
+                  src={shopImagePreview}
+                  alt="shop avatar"
+                  style={{
+                    width: 110,
+                    height: 110,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "4px solid #ffffff",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.15)"
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                    width: 24,
+                    height: 24,
+                    background: "#10b981",
+                    borderRadius: "50%",
+                    border: "3px solid #ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  <span style={{ color: "white", fontSize: 12 }}>✓</span>
+                </div>
+              </div>
               {editMode && (
                 <label
                   className="seller-profile-upload-label"
-                  style={{ marginTop: 12, display: "block", cursor: "pointer" }}
+                  style={{ 
+                    marginTop: 16, 
+                    display: "block", 
+                    cursor: "pointer",
+                    textAlign: "center"
+                  }}
                 >
                   <input
                     type="file"
@@ -388,75 +527,106 @@ const SellerProfile = () => {
                     style={{ display: "none" }}
                     onChange={handleImageChange}
                   />
-                  <span className="seller-profile-upload-btn">
-                    Change Shop Image
+                  <span 
+                    className="seller-profile-upload-btn"
+                    style={{
+                      display: "inline-block",
+                      padding: "8px 16px",
+                      background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                      color: "white",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      transition: "all 0.2s ease"
+                    }}
+                  >
+                    📷 Change Image
                   </span>
                   {shopImage && (
                     <span
                       style={{
-                        marginLeft: 8,
-                        color: "#388e3c",
+                        display: "block",
+                        marginTop: 8,
+                        color: "#10b981",
                         fontWeight: 500,
+                        fontSize: 12
                       }}
                     >
-                      {shopImage.name}
+                      ✓ {shopImage.name}
                     </span>
                   )}
                 </label>
               )}
             </div>
+            
             <div
               className="seller-profile-title"
               style={{
                 textAlign: "center",
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: 700,
-                color: "#1a237e",
+                color: "#1e293b",
+                marginBottom: 8,
+                lineHeight: 1.2
               }}
             >
               {form.shopName || "Your Shop"}
             </div>
+            
             <div
               className="seller-profile-email"
               style={{
                 textAlign: "center",
-                color: "#888",
+                color: "#64748b",
                 fontSize: 15,
-                marginTop: 2,
+                marginBottom: 24,
+                fontWeight: 500
               }}
             >
               {form.email}
             </div>
-            <div style={{ margin: "18px 0 0 0", textAlign: "center" }}>
-              <div style={{ fontWeight: 600, color: "#1a237e", fontSize: 15 }}>
-                GST Number
+
+            {/* GST Section */}
+            <div style={{ 
+              margin: "20px 0",
+              padding: "16px",
+              background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+              borderRadius: 12,
+              border: "1px solid #f59e0b"
+            }}>
+              <div style={{ 
+                fontWeight: 600, 
+                color: "#92400e", 
+                fontSize: 14,
+                marginBottom: 8,
+                textAlign: "center"
+              }}>
+                🏛️ GST Registration
               </div>
-              <div>
+              <div style={{ textAlign: "center" }}>
                 {gstNumber ? (
-                  <span className="seller-profile-tag gst">{gstNumber}</span>
+                  <span style={{
+                    display: "inline-block",
+                    padding: "6px 12px",
+                    background: "#ffffff",
+                    color: "#92400e",
+                    borderRadius: 6,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontFamily: "monospace",
+                    border: "1px solid #f59e0b"
+                  }}>
+                    {gstNumber}
+                  </span>
                 ) : (
-                  <span style={{ color: "#bbb" }}>Not Provided</span>
+                  <span style={{ 
+                    color: "#64748b",
+                    fontSize: 13,
+                    fontStyle: "italic"
+                  }}>
+                    Not Provided
+                  </span>
                 )}
-              </div>
-            </div>
-            <div style={{ margin: "18px 0 0 0", textAlign: "center" }}>
-              <div style={{ fontWeight: 600, color: "#1a237e", fontSize: 15 }}>
-                Subscription
-              </div>
-              <div
-                style={{
-                  fontSize: 15,
-                  color:
-                    profile.subscription && profile.subscription.planName
-                      ? "#388e3c"
-                      : "#b71c1c",
-                  fontWeight: 600,
-                  marginTop: 2,
-                }}
-              >
-                {profile.subscription && profile.subscription.planName
-                  ? profile.subscription.planName
-                  : "No Plan"}
               </div>
             </div>
           </div>
@@ -471,9 +641,9 @@ const SellerProfile = () => {
             style={{
               padding: "2.5rem 2.5rem 2rem 2.5rem",
               borderRadius: 24,
-              background: "#fff",
-              boxShadow: "0 8px 32px rgba(60,72,88,0.10)",
-              border: "1.5px solid #e3e8ee",
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              boxShadow: "0 12px 40px rgba(60,72,88,0.12)",
+              border: "1px solid #e2e8f0",
             }}
           >
             {/* Editable fields or read-only */}
@@ -540,68 +710,137 @@ const SellerProfile = () => {
                   />
                 </div>
                 {/* Addresses */}
-                <div style={{ marginTop: "20px" }}>
-                  <label className="seller-profile-label">Shop Addresses</label>
+                <div style={{ marginTop: "24px" }}>
+                  <label className="seller-profile-label" style={{ fontSize: 16, marginBottom: 12 }}>
+                    🏠 Shop Addresses
+                  </label>
                   {form.addresses && form.addresses.length > 0 ? (
-                    form.addresses.map((addr, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          border: "1px solid #eee",
-                          padding: "10px",
-                          marginBottom: "8px",
-                          borderRadius: "8px",
-                          background: "#f8fafc",
-                        }}
-                      >
-                        <span style={{ flex: 1 }}>
-                          <strong
-                            style={{ display: "block", marginBottom: "4px" }}
-                          >
-                            Address {idx + 1}
-                          </strong>
-                          {addr.addressLine1}, {addr.addressLine2}, {addr.city},{" "}
-                          {addr.state} - {addr.pincode}, {addr.country}
-                        </span>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <Edit
-                            size={20}
-                            color="#1a237e"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => openEditModal(addr, idx)}
-                          />
-                          <Trash2
-                            size={20}
-                            color="#b71c1c"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleDeleteAddress(idx)}
-                          />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {form.addresses.map((addr, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            border: "2px solid #e2e8f0",
+                            padding: "16px",
+                            borderRadius: "12px",
+                            background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                            transition: "all 0.2s ease"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.borderColor = "#3b82f6";
+                            e.target.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.borderColor = "#e2e8f0";
+                            e.target.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)";
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div
+                              style={{ 
+                                fontWeight: 600, 
+                                marginBottom: "8px",
+                                color: "#1e293b",
+                                fontSize: 14
+                              }}
+                            >
+                              📍 Address {idx + 1}
+                            </div>
+                            <div style={{ color: "#64748b", fontSize: 13, lineHeight: 1.4 }}>
+                              {addr.addressLine1}, {addr.addressLine2}, {addr.city},{" "}
+                              {addr.state} - {addr.pincode}, {addr.country}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: "12px", marginLeft: 16 }}>
+                            <button
+                              onClick={() => openEditModal(addr, idx)}
+                              style={{
+                                padding: "8px",
+                                background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.transform = "scale(1)";
+                              }}
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAddress(idx)}
+                              style={{
+                                padding: "8px",
+                                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease"
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.transform = "scale(1.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.transform = "scale(1)";
+                              }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   ) : (
-                    <p style={{ color: "#888", fontSize: 15 }}>
-                      No addresses found
-                    </p>
+                    <div style={{ 
+                      textAlign: "center",
+                      padding: "24px",
+                      background: "#f8fafc",
+                      borderRadius: "12px",
+                      border: "2px dashed #cbd5e1",
+                      color: "#64748b"
+                    }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>🏠</div>
+                      <div style={{ fontSize: 15, fontWeight: 500 }}>No addresses found</div>
+                    </div>
                   )}
                   <button
                     onClick={openAddModal}
                     style={{
-                      marginTop: "10px",
-                      background: "#1a237e",
+                      marginTop: "16px",
+                      background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                       color: "#fff",
                       border: 0,
                       borderRadius: 8,
-                      padding: "8px 22px",
+                      padding: "12px 24px",
                       fontWeight: 600,
-                      fontSize: 15,
+                      fontSize: 14,
                       cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "linear-gradient(135deg, #059669 0%, #047857 100%)";
+                      e.target.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                      e.target.style.transform = "translateY(0)";
                     }}
                   >
-                    Add Address
+                    <span>➕</span>
+                    Add New Address
                   </button>
                 </div>
                 {/* Shop Images */}
@@ -610,37 +849,76 @@ const SellerProfile = () => {
                     className="seller-profile-section-card"
                     style={{
                       margin: "32px 0 0 0",
-                      padding: 18,
-                      borderRadius: 14,
-                      background: "#f6f8fa",
-                      border: "1.5px solid #e3e8ee",
+                      padding: 24,
+                      borderRadius: 16,
+                      background: "linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%)",
+                      border: "1px solid #e879f9",
+                      boxShadow: "0 4px 20px rgba(232, 121, 249, 0.1)",
                     }}
                   >
                     <div
                       style={{
-                        fontWeight: 600,
-                        color: "#1a237e",
-                        fontSize: 16,
-                        marginBottom: 10,
+                        fontWeight: 700,
+                        color: "#86198f",
+                        fontSize: 18,
+                        marginBottom: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                       }}
                     >
-                      Shop Images
+                      <span style={{ fontSize: 20 }}>🏪</span>
+                      Shop Gallery
                     </div>
-                    <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    <div style={{ 
+                      display: "grid", 
+                      gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                      gap: 16 
+                    }}>
                       {shopImages.map((img, idx) => (
-                        <img
+                        <div
                           key={idx}
-                          src={processImageUrl(img)}
-                          alt={`Shop Image ${idx + 1}`}
                           style={{
-                            width: 90,
-                            height: 90,
-                            objectFit: "cover",
-                            borderRadius: 10,
-                            border: "1.5px solid #e3e8ee",
-                            background: "#fff",
+                            position: "relative",
+                            overflow: "hidden",
+                            borderRadius: 12,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            transition: "transform 0.3s ease"
                           }}
-                        />
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
+                        >
+                          <img
+                            src={processImageUrl(img)}
+                            alt={`Shop Image ${idx + 1}`}
+                            style={{
+                              width: "100%",
+                              height: 100,
+                              objectFit: "cover",
+                              background: "#fff",
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
+                              color: "white",
+                              padding: "8px",
+                              fontSize: 11,
+                              fontWeight: 500,
+                              textAlign: "center"
+                            }}
+                          >
+                            Image {idx + 1}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -650,30 +928,66 @@ const SellerProfile = () => {
                   className="seller-profile-section-card"
                   style={{
                     margin: "32px 0 0 0",
-                    padding: 18,
-                    borderRadius: 14,
-                    background: "#f6f8fa",
-                    border: "1.5px solid #e3e8ee",
+                    padding: 24,
+                    borderRadius: 16,
+                    background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                    border: "1px solid #e2e8f0",
+                    boxShadow: "0 4px 20px rgba(60,72,88,0.08)",
                   }}
                 >
                   <div
                     style={{
-                      fontWeight: 600,
-                      color: "#1a237e",
-                      fontSize: 16,
-                      marginBottom: 10,
+                      fontWeight: 700,
+                      color: "#1e293b",
+                      fontSize: 18,
+                      marginBottom: 16,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
                     }}
                   >
+                    <span style={{ fontSize: 20 }}>📋</span>
                     Uploaded Documents
                   </div>
                   {docLoading ? (
-                    <span>Loading documents...</span>
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: 12,
+                      padding: "20px 0",
+                      color: "#64748b" 
+                    }}>
+                      <div style={{
+                        width: 20,
+                        height: 20,
+                        border: "2px solid #e2e8f0",
+                        borderTop: "2px solid #3b82f6",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite"
+                      }}></div>
+                      Loading documents...
+                    </div>
                   ) : documents.length === 0 ? (
-                    <span style={{ color: "#888" }}>No documents uploaded</span>
+                    <div style={{ 
+                      textAlign: "center",
+                      padding: "40px 20px",
+                      color: "#64748b",
+                      background: "#ffffff",
+                      borderRadius: 12,
+                      border: "2px dashed #e2e8f0"
+                    }}>
+                      {/* <div style={{ fontSize: 48, marginBottom: 12 }}>📄</div> */}
+                      <div style={{ fontSize: 16, fontWeight: 500 }}>No documents uploaded</div>
+                      <div style={{ fontSize: 14, marginTop: 4 }}>Upload your business documents to get started</div>
+                    </div>
                   ) : (
                     <div
-                      className="seller-documents-list"
-                      style={{ display: "flex", flexWrap: "wrap", gap: 18 }}
+                      className="seller-documents-grid"
+                      style={{ 
+                        display: "grid", 
+                        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                        gap: 20 
+                      }}
                     >
                       {documents.map((doc) => {
                         const isImage =
@@ -682,68 +996,141 @@ const SellerProfile = () => {
                           doc.filePath.endsWith(".png");
                         const isPdf = doc.filePath.endsWith(".pdf");
 
+                        const getStatusColor = (status) => {
+                          switch(status?.toLowerCase()) {
+                            case 'approved': return '#10b981';
+                            case 'pending': return '#f59e0b';
+                            case 'rejected': return '#ef4444';
+                            default: return '#6b7280';
+                          }
+                        };
+
+                        const getStatusBg = (status) => {
+                          switch(status?.toLowerCase()) {
+                            case 'approved': return '#d1fae5';
+                            case 'pending': return '#fef3c7';
+                            case 'rejected': return '#fee2e2';
+                            default: return '#f3f4f6';
+                          }
+                        };
+
                         return (
                           <div
                             key={doc._id}
                             style={{
-                              border: "1.5px solid #e3e8ee",
-                              borderRadius: 10,
-                              padding: 10,
-                              width: 150,
-                              textAlign: "center",
-                              background: "#fff",
-                              boxShadow: "0 2px 8px rgba(60,72,88,0.04)",
+                              background: "#ffffff",
+                              borderRadius: 12,
+                              padding: 20,
+                              border: "1px solid #e2e8f0",
+                              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                              transition: "all 0.3s ease",
+                              cursor: "pointer",
+                              position: "relative",
+                              overflow: "hidden"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = "translateY(-2px)";
+                              e.target.style.boxShadow = "0 8px 25px rgba(0,0,0,0.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = "translateY(0)";
+                              e.target.style.boxShadow = "0 2px 12px rgba(0,0,0,0.05)";
                             }}
                           >
-                            <div
+                            {/* Status Badge */}
+                            {/* <div
                               style={{
-                                fontWeight: 500,
-                                fontSize: 13,
-                                marginBottom: 4,
-                                color: "#1a237e",
+                                position: "absolute",
+                                top: 12,
+                                right: 12,
+                                padding: "4px 8px",
+                                borderRadius: 6,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                textTransform: "uppercase",
+                                color: getStatusColor(doc.status),
+                                background: getStatusBg(doc.status),
+                                letterSpacing: "0.5px"
                               }}
                             >
-                              {doc.docType.toUpperCase()}
+                              {doc.status || 'Unknown'}
+                            </div> */}
+
+                            {/* Document Type Header */}
+                            <div
+                              style={{
+                                fontWeight: 600,
+                                fontSize: 14,
+                                marginBottom: 16,
+                                color: "#1e293b",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px"
+                              }}
+                            >
+                              {doc.docType.replace(/([A-Z])/g, ' $1').trim()}
                             </div>
 
-                            {/* Preview (image or icon) */}
-                            {isImage ? (
-                              <img
-                                src={`/api/seller-documents/view/${doc._id}`}
-                                alt={doc.docType}
+                            {/* {doc.docNumber && (
+                              <div
                                 style={{
-                                  width: 80,
-                                  height: 80,
-                                  objectFit: "cover",
-                                  borderRadius: 8,
-                                  marginBottom: 4,
+                                  fontSize: 12,
+                                  color: "#64748b",
+                                  marginBottom: 12,
+                                  padding: "6px 10px",
+                                  background: "#f8fafc",
+                                  borderRadius: 6,
+                                  border: "1px solid #e2e8f0"
                                 }}
-                              />
-                            ) : (
-                              <div style={{ fontSize: 12, margin: "8px 0" }}>
-                                📄 PDF Document
+                              >
+                                <strong>Document No:</strong> {doc.docNumber}
+                              </div>
+                            )} */}
+                            {doc.docNumber && (
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: "#64748b",
+                                  marginBottom: 12,
+                                  padding: "6px 10px",
+                                  background: "#f8fafc",
+                                  borderRadius: 6,
+                                  border: "1px solid #e2e8f0"
+                                }}
+                              >
+                                <strong>Document No:</strong> {doc.docNumber}
                               </div>
                             )}
 
-                            {/* Buttons */}
+                            {/* Action Buttons */}
                             <div
                               style={{
                                 display: "flex",
-                                justifyContent: "space-around",
-                                marginTop: 8,
+                                gap: 8,
+                                marginTop: 16
                               }}
                             >
                               <button
                                 onClick={() => handleViewDoc(doc._id)}
                                 style={{
+                                  flex: 1,
+                                  padding: "8px 12px",
                                   fontSize: 12,
-                                  color: "#1a73e8",
-                                  background: "none",
+                                  fontWeight: 600,
+                                  color: "#ffffff",
+                                  background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
                                   border: "none",
+                                  borderRadius: 6,
                                   cursor: "pointer",
+                                  transition: "all 0.2s ease"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.background = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
                                 }}
                               >
-                                View
+                                👁️ View
                               </button>
                               <button
                                 onClick={() =>
@@ -753,37 +1140,26 @@ const SellerProfile = () => {
                                   )
                                 }
                                 style={{
+                                  flex: 1,
+                                  padding: "8px 12px",
                                   fontSize: 12,
-                                  color: "#1a73e8",
-                                  background: "none",
-                                  border: "none",
+                                  fontWeight: 600,
+                                  color: "#374151",
+                                  background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
+                                  border: "1px solid #d1d5db",
+                                  borderRadius: 6,
                                   cursor: "pointer",
+                                  transition: "all 0.2s ease"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.background = "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.background = "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)";
                                 }}
                               >
-                                Download
+                                💾 Download
                               </button>
-                            </div>
-
-                            {/* Doc Number and Status */}
-                            {doc.docNumber && (
-                              <div
-                                style={{
-                                  fontSize: 11,
-                                  color: "#888",
-                                  marginTop: 4,
-                                }}
-                              >
-                                No: {doc.docNumber}
-                              </div>
-                            )}
-                            <div
-                              style={{
-                                fontSize: 10,
-                                color: "#aaa",
-                                marginTop: 2,
-                              }}
-                            >
-                              {doc.status}
                             </div>
                           </div>
                         );

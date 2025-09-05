@@ -24,7 +24,7 @@ const AddressModal = ({
 
     const fetchStates = async () => {
       try {
-        const res = await axios.get("/api/location/states");
+        const res = await axios.get("/api/location/states-dropdown");
         setStates(res.data.data || []);
       } catch (err) {
         console.error("Error fetching states:", err);
@@ -51,7 +51,7 @@ const AddressModal = ({
         setPincodes([]); // reset pincode
 
         const res = await axios.get(
-          `/api/location/cities/${addressForm.state}`
+          `/api/location/cities-dropdown/${addressForm.state}`
         );
         setCities(res.data.data || []);
       } catch (err) {
@@ -62,7 +62,7 @@ const AddressModal = ({
     };
 
     fetchCities();
-  }, [addressForm.state]);
+  }, [addressForm.state, isEditing, setAddressForm]);
 
   // Load pincodes when city changes
   useEffect(() => {
@@ -76,7 +76,7 @@ const AddressModal = ({
         }
 
         const res = await axios.get(
-          `/api/location/pincodes/${addressForm.state}/${addressForm.city}`
+          `/api/location/pincodes-dropdown/${addressForm.state}/${addressForm.city}`
         );
         setPincodes(Object.values(res.data.data) || []);
       } catch (err) {
@@ -87,7 +87,7 @@ const AddressModal = ({
     };
 
     fetchPincodes();
-  }, [addressForm.city]);
+  }, [addressForm.city, addressForm.state, isEditing, setAddressForm]);
 
   const handleSave = () => {
     let errors = {};

@@ -33,7 +33,6 @@ import Dashboard from "./Pages/admin/Dashboard";
 import AdminProducts from "./Pages/admin/Products";
 import Orders from "./Pages/admin/Orders";
 import Users from "./Pages/admin/Users";
-import Subscriptions from "./Pages/admin/Subscriptions";
 import Categories from "./Pages/admin/Categories";
 import AdminMenu from "./Pages/admin/Menu";
 import AdminDeals from "./Pages/admin/AdminDeals";
@@ -44,6 +43,7 @@ import OnboardingManagement from "./Pages/admin/OnboardingManagement";
 import SellerDashboard from "./Pages/Seller/SellerDashboard";
 import SellerProducts from "./Pages/Seller/SellerProducts";
 import AddProduct from "./Pages/Seller/AddProduct";
+import StepWiseAddProduct from "./Pages/Seller/StepWiseAddProduct";
 import SellerOrders from "./Pages/Seller/SellerOrders";
 import SellerCustomers from "./Pages/Seller/SellerCustomers";
 import Cart from "./Components/Cart/Cart";
@@ -54,7 +54,6 @@ import SellerProfile from "./Pages/Seller/SellerProfile";
 import SellerDeals from "./Pages/Seller/SellerDeals";
 import ProductDetail from "./Pages/Home/ProductDetail";
 import { DealsProvider } from "./context/DealsContext";
-import SubscriptionReview from "./Pages/SubscriptionReview";
 import Checkout from "./Pages/Checkout/Checkout";
 import Payment from "./Pages/Payment/Payment";
 import Invoice from "./Pages/Invoice/Invoice";
@@ -92,7 +91,6 @@ function LayoutWrapper() {
     "/admin/products",
     "/admin/orders",
     "/admin/users",
-    "/admin/subscriptions",
     "/admin/categories",
     "/admin/deals",
     "/admin/menu",
@@ -132,7 +130,6 @@ function LayoutWrapper() {
         <Route path="/" element={<Home />} />
         <Route path="products" element={<Products />} />
         <Route path="offer" element={<Offers />} />
-        <Route path="subscription/review" element={<SubscriptionReview />} />
         <Route path="shops" element={<Shops />} />
         <Route path="product/:id" element={<ProductDetail />} />
         <Route
@@ -192,7 +189,6 @@ function LayoutWrapper() {
           <Route path="orders" element={<Orders />} />
           <Route path="users" element={<Users />} />
           <Route path="onboarding" element={<OnboardingManagement />} />
-          <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="categories" element={<Categories />} />
           <Route path="deals" element={<AdminDeals />} />
           <Route path="menu" element={<AdminMenu />} />
@@ -212,7 +208,8 @@ function LayoutWrapper() {
           <Route index element={<SellerDashboard />} />
           <Route path="dashboard" element={<SellerDashboard />} />
           <Route path="products/all" element={<SellerProducts />} />
-          <Route path="products/add" element={<AddProduct />} />
+          <Route path="products/add" element={<StepWiseAddProduct />} />
+          <Route path="products/add-legacy" element={<AddProduct />} />
           <Route path="orders" element={<SellerOrders />} />
           <Route path="customers" element={<SellerCustomers />} />
           <Route path="deals" element={<SellerDeals />} />

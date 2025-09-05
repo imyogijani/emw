@@ -13,7 +13,6 @@ import {
   getAllUsers,
   deleteUser,
   updateUser,
-  updateShopownerSubscription,
   getShopownerDetails,
   getSellerDetails,
   getAllLocations,
@@ -28,6 +27,7 @@ import {
   forceCompleteOnboarding,
   resetOnboarding,
   getOnboardingStats,
+  updateOnboardingSettings,
 } from "../controllers/adminController.js";
 
 import {
@@ -94,7 +94,6 @@ router.get("/users", getAllUsers);
 router.delete("/users/:id", deleteUser);
 router.get("/sellers/:id", getSellerDetails);
 router.patch("/users/:id", updateUser);
-router.patch("/users/:id/subscription", updateShopownerSubscription);
 
 // Orders management
 router.get("/orders", getAllOrdersAdmin);
@@ -127,7 +126,7 @@ router.patch("/documents/:docId/status", adminUpdateDocumentStatus);
 // Settings management
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
-// router.patch("/settings/onboarding-skip", updateOnboardingSettings);
+router.patch("/settings/onboarding-skip", updateOnboardingSettings);
 
 // Onboarding management
 router.get("/onboarding/incomplete", getIncompleteOnboardingUsers);

@@ -322,11 +322,7 @@ const EnhancedSellerOnboarding = () => {
     return response.data;
   };
 
-  const submitSubscription = async (data) => {
-    // Implementation for subscription step
-    const response = await axios.post("/api/seller/subscription", data);
-    return response.data;
-  };
+  // Subscription function removed - no longer needed
 
   const renderStepContent = () => {
     if (!onboardingConfig || !onboardingConfig.steps[currentStep]) {

@@ -24,7 +24,6 @@ const SellerOnboarding = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [plans, setPlans] = useState([]);
   const [systemSettings, setSystemSettings] = useState(null);
   const [requiredSteps, setRequiredSteps] = useState([]);
   const [onboardingDisabled, setOnboardingDisabled] = useState(false);
@@ -169,10 +168,7 @@ const SellerOnboarding = () => {
       sunday: { isOpen: false, open: "09:00", close: "18:00" },
     },
 
-    // Step 4 - Subscription
-    selectedPlan: null,
-
-    // Step 3 - Documents and Bank Details
+    // Step 3 - Documents and Bank Details (subscription removed)
     hasGST: null,
     gstNumber: "",
     bankDetails: {
@@ -325,12 +321,12 @@ const SellerOnboarding = () => {
 
     // Find next required step
     let nextStep = step + 1;
-    while (nextStep <= 4 && !isStepRequired(nextStep)) {
+    while (nextStep <= 3 && !isStepRequired(nextStep)) {
       nextStep++;
     }
 
     // If we've passed all steps, go to dashboard
-    if (nextStep > 4) {
+    if (nextStep > 3) {
       navigate("/seller/dashboard");
     } else {
       setStep(nextStep);
@@ -427,30 +423,7 @@ const SellerOnboarding = () => {
     fetchBrands();
   }, []);
 
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const res = await axios.get("/api/subscriptions");
-        if (res.data.success) {
-          setPlans(res.data.subscriptions);
-        } else {
-          showErrorToast(
-            res.data.message || "Failed to load plans",
-            "Seller Onboarding - Plans"
-          );
-        }
-      } catch (err) {
-        console.error("Error fetching subscription plans:", err);
-        showErrorToast(
-          "Failed to fetch subscription plans",
-          "Seller Onboarding - Plans"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPlans();
-  }, []);
+  // Subscription plans removed - simplified onboarding
 
   const fetchCategories = async () => {
     try {
@@ -553,9 +526,7 @@ const SellerOnboarding = () => {
     });
   };
 
-  const handlePlanSelect = (planId) => {
-    setFormData({ ...formData, selectedPlan: planId });
-  };
+  // Plan selection removed - simplified onboarding
 
   const validateStep = () => {
     // If step is not required, allow to proceed without validation
@@ -764,15 +735,12 @@ const SellerOnboarding = () => {
       //   },
       // });
 
-      // Start free trial
-      await axios.post("/api/seller/start-free-trial");
-
       // Clear skipped steps from localStorage since onboarding is now complete
       localStorage.removeItem("skippedOnboardingSteps");
 
       showSuccessToast(
-        "🎉 Profile completed! Your 7-day free trial has started!",
-        "Seller Onboarding - Trial Started"
+        "🎉 Profile completed successfully! Welcome to your dashboard!",
+        "Seller Onboarding - Complete"
       );
       // Redirect to seller dashboard
       navigate("/seller/dashboard");
@@ -786,28 +754,7 @@ const SellerOnboarding = () => {
     }
   };
 
-  // Handle subscription skip
-  const handleSkipSubscription = () => {
-    // Store skipped subscription in localStorage for dashboard reminders
-    const existingSkippedSteps = JSON.parse(
-      localStorage.getItem("skippedOnboardingSteps") || "[]"
-    );
-    if (!existingSkippedSteps.includes("subscription")) {
-      existingSkippedSteps.push("subscription");
-      localStorage.setItem(
-        "skippedOnboardingSteps",
-        JSON.stringify(existingSkippedSteps)
-      );
-    }
-
-    showInfoToast(
-      "Subscription step skipped. You can choose a plan later from your dashboard.",
-      "Subscription Skipped"
-    );
-
-    // Navigate to seller dashboard
-    navigate("/seller/dashboard");
-  };
+  // Subscription functionality removed - simplified onboarding
 
   // -------------------- STEP 1 API --------------------
   const submitStep1 = async () => {
@@ -1648,110 +1595,7 @@ const SellerOnboarding = () => {
     </div>
   );
 
-  const renderSubscriptionForm = () => {
-    const selectedPlan = plans.find(
-      (plan) => plan._id === formData.selectedPlan
-    );
-
-    return (
-      <div className="form-step">
-        <h2 className="step-title">Choose Your Plan</h2>
-        <p className="step-description">
-          Start with a 7-day free trial, then select a plan that suits your
-          business needs
-        </p>
-
-        {/* Free Trial Banner */}
-        <div className="free-trial-banner">
-          <div className="trial-icon">🎉</div>
-          <div className="trial-content">
-            <h3>7-Day Free Trial</h3>
-            <p>
-              Get full access to all features for 7 days, no payment required!
-            </p>
-          </div>
-        </div>
-
-        <div className="subscription-plans">
-          {plans.map((plan) => (
-            <div
-              key={plan._id}
-              className={`plan-card ${
-                formData.selectedPlan === plan._id ? "selected" : ""
-              }`}
-              onClick={() => handlePlanSelect(plan._id)}
-            >
-              <h3 className="plan-title">{plan.planName}</h3>
-              <div className="plan-price">
-                <span className="monthly-price">
-                  ₹{plan.pricing.monthly}/month
-                </span>
-                {plan.pricing.yearly && (
-                  <span className="yearly-price">
-                    ₹{plan.pricing.yearly}/year
-                  </span>
-                )}
-              </div>
-              <ul className="plan-features">
-                {plan.includedFeatures.map((feature, index) => (
-                  <li key={index}>✓ {feature}</li>
-                ))}
-              </ul>
-              {formData.selectedPlan === plan._id && (
-                <div className="selected-badge">Selected</div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* UPI Payment Section */}
-        {selectedPlan && selectedPlan.upiQrCode && (
-          <div className="payment-section">
-            <h3 className="payment-title">Payment Information</h3>
-            <div className="payment-content">
-              <div className="qr-code-section">
-                <h4>Scan QR Code to Pay</h4>
-                <div className="qr-code-container">
-                  <img
-                    src={selectedPlan.upiQrCode}
-                    alt="UPI QR Code"
-                    className="qr-code-image"
-                  />
-                </div>
-                {selectedPlan.upiId && (
-                  <p className="upi-id">UPI ID: {selectedPlan.upiId}</p>
-                )}
-              </div>
-              <div className="payment-instructions">
-                <h4>Payment Instructions:</h4>
-                <ol>
-                  <li>Scan the QR code with any UPI app</li>
-                  <li>Pay ₹{selectedPlan.pricing.monthly} for monthly plan</li>
-                  <li>Take a screenshot of the payment confirmation</li>
-                  <li>Click "Start Free Trial" to begin your 7-day trial</li>
-                  <li>After trial, your paid subscription will activate</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Trial Terms */}
-        <div className="trial-terms">
-          <h4>Free Trial Terms:</h4>
-          <ul>
-            <li>✓ Full access to all features for 7 days</li>
-            <li>✓ No payment required to start</li>
-            <li>✓ Cancel anytime during trial</li>
-            <li>
-              ✓ Automatic activation of paid plan after trial (if payment
-              completed)
-            </li>
-          </ul>
-        </div>
-      </div>
-    );
-  };
+  // Subscription form removed - simplified onboarding
 
   const renderGSTForm = () => {
     const requiredDocTypes =
@@ -2201,7 +2045,7 @@ const SellerOnboarding = () => {
         <div className="progress-bar">
           <div
             className="progress-fill"
-            style={{ width: `${(step / 4) * 100}%` }}
+            style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>
 
@@ -2241,17 +2085,6 @@ const SellerOnboarding = () => {
                 <span className="optional-badge">Optional</span>
               )}
             </div>
-            <div
-              className={`step-label ${
-                step === 4 ? "active" : step > 4 ? "completed" : ""
-              }`}
-            >
-              <span className="step-number">4</span>
-              <span className="step-name">Subscription</span>
-              {!requiredSteps.includes("subscription") && (
-                <span className="optional-badge">Optional</span>
-              )}
-            </div>
           </div>
         </div>
 
@@ -2262,8 +2095,6 @@ const SellerOnboarding = () => {
           ? renderTimingForm()
           : step === 3
           ? renderGSTForm()
-          : step === 4
-          ? renderSubscriptionForm()
           : null}
 
         <div className="form-actions">
@@ -2279,7 +2110,7 @@ const SellerOnboarding = () => {
           )}
 
           {/* Skip button for optional steps */}
-          {step < 4 && !isCurrentStepRequired() && (
+          {step < 3 && !isCurrentStepRequired() && (
             <button
               type="button"
               className="btn btn-outline"
@@ -2305,7 +2136,7 @@ const SellerOnboarding = () => {
             </button>
           )}
 
-          {step < 4 ? (
+          {step < 3 ? (
             <button
               type="button"
               className="btn btn-primary"
@@ -2316,28 +2147,15 @@ const SellerOnboarding = () => {
               {isCurrentStepRequired() ? "Next" : "Continue"}
             </button>
           ) : (
-            <>
-              {/* Skip button for subscription step */}
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={handleSkipSubscription}
-                disabled={loading}
-                style={{ marginLeft: "10px" }}
-              >
-                <FaForward style={{ marginRight: "5px" }} />
-                Skip for Now
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleSubmit}
-                disabled={loading}
-                style={{ marginLeft: "10px" }}
-              >
-                {loading ? "Starting Trial..." : "Start 7-Day Free Trial"}
-              </button>
-            </>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSubmit}
+              disabled={loading}
+              style={{ marginLeft: "10px" }}
+            >
+              {loading ? "Completing Profile..." : "Complete Profile"}
+            </button>
           )}
         </div>
       </div>

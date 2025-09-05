@@ -48,7 +48,7 @@ const adminLinks = [
   { name: "Onboarding", path: "/admin/onboarding", icon: <FaUserCheck /> },
   { name: "Deals", path: "/admin/deals", icon: <FaHandshake /> },
 
-  { name: "Subscriptions", path: "/admin/subscriptions", icon: <FaTag /> },
+
 
   { name: "Menu", path: "/admin/menu", icon: <FaBookOpen /> },
   { name: "Today's Offers", path: "/admin/offers", icon: <FaBell /> },

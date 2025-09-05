@@ -3,8 +3,6 @@ import Payment from "../models/paymentModel.js";
 import Order from "../models/orderModel.js";
 import Seller from "../models/sellerModel.js";
 import { settleOrderPayout } from "./payoutController.js"; // Import the payout function
-import Subscription from "../models/subscriptionModel.js";
-import { assignSubscriptionToUser } from "../utils/subscriptionHelper.js";
 import razorpay from "../utils/razorpayClient.js";
 import crypto from "crypto";
 
@@ -513,105 +511,4 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 //   }
 // });
 
-export const initiateSubscriptionPayment = asyncHandler(async (req, res) => {
-  const { planId, billingCycle, autopay } = req.body;
-  const user = req.user;
-
-  const subscriptionPlan = await Subscription.findById(planId);
-  if (!subscriptionPlan)
-    return res.status(404).json({ message: "Plan not found" });
-
-  const amount =
-    billingCycle === "monthly"
-      ? parseFloat(subscriptionPlan.pricing.monthly)
-      : parseFloat(subscriptionPlan.pricing.yearly);
-
-  if (autopay) {
-    const razorpayPlan = await razorpay.plans.create({
-      period: billingCycle === "monthly" ? "monthly" : "yearly",
-      interval: 1,
-      item: {
-        name: subscriptionPlan.planName,
-        amount: amount * 100,
-        currency: "INR",
-      },
-    });
-
-    const razorpaySub = await razorpay.subscriptions.create({
-      plan_id: razorpayPlan.id,
-      customer_notify: 1,
-      total_count: 12,
-      notes: { userId: user._id.toString(), planId, billingCycle },
-    });
-
-    await Payment.create({
-      userId: user._id,
-      planId,
-      billingCycle,
-      amount,
-      purpose: "subscription",
-      method: "autopay",
-      status: "pending",
-      gateway: "Razorpay",
-      providerOrderId: razorpaySub.id,
-    });
-
-    return res.json({
-      success: true,
-      autopay: true,
-      subscriptionId: razorpaySub.id,
-      short_url: razorpaySub.short_url,
-    });
-  } else {
-    const razorpayOrder = await razorpay.orders.create({
-      amount: amount * 100,
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-      payment_capture: 1,
-      notes: { userId: user._id.toString(), planId, billingCycle },
-    });
-
-    await Payment.create({
-      userId: user._id,
-      planId,
-      billingCycle,
-      amount,
-      purpose: "subscription",
-      method: "manual",
-      status: "pending",
-      gateway: "Razorpay",
-      providerOrderId: razorpayOrder.id,
-    });
-
-    res.json({
-      success: true,
-      autopay: false,
-      orderId: razorpayOrder.id,
-      amount,
-      key: process.env.RAZORPAY_KEY_ID,
-    });
-  }
-});
-
-export const verifySubscriptionPayment = asyncHandler(async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-    req.body;
-  const userId = req.user._id;
-
-  const body = `${razorpay_order_id}|${razorpay_payment_id}`;
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(body.toString())
-    .digest("hex");
-
-  if (expectedSignature !== razorpay_signature) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid signature" });
-  }
-
-  res.json({
-    success: true,
-    message: "Payment verified and subscription activated",
-  });
-});
+// Subscription payment functions removed - subscription functionality disabled

@@ -740,19 +740,11 @@ export const getAdminTrends = asyncHandler(async (req, res) => {
     { $sort: { _id: 1 } },
   ]);
 
-  // Subscriptions revenue trend
-  const subscriptionsRevenueRaw = await UserSubscription.aggregate([
-    { $match: { paymentStatus: "paid", createdAt: { $gte: startDate } } },
-    { $group: { _id: dateFormat, revenue: { $sum: "$amountPaid" } } },
-    { $sort: { _id: 1 } },
-  ]);
+  // Subscriptions revenue removed as subscription system is deprecated
 
-  // Combine revenue
+  // Combine revenue (only from orders now)
   const revenueMap = {};
   ordersRevenueRaw.forEach((r) => {
-    revenueMap[r._id] = (revenueMap[r._id] || 0) + r.revenue;
-  });
-  subscriptionsRevenueRaw.forEach((r) => {
     revenueMap[r._id] = (revenueMap[r._id] || 0) + r.revenue;
   });
 
