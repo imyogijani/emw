@@ -1,7 +1,11 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { showErrorToast, showSuccessToast, showInfoToast } from "../../utils/errorHandler";
+import {
+  showErrorToast,
+  showSuccessToast,
+  showInfoToast,
+} from "../../utils/errorHandler";
 import axios from "../../utils/axios";
 import { Button, Input } from "../../Components/Reusable";
 import "./SellerProducts.css";
@@ -42,6 +46,7 @@ const StepWiseAddProduct = () => {
   const [gstVerified, setGstVerified] = useState(false);
 
   // Technical details
+  const [techAttributes, setTechAttributes] = useState([]);
   const [technicalDetails, setTechnicalDetails] = useState(null);
   const [techForm, setTechForm] = useState({
     title: "",
@@ -71,42 +76,39 @@ const StepWiseAddProduct = () => {
       id: "basic_info",
       title: "Basic Information",
       description: "Enter product name, description and category",
-      icon: "📝"
+      icon: "📝",
     },
     {
       id: "pricing_stock",
       title: "Pricing & Stock",
       description: "Set price, discount and stock quantity",
-      icon: "💰"
+      icon: "💰",
     },
     {
       id: "technical_details",
       title: "Technical Details",
       description: "Add technical specifications",
-      icon: "⚙️"
+      icon: "⚙️",
     },
     {
       id: "images_gst",
       title: "Images & GST",
       description: "Upload images and GST information",
-      icon: "🖼️"
+      icon: "🖼️",
     },
     {
       id: "review_submit",
       title: "Review & Submit",
       description: "Review all details and submit",
-      icon: "✅"
-    }
+      icon: "✅",
+    },
   ];
 
   useEffect(() => {
     const initializeData = async () => {
       try {
         setLoading(true);
-        await Promise.all([
-          fetchCategories(),
-          fetchSellerInfo()
-        ]);
+        await Promise.all([fetchCategories(), fetchSellerInfo()]);
       } catch (error) {
         console.error("Error initializing data:", error);
         showErrorToast("Failed to load initial data");
@@ -114,7 +116,7 @@ const StepWiseAddProduct = () => {
         setLoading(false);
       }
     };
-    
+
     initializeData();
   }, []);
 
@@ -156,7 +158,9 @@ const StepWiseAddProduct = () => {
 
   const fetchHSNCodes = async (searchTerm = "") => {
     try {
-      const response = await axios.get(`/api/hsn?search=${searchTerm}&limit=20`);
+      const response = await axios.get(
+        `/api/hsn?search=${searchTerm}&limit=20`
+      );
       if (response.data.success) {
         setHsnCodes(response.data.data);
       }
@@ -168,7 +172,9 @@ const StepWiseAddProduct = () => {
   // Update subcategories when category changes
   useEffect(() => {
     if (formData.category) {
-      const selectedCategory = categories.find(cat => cat._id === formData.category);
+      const selectedCategory = categories.find(
+        (cat) => cat._id === formData.category
+      );
       if (selectedCategory && selectedCategory.children) {
         setSubcategories(selectedCategory.children);
       } else {
@@ -183,11 +189,37 @@ const StepWiseAddProduct = () => {
   useEffect(() => {
     if (formData.subcategory) {
       fetchBrands(formData.subcategory);
+      fetchTechAttributes(formData.subcategory);
     } else {
       setBrands([]);
-      setFormData(prev => ({ ...prev, brand: "" }));
+      setFormData((prev) => ({ ...prev, brand: "" }));
+      setTechForm({}); // reset
+      setTechAttributes([]);
     }
   }, [formData.subcategory]);
+
+  const fetchTechAttributes = async (subCategoryId) => {
+    try {
+      const response = await axios.get(
+        `/api/technical-details/attribute/${subCategoryId}`
+      );
+      if (response.data) {
+        setTechAttributes(response.data); // response is array of fields
+        // Initialize techForm with empty values
+        const initialForm = {};
+        response.data.forEach((field) => {
+          if (field.type === "object") {
+            initialForm[field.key] = {};
+          } else {
+            initialForm[field.key] = "";
+          }
+        });
+        setTechForm(initialForm);
+      }
+    } catch (error) {
+      console.error("Error fetching technical attributes", error);
+    }
+  };
 
   // Calculate pricing
   useEffect(() => {
@@ -203,9 +235,11 @@ const StepWiseAddProduct = () => {
     const gstAmount = (finalPrice * gstPercentage) / (100 + gstPercentage);
     const commissionRate = finalPrice > 10000 ? 4 : 7;
     const commissionAmount = (finalPrice * commissionRate) / 100;
-    const sellerEarning = finalPrice - commissionAmount;
+    // const sellerEarning = finalPrice - commissionAmount;
+    // Add commission into selling price
+    const sellerEarning = finalPrice + commissionAmount;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       finalPrice: Number(finalPrice.toFixed(2)),
       gstAmount: Number(gstAmount.toFixed(2)),
@@ -217,24 +251,24 @@ const StepWiseAddProduct = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === "category") {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
         subcategory: "",
-        brand: ""
+        brand: "",
       }));
     } else if (["price", "stock", "discount", "gstPercentage"].includes(name)) {
       const numberValue = parseFloat(value);
       if (!isNaN(numberValue) && numberValue >= 0) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [name]: value,
         }));
       }
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -243,12 +277,12 @@ const StepWiseAddProduct = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       image: files,
     }));
 
-    const previews = files.map(file => URL.createObjectURL(file));
+    const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreview(previews);
   };
 
@@ -263,8 +297,22 @@ const StepWiseAddProduct = () => {
     }
   };
 
+  const handleTechChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name.includes(".")) {
+      const [mainKey, subKey] = name.split(".");
+      setTechForm((prev) => ({
+        ...prev,
+        [mainKey]: { ...prev[mainKey], [subKey]: value },
+      }));
+    } else if (type === "checkbox") {
+      setTechForm((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setTechForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
   const selectHsnCode = (hsn) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       hsnCode: hsn.HSN_CD,
     }));
@@ -272,9 +320,34 @@ const StepWiseAddProduct = () => {
     setShowHsnDropdown(false);
   };
 
+  const saveTechnicalDetails = async () => {
+    if (!techForm.title || !techForm.weight || !techForm.dimensions?.length) {
+      showErrorToast("Title, weight, and dimensions are required");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `/api/technical-details/${formData.subcategory}`,
+        techForm
+      );
+      if (response.data) {
+        const tech = response.data.data; // your API returns saved details
+        setTechnicalDetails({ id: tech._id, title: tech.title });
+        setFormData((prev) => ({
+          ...prev,
+          technicalDetailsId: tech._id,
+        }));
+        showSuccessToast("Technical details saved");
+      }
+    } catch (error) {
+      showErrorToast("Error saving technical details", error);
+    }
+  };
+
   const validateCurrentStep = () => {
     const step = steps[currentStep];
-    
+
     switch (step.id) {
       case "basic_info": {
         if (!formData.name.trim()) {
@@ -289,7 +362,9 @@ const StepWiseAddProduct = () => {
           showErrorToast("Product description is required");
           return false;
         }
-        const selectedCategory = categories.find(cat => cat._id === formData.category);
+        const selectedCategory = categories.find(
+          (cat) => cat._id === formData.category
+        );
         if (selectedCategory?.children?.length > 0 && !formData.subcategory) {
           showErrorToast("Please select a subcategory");
           return false;
@@ -306,7 +381,11 @@ const StepWiseAddProduct = () => {
           showErrorToast("Please enter a valid stock quantity");
           return false;
         }
-        if (formData.discount && (parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100)) {
+        if (
+          formData.discount &&
+          (parseFloat(formData.discount) < 0 ||
+            parseFloat(formData.discount) > 100)
+        ) {
           showErrorToast("Discount must be between 0 and 100");
           return false;
         }
@@ -321,7 +400,12 @@ const StepWiseAddProduct = () => {
           showErrorToast("Product image is required");
           return false;
         }
-        if (gstVerified && (!formData.gstPercentage || parseFloat(formData.gstPercentage) < 0 || parseFloat(formData.gstPercentage) > 28)) {
+        if (
+          gstVerified &&
+          (!formData.gstPercentage ||
+            parseFloat(formData.gstPercentage) < 0 ||
+            parseFloat(formData.gstPercentage) > 28)
+        ) {
           showErrorToast("Please enter a valid GST percentage (0-28%)");
           return false;
         }
@@ -360,7 +444,7 @@ const StepWiseAddProduct = () => {
       if (response.data) {
         const tech = response.data.technicalDetails;
         setTechnicalDetails({ id: tech._id, title: tech.title });
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           technicalDetailsId: tech._id,
         }));
@@ -386,10 +470,14 @@ const StepWiseAddProduct = () => {
       const productData = new FormData();
 
       // Append all form data
-      Object.keys(formData).forEach(key => {
+      Object.keys(formData).forEach((key) => {
+        if (key === "subcategory" && !formData[key]) {
+          // Skip if empty
+          return;
+        }
         if (key === "image") {
-          formData.image.forEach(file => {
-            productData.append("image", file);
+          formData.image.forEach((file) => {
+            productData.append("images", file);
           });
         } else if (key === "variants") {
           productData.append(key, JSON.stringify(formData[key]));
@@ -397,11 +485,14 @@ const StepWiseAddProduct = () => {
           productData.append(key, formData[key]);
         }
       });
+      for (let [key, val] of productData.entries()) {
+        console.log("FormData ->", key, val);
+      }
 
       const response = await axios.post("/api/products/add", productData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -422,53 +513,65 @@ const StepWiseAddProduct = () => {
 
     switch (step.id) {
       case "basic_info":
-        return <BasicInfoStep 
-          formData={formData}
-          categories={categories}
-          subcategories={subcategories}
-          brands={brands}
-          onChange={handleInputChange}
-        />;
+        return (
+          <BasicInfoStep
+            formData={formData}
+            categories={categories}
+            subcategories={subcategories}
+            brands={brands}
+            onChange={handleInputChange}
+          />
+        );
 
       case "pricing_stock":
-        return <PricingStockStep 
-          formData={formData}
-          onChange={handleInputChange}
-          gstVerified={gstVerified}
-        />;
+        return (
+          <PricingStockStep
+            formData={formData}
+            onChange={handleInputChange}
+            gstVerified={gstVerified}
+          />
+        );
 
       case "technical_details":
-        return <TechnicalDetailsStep 
-          techForm={techForm}
-          setTechForm={setTechForm}
-          technicalDetails={technicalDetails}
-          setTechnicalDetails={setTechnicalDetails}
-          onSubmit={handleTechFormSubmit}
-        />;
+        return (
+          <TechnicalDetailsStep
+            techForm={techForm}
+            setTechForm={setTechForm}
+            technicalDetails={technicalDetails}
+            setTechnicalDetails={setTechnicalDetails}
+            onSubmit={saveTechnicalDetails}
+            techAttributes={techAttributes}
+            handleTechChange={handleTechChange}
+          />
+        );
 
       case "images_gst":
-        return <ImagesGstStep 
-          formData={formData}
-          imagePreview={imagePreview}
-          hsnSearch={hsnSearch}
-          hsnCodes={hsnCodes}
-          showHsnDropdown={showHsnDropdown}
-          gstVerified={gstVerified}
-          onChange={handleInputChange}
-          onImageChange={handleImageChange}
-          onHsnSearch={handleHsnSearch}
-          onSelectHsn={selectHsnCode}
-        />;
+        return (
+          <ImagesGstStep
+            formData={formData}
+            imagePreview={imagePreview}
+            hsnSearch={hsnSearch}
+            hsnCodes={hsnCodes}
+            showHsnDropdown={showHsnDropdown}
+            gstVerified={gstVerified}
+            onChange={handleInputChange}
+            onImageChange={handleImageChange}
+            onHsnSearch={handleHsnSearch}
+            onSelectHsn={selectHsnCode}
+          />
+        );
 
       case "review_submit":
-        return <ReviewSubmitStep 
-          formData={formData}
-          imagePreview={imagePreview}
-          categories={categories}
-          subcategories={subcategories}
-          brands={brands}
-          technicalDetails={technicalDetails}
-        />;
+        return (
+          <ReviewSubmitStep
+            formData={formData}
+            imagePreview={imagePreview}
+            categories={categories}
+            subcategories={subcategories}
+            brands={brands}
+            technicalDetails={technicalDetails}
+          />
+        );
 
       default:
         return <div>Unknown step</div>;
@@ -495,12 +598,14 @@ const StepWiseAddProduct = () => {
         {/* Progress Steps */}
         <div className="step-progress">
           {steps.map((step, index) => (
-            <div 
+            <div
               key={step.id}
-              className={`step-item ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'completed' : ''}`}
+              className={`step-item ${index === currentStep ? "active" : ""} ${
+                index < currentStep ? "completed" : ""
+              }`}
             >
               <div className="step-number">
-                {index < currentStep ? '✓' : index + 1}
+                {index < currentStep ? "✓" : index + 1}
               </div>
               <div className="step-info">
                 <div className="step-title">{step.title}</div>
@@ -542,11 +647,7 @@ const StepWiseAddProduct = () => {
               {loading ? "Submitting..." : "Submit Product"}
             </Button>
           ) : (
-            <Button
-              type="button"
-              onClick={handleNext}
-              className="btn-primary"
-            >
+            <Button type="button" onClick={handleNext} className="btn-primary">
               Next
             </Button>
           )}
@@ -557,7 +658,13 @@ const StepWiseAddProduct = () => {
 };
 
 // Step Components
-const BasicInfoStep = ({ formData, categories, subcategories, brands, onChange }) => (
+const BasicInfoStep = ({
+  formData,
+  categories,
+  subcategories,
+  brands,
+  onChange,
+}) => (
   <div className="form-section">
     <div className="form-group">
       <label htmlFor="name">Product Name *</label>
@@ -596,7 +703,7 @@ const BasicInfoStep = ({ formData, categories, subcategories, brands, onChange }
           required
         >
           <option value="">Select Category</option>
-          {categories.map(category => (
+          {categories.map((category) => (
             <option key={category._id} value={category._id}>
               {category.name}
             </option>
@@ -615,7 +722,7 @@ const BasicInfoStep = ({ formData, categories, subcategories, brands, onChange }
             required
           >
             <option value="">Select Subcategory</option>
-            {subcategories.map(sub => (
+            {subcategories.map((sub) => (
               <option key={sub._id} value={sub._id}>
                 {sub.name}
               </option>
@@ -635,7 +742,7 @@ const BasicInfoStep = ({ formData, categories, subcategories, brands, onChange }
           onChange={onChange}
         >
           <option value="">Select Brand</option>
-          {brands.map(brand => (
+          {brands.map((brand) => (
             <option key={brand._id} value={brand._id}>
               {brand.name}
             </option>
@@ -728,6 +835,13 @@ const PricingStockStep = ({ formData, onChange, gstVerified }) => (
           <span>Commission ({formData.commissionRate}%):</span>
           <span>₹{formData.commissionAmount}</span>
         </div>
+        {gstVerified && (
+          <div className="pricing-row">
+            <span>GST Charge: </span>
+            <span>₹{formData.gstAmount}</span>
+          </div>
+        )}
+
         <div className="pricing-row total">
           <span>Your Earning:</span>
           <span>₹{formData.sellerEarning}</span>
@@ -737,10 +851,19 @@ const PricingStockStep = ({ formData, onChange, gstVerified }) => (
   </div>
 );
 
-const TechnicalDetailsStep = ({ techForm, setTechForm, technicalDetails, setTechnicalDetails, onSubmit }) => (
+const TechnicalDetailsStep = ({
+  techForm,
+  setTechForm,
+  technicalDetails,
+  setTechnicalDetails,
+  onSubmit,
+  techAttributes,
+  handleTechChange,
+}) => (
   <div className="form-section">
     <p className="step-note">
-      Technical details help customers understand your product better. This step is optional.
+      Technical details help customers understand your product better. This step
+      is optional.
     </p>
 
     {technicalDetails ? (
@@ -759,110 +882,70 @@ const TechnicalDetailsStep = ({ techForm, setTechForm, technicalDetails, setTech
       <>
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="title">Product Title</label>
-            <Input
-              type="text"
-              id="title"
-              name="title"
-              value={techForm.title}
-              onChange={(e) => setTechForm(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Technical product title"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="modelNumber">Model Number</label>
-            <Input
-              type="text"
-              id="modelNumber"
-              name="modelNumber"
-              value={techForm.modelNumber}
-              onChange={(e) => setTechForm(prev => ({ ...prev, modelNumber: e.target.value }))}
-              placeholder="Model number"
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="weight">Weight</label>
-            <Input
-              type="text"
-              id="weight"
-              name="weight"
-              value={techForm.weight}
-              onChange={(e) => setTechForm(prev => ({ ...prev, weight: e.target.value }))}
-              placeholder="e.g., 500g, 1.2kg"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="warranty">Warranty</label>
-            <Input
-              type="text"
-              id="warranty"
-              name="warranty"
-              value={techForm.warranty}
-              onChange={(e) => setTechForm(prev => ({ ...prev, warranty: e.target.value }))}
-              placeholder="e.g., 1 year"
-            />
-          </div>
-        </div>
-
-        <div className="dimensions-group">
-          <label>Dimensions</label>
-          <div className="dimensions-row">
-            <Input
-              type="text"
-              name="length"
-              value={techForm.dimensions.length}
-              onChange={(e) => setTechForm(prev => ({ 
-                ...prev, 
-                dimensions: { ...prev.dimensions, length: e.target.value }
-              }))}
-              placeholder="Length"
-            />
-            <span>×</span>
-            <Input
-              type="text"
-              name="width"
-              value={techForm.dimensions.width}
-              onChange={(e) => setTechForm(prev => ({ 
-                ...prev, 
-                dimensions: { ...prev.dimensions, width: e.target.value }
-              }))}
-              placeholder="Width"
-            />
-            <span>×</span>
-            <Input
-              type="text"
-              name="height"
-              value={techForm.dimensions.height}
-              onChange={(e) => setTechForm(prev => ({ 
-                ...prev, 
-                dimensions: { ...prev.dimensions, height: e.target.value }
-              }))}
-              placeholder="Height"
-            />
-            <select
-              value={techForm.dimensions.unit}
-              onChange={(e) => setTechForm(prev => ({ 
-                ...prev, 
-                dimensions: { ...prev.dimensions, unit: e.target.value }
-              }))}
-            >
-              <option value="cm">cm</option>
-              <option value="mm">mm</option>
-              <option value="inch">inch</option>
-            </select>
+            {techAttributes?.map((attr) => (
+              <div className="form-group" key={attr.key}>
+                <label>
+                  {attr.label} {attr.required ? "*" : ""}
+                </label>
+                {attr.type === "object" ? (
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <Input
+                      type="number"
+                      name={`${attr.key}.length`}
+                      placeholder="Length"
+                      value={techForm[attr.key]?.length || ""}
+                      onChange={handleTechChange}
+                    />
+                    <Input
+                      type="number"
+                      name={`${attr.key}.width`}
+                      placeholder="Width"
+                      value={techForm[attr.key]?.width || ""}
+                      onChange={handleTechChange}
+                    />
+                    <Input
+                      type="number"
+                      name={`${attr.key}.height`}
+                      placeholder="Height"
+                      value={techForm[attr.key]?.height || ""}
+                      onChange={handleTechChange}
+                    />
+                    <select
+                      name={`${attr.key}.unit`}
+                      value={techForm[attr.key]?.unit || "cm"}
+                      onChange={handleTechChange}
+                      style={{
+                        padding: "6px",
+                        borderRadius: "6px",
+                        border: "1px solid #ccc",
+                      }}
+                    >
+                      <option value="cm">cm</option>
+                      <option value="mm">mm</option>
+                      <option value="inch">inch</option>
+                    </select>
+                  </div>
+                ) : attr.type === "checkbox" ? (
+                  <input
+                    type="checkbox"
+                    name={attr.key}
+                    checked={techForm[attr.key] || false}
+                    onChange={handleTechChange}
+                  />
+                ) : (
+                  <Input
+                    type={attr.type === "number" ? "number" : "text"}
+                    name={attr.key}
+                    value={techForm[attr.key]}
+                    onChange={handleTechChange}
+                  />
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        <Button
-          type="button"
-          onClick={onSubmit}
-          className="btn-primary"
-        >
+        <Button type="button" onClick={onSubmit} className="btn-primary">
           Save Technical Details
         </Button>
       </>
@@ -870,17 +953,17 @@ const TechnicalDetailsStep = ({ techForm, setTechForm, technicalDetails, setTech
   </div>
 );
 
-const ImagesGstStep = ({ 
-  formData, 
-  imagePreview, 
-  hsnSearch, 
-  hsnCodes, 
-  showHsnDropdown, 
+const ImagesGstStep = ({
+  formData,
+  imagePreview,
+  hsnSearch,
+  hsnCodes,
+  showHsnDropdown,
   gstVerified,
-  onChange, 
-  onImageChange, 
-  onHsnSearch, 
-  onSelectHsn 
+  onChange,
+  onImageChange,
+  onHsnSearch,
+  onSelectHsn,
 }) => (
   <div className="form-section">
     <div className="form-group">
@@ -894,7 +977,9 @@ const ImagesGstStep = ({
         accept="image/*"
         className="file-input"
       />
-      <p className="form-note">Upload up to 5 images. First image will be the main image.</p>
+      <p className="form-note">
+        Upload up to 5 images. First image will be the main image.
+      </p>
     </div>
 
     {imagePreview.length > 0 && (
@@ -923,7 +1008,7 @@ const ImagesGstStep = ({
             />
             {showHsnDropdown && hsnCodes.length > 0 && (
               <div className="hsn-dropdown">
-                {hsnCodes.map(hsn => (
+                {hsnCodes.map((hsn) => (
                   <div
                     key={hsn.HSN_CD}
                     className="hsn-item"
@@ -957,27 +1042,27 @@ const ImagesGstStep = ({
   </div>
 );
 
-const ReviewSubmitStep = ({ 
-  formData, 
-  imagePreview, 
-  categories, 
-  subcategories, 
-  brands, 
-  technicalDetails 
+const ReviewSubmitStep = ({
+  formData,
+  imagePreview,
+  categories,
+  subcategories,
+  brands,
+  technicalDetails,
 }) => {
   const getCategoryName = (id) => {
-    const category = categories.find(cat => cat._id === id);
-    return category ? category.name : 'Unknown Category';
+    const category = categories.find((cat) => cat._id === id);
+    return category ? category.name : "Unknown Category";
   };
 
   const getSubcategoryName = (id) => {
-    const subcategory = subcategories.find(sub => sub._id === id);
-    return subcategory ? subcategory.name : 'Unknown Subcategory';
+    const subcategory = subcategories.find((sub) => sub._id === id);
+    return subcategory ? subcategory.name : "Unknown Subcategory";
   };
 
   const getBrandName = (id) => {
-    const brand = brands.find(b => b._id === id);
-    return brand ? brand.name : 'No Brand';
+    const brand = brands.find((b) => b._id === id);
+    return brand ? brand.name : "No Brand";
   };
 
   return (

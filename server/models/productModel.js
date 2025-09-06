@@ -89,6 +89,7 @@ const productSchema = new mongoose.Schema(
       default: null,
     },
     finalPrice: { type: Number },
+    sellingPrice: { type: Number },
     isPremium: {
       type: Boolean,
       default: false,
@@ -128,6 +129,7 @@ const productSchema = new mongoose.Schema(
       default: false,
     },
     commissionRate: { type: Number, default: 4 },
+    commissionAmount: { type: Number },
   },
   {
     timestamps: true,
@@ -145,6 +147,12 @@ productSchema.pre("save", function (next) {
   } else {
     this.commissionRate = 7;
   }
+
+  this.commissionAmount = (this.finalPrice * this.commissionRate) / 100;
+
+  // Step 3: Selling price = finalPrice + commission
+  this.sellingPrice = this.finalPrice + this.commissionAmount;
+
   next();
 });
 
@@ -168,12 +176,20 @@ productSchema.pre("findOneAndUpdate", function (next) {
       update.$set = {};
     }
 
-    update.$set.finalPrice = final;
-    if (final >= 10000) {
-      update.$set.commissionRate = 4;
-    } else {
-      update.$set.commissionRate = 7;
-    }
+    // update.$set.finalPrice = final;
+    // if (final >= 10000) {
+    //   update.$set.commissionRate = 4;
+    // } else {
+    //   update.$set.commissionRate = 7;
+    // }
+
+    // Commission logic
+    const commissionRate = final >= 10000 ? 4 : 7;
+    const commissionAmount = (final * commissionRate) / 100;
+
+    update.$set.commissionRate = commissionRate;
+    update.$set.commissionAmount = commissionAmount;
+    update.$set.sellingPrice = final + commissionAmount;
   }
 
   if (stock !== undefined) {

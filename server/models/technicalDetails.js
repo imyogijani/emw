@@ -54,6 +54,12 @@ const technicalDetailsSchema = new mongoose.Schema(
     graphicsCard: { type: String },
     brand: { type: String },
 
+    customAttributes: [
+      {
+        key: { type: String, required: true }, // e.g. "Color"
+        value: { type: String, required: true }, // e.g. "Red"
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users", // Seller
@@ -64,29 +70,3 @@ const technicalDetailsSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("TechnicalDetails", technicalDetailsSchema);
-
-// const technicalDetailsSchema = new mongoose.Schema({
-//   brand: String,
-//   modelNumber: String,
-//   material: String,
-//   color: [String],
-//   size: [String],
-//   weight: String,
-//   dimensions: String,
-//   warranty: String,
-//   originCountry: String,
-//   manufacturingDate: Date,
-//   expiryDate: Date,
-//   isReturnable: { type: Boolean, default: true },
-//   careInstructions: String,
-//   usageInstructions: String,
-//   certification: [String],
-//   compatibleDevices: [String],
-//   batteryCapacity: String,
-//   screenSize: String,
-//   refreshRate: String,
-//   processor: String,
-//   ram: String,
-//   storage: String,
-//   graphicsCard: String,
-// });

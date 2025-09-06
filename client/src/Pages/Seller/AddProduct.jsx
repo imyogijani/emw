@@ -39,6 +39,7 @@ const AddProduct = () => {
 
   // Technical Details States
   const [showTechModal, setShowTechModal] = useState(false);
+  const [techAttributes, setTechAttributes] = useState([]);
   const [technicalDetails, setTechnicalDetails] = useState(null); // {id, title}
   const [techForm, setTechForm] = useState({
     title: "",
@@ -267,7 +268,12 @@ const AddProduct = () => {
       );
       return false;
     }
-    if (gstVerified && (!formData.gstPercentage || parseFloat(formData.gstPercentage) < 0 || parseFloat(formData.gstPercentage) > 28)) {
+    if (
+      gstVerified &&
+      (!formData.gstPercentage ||
+        parseFloat(formData.gstPercentage) < 0 ||
+        parseFloat(formData.gstPercentage) > 28)
+    ) {
       showErrorToast(
         "Please enter a valid GST percentage (0-28%)",
         "Add Product - Form Validation"
@@ -316,10 +322,15 @@ const AddProduct = () => {
         }
       });
 
+      // ✅ debug FormData
+      for (let [key, val] of productData.entries()) {
+        console.log("FormData ->", key, val);
+      }
+
       const response = await axios.post("/api/products/add", productData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -380,14 +391,13 @@ const AddProduct = () => {
     updated[index][field] = value;
     setFormData({ ...formData, variants: updated });
   };
-
   const handleTechChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name.startsWith("dimensions.")) {
-      const dimKey = name.split(".")[1];
+    if (name.includes(".")) {
+      const [mainKey, subKey] = name.split(".");
       setTechForm((prev) => ({
         ...prev,
-        dimensions: { ...prev.dimensions, [dimKey]: value },
+        [mainKey]: { ...prev[mainKey], [subKey]: value },
       }));
     } else if (type === "checkbox") {
       setTechForm((prev) => ({ ...prev, [name]: checked }));
@@ -424,11 +434,36 @@ const AddProduct = () => {
   useEffect(() => {
     if (formData.subcategory) {
       fetchBrands(formData.subcategory);
+      fetchTechAttributes(formData.subcategory);
     } else {
       setBrands([]);
       setFormData((prev) => ({ ...prev, brand: "" }));
+      setTechForm({}); // reset
+      setTechAttributes([]);
     }
   }, [formData.subcategory]);
+  const fetchTechAttributes = async (subCategoryId) => {
+    try {
+      const response = await axios.get(
+        `/api/technical-details/attribute/${subCategoryId}`
+      );
+      if (response.data) {
+        setTechAttributes(response.data); // response is array of fields
+        // Initialize techForm with empty values
+        const initialForm = {};
+        response.data.forEach((field) => {
+          if (field.type === "object") {
+            initialForm[field.key] = {};
+          } else {
+            initialForm[field.key] = "";
+          }
+        });
+        setTechForm(initialForm);
+      }
+    } catch (error) {
+      console.error("Error fetching technical attributes", error);
+    }
+  };
 
   const fetchBrands = async (subcategoryId) => {
     try {
@@ -683,7 +718,10 @@ const AddProduct = () => {
                     disabled={!gstVerified}
                   />
                   {!gstVerified && (
-                    <small className="form-help-text" style={{color: '#e74c3c'}}>
+                    <small
+                      className="form-help-text"
+                      style={{ color: "#e74c3c" }}
+                    >
                       Complete GST verification to enable this field
                     </small>
                   )}
@@ -794,66 +832,48 @@ const AddProduct = () => {
                     <div className="modal-content">
                       <h2>Add Technical Details</h2>
                       {/* {console.log("techForm values: ", techForm)} */}
-                      <div className="form-group">
-                        <label>Title *</label>
-                        <Input
-                          type="text"
-                          name="title"
-                          value={techForm.title}
-                          onChange={handleTechChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Model Number</label>
-                        <Input
-                          type="text"
-                          name="modelNumber"
-                          value={techForm.modelNumber}
-                          onChange={handleTechChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Weight (grams) *</label>
-                        <Input
-                          type="number"
-                          name="weight"
-                          value={techForm.weight}
-                          onChange={handleTechChange}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Dimensions *</label>
-                        <div style={{ display: "flex", gap: "5px" }}>
-                          <Input
-                            type="number"
-                            name="dimensions.length"
-                            placeholder="Length"
-                            value={techForm.dimensions.length}
-                            onChange={handleTechChange}
-                          />
-                          <Input
-                            type="number"
-                            name="dimensions.width"
-                            placeholder="Width"
-                            value={techForm.dimensions.width}
-                            onChange={handleTechChange}
-                          />
-                          <Input
-                            type="number"
-                            name="dimensions.height"
-                            placeholder="Height"
-                            value={techForm.dimensions.height}
-                            onChange={handleTechChange}
-                          />
-                          <Input
-                            type="text"
-                            name="dimensions.unit"
-                            placeholder="Unit"
-                            value={techForm.dimensions.unit}
-                            onChange={handleTechChange}
-                          />
+                      {techAttributes.map((attr) => (
+                        <div className="form-group" key={attr.key}>
+                          <label>
+                            {attr.label} {attr.required ? "*" : ""}
+                          </label>
+                          {attr.type === "object" ? (
+                            <div style={{ display: "flex", gap: "5px" }}>
+                              {["length", "width", "height"].map((dim) => (
+                                <Input
+                                  key={dim}
+                                  type="number"
+                                  name={`${attr.key}.${dim}`}
+                                  placeholder={dim}
+                                  value={techForm[attr.key]?.[dim] || ""}
+                                  onChange={handleTechChange}
+                                />
+                              ))}
+                              <Input
+                                type="text"
+                                name={`${attr.key}.unit`}
+                                placeholder="Unit"
+                                value={techForm[attr.key]?.unit || ""}
+                                onChange={handleTechChange}
+                              />
+                            </div>
+                          ) : attr.type === "checkbox" ? (
+                            <input
+                              type="checkbox"
+                              name={attr.key}
+                              checked={techForm[attr.key] || false}
+                              onChange={handleTechChange}
+                            />
+                          ) : (
+                            <Input
+                              type={attr.type === "number" ? "number" : "text"}
+                              name={attr.key}
+                              value={techForm[attr.key]}
+                              onChange={handleTechChange}
+                            />
+                          )}
                         </div>
-                      </div>
+                      ))}
 
                       {/* Optional fields */}
                       <div className="form-group">

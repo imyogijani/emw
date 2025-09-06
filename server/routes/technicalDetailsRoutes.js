@@ -6,6 +6,7 @@ import {
   getTechnicalDetailsById,
   getMyTechnicalDetails,
   getAllTechnicalDetails,
+  saveTechnicalDetails,
 } from "../controllers/technicalDetailsController.js";
 import {
   authenticateToken,
@@ -16,6 +17,12 @@ import {
 const router = express.Router();
 
 router.post("/", authenticateToken, authorizeSeller, createTechnicalDetails);
+router.post(
+  "/:subCategoryId",
+  authenticateToken,
+  authorizeSeller,
+  saveTechnicalDetails
+);
 router.patch(
   "/:id",
   authenticateToken,
@@ -29,8 +36,8 @@ router.delete(
   deleteTechnicalDetails
 );
 router.get("/my", authenticateToken, authorizeSeller, getMyTechnicalDetails);
-router.get("/all", authenticateToken, authorizeAdmin, getAllTechnicalDetails);// admin
-router.get("/:id", getTechnicalDetailsById); 
+router.get("/all", authenticateToken, authorizeAdmin, getAllTechnicalDetails); // admin
+router.get("/:id", getTechnicalDetailsById);
 
 // routes/technicalDetails.js
 

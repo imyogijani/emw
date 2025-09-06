@@ -212,6 +212,7 @@ import settingsRoutes from "./routes/settingsRoutes.js";
 import wayBillRoutes from "./routes/wayBillRoutes.js";
 import shipmentRoutes from "./routes/shipmentRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
+import attributeRoutes from "./routes/attributeRoutes.js";
 
 import "./cronJobs/offerExpiryJob.js";
 import "./cronJobs/dealCleanup.js";
@@ -276,6 +277,7 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/waybills", wayBillRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/webhook", webhookRoutes);
+app.use("/api/technical-details/attribute", attributeRoutes);
 //app.use("/api/payment", paymentRoutes);
 // app.use("/api/payout", payoutRoutes);
 app.use("/api/checkout", checkoutRoutes);

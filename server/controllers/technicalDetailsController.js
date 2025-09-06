@@ -1,4 +1,5 @@
 import TechnicalDetails from "../models/technicalDetails.js";
+import AttributeRule from "../models/attributeRuleModel.js";
 
 //  Create
 // export const createTechnicalDetails = async (req, res) => {
@@ -121,3 +122,49 @@ export const getAllTechnicalDetails = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// POST /api/technical-details/:subCategoryId
+export const saveTechnicalDetails = async (req, res) => {
+  try {
+    const { subCategoryId } = req.params;
+    const technicalDetails = req.body;
+    const sellerId = req.user._id;
+
+    // Fetch rules (optional)
+    const rules = await AttributeRule.findOne({ subCategoryId });
+
+    // Base mandatory fields
+    const baseRequired = ["title", "weight", "dimensions"];
+    for (let field of baseRequired) {
+      if (!technicalDetails[field]) {
+        return res.status(400).json({ message: `${field} is required` });
+      }
+    }
+
+    // Dynamic required fields only if rules exist
+    if (rules) {
+      for (let rule of rules.fields) {
+        if (rule.required && !technicalDetails[rule.key]) {
+          return res.status(400).json({ message: `${rule.label} is required` });
+        }
+      }
+    }
+
+    // Save technical details
+    const newDetails = new TechnicalDetails({
+      ...technicalDetails,
+      createdBy: sellerId,
+      subCategoryId,
+    });
+
+    await newDetails.save();
+
+    res.status(201).json({
+      message: "Technical details saved successfully",
+      data: newDetails,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
