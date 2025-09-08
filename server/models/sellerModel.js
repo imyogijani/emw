@@ -113,5 +113,28 @@ sellerSchema.index({ shopName: 1 });
 sellerSchema.index({ status: 1 });
 sellerSchema.index({ createdAt: -1 });
 
+//  Unique GST only if not null
+sellerSchema.index(
+  { gstNumber: 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: { gstNumber: { $type: "string" } },
+  }
+);
+
+// 🔹 Unique Bank Account Number + IFSC combo only if both exist
+sellerSchema.index(
+  { "bankDetails.account_number": 1, "bankDetails.ifsc": 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: {
+      "bankDetails.account_number": { $type: "string" },
+      "bankDetails.ifsc": { $type: "string" },
+    },
+  }
+);
+
 const Seller = mongoose.model("Seller", sellerSchema);
 export default Seller;

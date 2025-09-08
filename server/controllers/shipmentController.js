@@ -245,7 +245,12 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
       const w = item.productId.technicalDetails.weight; // grams
       weightInKg = Math.max(0.1, w / 1000);
     }
-
+    let weightInGm = 100;
+    // minimum 100 grams
+    if (item.productId?.technicalDetails?.weight) {
+      const w = item.productId.technicalDetails.weight; // grams
+      weightInGm = Math.max(100, w);
+    }
     //  Seller ka default shop address
     const defaultAddress =
       seller.shopAddresses?.find((a) => a.isDefault) ||
@@ -274,7 +279,7 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
           pin: order.shippingAddress.pincode,
           products_desc:
             item.productId?.name || item.productId?.title || "Product",
-          weight: weightInKg,
+          weight: weightInGm,
         },
       ],
       pickup_location: {
@@ -310,7 +315,7 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
 
       const pickupId = await registerOrUpdatePickup(seller, defaultAddress);
 
-      console.log("SHipment Controller --> ", pickupId);
+      console.log("Shipment Controller --> ", pickupId);
       if (pickupId) {
         const idx = seller.shopAddresses.findIndex((a) =>
           a._id.equals(defaultAddress._id)

@@ -154,7 +154,10 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const cart = await Cart.findOne({ userId })
     .populate("items.productId")
-    .populate("items.variantId", "price finalPrice stock size color");
+    .populate(
+      "items.variantId",
+      "price finalPrice sellingPrice stock size color"
+    );
 
   if (!cart || cart.items.length === 0) {
     return res.status(400).json({ message: "Cart is empty." });
@@ -178,6 +181,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       const discount = product.discount;
       let basePrice = product.price;
       let finalPrice = product.finalPrice; // default: price after discount
+      let sellingPrice = product.sellingPrice; // default: price after discount
 
       if (!product.isActive) {
         await Cart.updateOne(
@@ -218,6 +222,8 @@ export const createOrder = asyncHandler(async (req, res) => {
       if (variant) {
         basePrice = variant.price ?? product.price;
         finalPrice = variant.finalPrice ?? variant.price ?? product.finalPrice;
+        sellingPrice =
+          variant.sellingPrice ?? product.sellingPrice ?? finalPrice;
       }
       // If product has an activeDeal, check if it's still active
       if (product.activeDeal) {
@@ -231,6 +237,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
         if (deal) {
           finalPrice = deal.dealPrice;
+          sellingPrice = deal.dealPrice;
         }
       }
       const gstPercentage = product.gstPercentage || 0;
@@ -251,7 +258,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
       // totalGST += parseFloat(gstAmount);
       totalGST += gstAmount;
-      const productTotal = finalPrice * quantity;
+      const productTotal = sellingPrice * quantity;
       subTotal += productTotal;
 
       return {
@@ -261,7 +268,8 @@ export const createOrder = asyncHandler(async (req, res) => {
         sellerId: product.seller,
         quantity,
         price: basePrice,
-        finalPrice,
+        finalPrice: finalPrice,
+        sellingPrice: sellingPrice,
         discount,
         productTotal,
         gstAmount: Number(gstAmount.toFixed(2)),
@@ -316,7 +324,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     // Calculate discount
     const validSubTotal = validItems.reduce(
-      (acc, item) => acc + item.finalPrice * item.quantity,
+      (acc, item) => acc + item.sellingPrice * item.quantity,
       0
     );
 
@@ -347,15 +355,18 @@ export const createOrder = asyncHandler(async (req, res) => {
         }
 
         // Variant ka price aur commission rate lo
+        // itemPrice = variant.finalPrice || item.finalPrice; // fallback agar DB me finalPrice na ho
         itemPrice = variant.finalPrice || item.finalPrice; // fallback agar DB me finalPrice na ho
+
         commissionRate = variant.commissionRate || item.commissionRate || 0;
       } else {
-        // Agar variant nahi hai to product ka data lo
+        // If variant not selected, use product's price and commission rate
         const product = await Product.findById(item.productId);
         if (!product) {
           throw new Error(`Product not found for ID: ${item.productId}`);
         }
 
+        // itemPrice = product.finalPrice || item.finalPrice;
         itemPrice = product.finalPrice || item.finalPrice;
         commissionRate = product.commissionRate || 0;
       }
@@ -370,7 +381,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         sellerId: item.sellerId,
         quantity: item.quantity,
         price: item.price,
-        finalPrice: item.finalPrice,
+        finalPrice: item.sellingPrice,
         discount: item.discount,
         deliveryStatus: "processing",
         deliveryPartner,

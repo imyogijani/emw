@@ -17,6 +17,8 @@ import {
 
 // import { checkIsPremium } from "../middlewares/checkPremium.js";
 
+import { checkAccountStatus } from "../middlewares/checkStatus.js";
+
 const router = express.Router();
 
 // Add new product
@@ -28,6 +30,7 @@ router.post(
   demoGuard,
   restrictDemoAccess,
   checkOnboardingSettings,
+  checkAccountStatus,
   addProduct
 );
 
@@ -50,6 +53,7 @@ router.patch(
   demoGuard,
   restrictDemoAccess,
   checkOnboardingSettings,
+  checkAccountStatus,
   upload.array("images", 10),
   updateProduct
 );

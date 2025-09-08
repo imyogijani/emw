@@ -23,6 +23,8 @@ const variantSchema = new mongoose.Schema(
     finalPrice: { type: Number },
     image: String, // Variant-specific image
     commissionRate: { type: Number, default: 4 },
+    commissionAmount: { type: Number },
+    sellingPrice: { type: Number },
   },
   { timestamps: true }
 );
@@ -43,6 +45,12 @@ variantSchema.pre("save", async function (next) {
     } else {
       this.commissionRate = 7;
     }
+
+    //  Commission amount
+    this.commissionAmount = (this.finalPrice * this.commissionRate) / 100;
+
+    //  Selling price = finalPrice + commission
+    this.sellingPrice = this.finalPrice + this.commissionAmount;
 
     //  Stock-based status
     if (this.stock === 0) {
@@ -85,12 +93,13 @@ variantSchema.pre("findOneAndUpdate", async function (next) {
     update.$set.finalPrice = finalPrice;
 
     // Commission auto calculate (same as Product)
-    if (finalPrice >= 10000) {
-      update.$set.commissionRate = 4;
-    } else {
-      update.$set.commissionRate = 7;
-    }
+    // Commission
+    const commissionRate = finalPrice >= 10000 ? 4 : 7;
+    const commissionAmount = (finalPrice * commissionRate) / 100;
 
+    update.$set.commissionRate = commissionRate;
+    update.$set.commissionAmount = commissionAmount;
+    update.$set.sellingPrice = finalPrice + commissionAmount;
     this.setUpdate(update);
   }
 

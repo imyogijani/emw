@@ -18,6 +18,7 @@ import {
   fetchUser,
 } from "../middlewares/authMiddleware.js";
 import { demoGuard } from "../middlewares/demoGuard.js";
+import { checkAccountStatus } from "../middlewares/checkStatus.js";
 
 const router = express.Router();
 
@@ -28,9 +29,9 @@ router.get("/active", getFilteredDeals); // New
 router.use(authenticateToken, fetchUser); // All routes below require authentication
 
 // Seller deal management
-router.post("/create", authorizeSeller, fetchUser, demoGuard, createDeal);
+router.post("/create", authorizeSeller, fetchUser, checkAccountStatus, createDeal);
 router.get("/seller", getSellerDeals); // New -- seller?status=approved this use only status approved show
-router.patch("/:dealId", authorizeSeller, fetchUser, demoGuard, updateDeal); // New
+router.patch("/:dealId", authorizeSeller, fetchUser, checkAccountStatus, updateDeal); // New
 router.delete("/:dealId", authorizeSeller, deleteDeal);
 router.post("/:dealId/end", endDeal);
 

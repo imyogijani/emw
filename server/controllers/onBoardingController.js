@@ -30,7 +30,10 @@ export const onboardingStep1 = async (req, res) => {
     }
 
     //  check seller exists
-    const seller = await Seller.findById(sellerId);
+    const seller = await Seller.findById(sellerId).populate(
+      "user",
+      "phone email"
+    );
     if (!seller) {
       return res.status(404).json({
         success: false,
@@ -129,7 +132,6 @@ export const onboardingStep1 = async (req, res) => {
         ? shopAddresses
         : JSON.parse(shopAddresses);
 
-      // Validate each address
       let validatedAddresses = [];
       for (let addr of parsedAddresses) {
         const { valid, errors, sanitized } = validateAddress(addr);
@@ -143,8 +145,23 @@ export const onboardingStep1 = async (req, res) => {
         validatedAddresses.push(sanitized);
       }
 
-      seller.shopAddresses = validatedAddresses;
+      //  Only first index address is default
+      if (validatedAddresses.length > 0) {
+        const newAddr = validatedAddresses[0];
+
+        if (seller.shopAddresses.length > 0) {
+          // merge old + new
+          seller.shopAddresses[0] = {
+            ...seller.shopAddresses[0]._doc, // purana fields rakho
+            ...newAddr, // jo naye aaye overwrite karega
+          };
+        } else {
+          // agar pehle koi address hi nahi tha
+          seller.shopAddresses = [newAddr];
+        }
+      }
     }
+
     //  update seller document
     seller.shopName = shopName;
     seller.shopImage = shopImage || seller.shopImage;
@@ -171,6 +188,115 @@ export const onboardingStep1 = async (req, res) => {
       message: "Error in onboarding step 1",
       error: error.message,
     });
+  }
+};
+
+export const completeOnboarding = async (req, res) => {
+  try {
+    const userId = req.user._id; // from fetchUser middleware
+    const { gstNumber, beneficiaryName, accountNumber, ifscCode } = req.body;
+
+    // === 1. Mandatory Bank Details Validation ===
+    if (!beneficiaryName || beneficiaryName.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Beneficiary name must be at least 3 characters",
+      });
+    }
+    if (!/^[A-Za-z ]+$/.test(beneficiaryName)) {
+      return res.status(400).json({
+        success: false,
+        message: "Beneficiary name should contain only alphabets and spaces",
+      });
+    }
+    if (!accountNumber || !/^[0-9]{9,18}$/.test(accountNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Account number must be 9-18 digits",
+      });
+    }
+    if (!ifscCode || !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid IFSC code format (e.g. HDFC0001234)",
+      });
+    }
+
+    // === 2. Find Seller linked to this User ===
+    const seller = await Seller.findOne({ user: userId });
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+
+    // === 3. Optional GST Validation + Uniqueness Check ===
+    if (gstNumber) {
+      const gstRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!gstRegex.test(gstNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid GST number format",
+        });
+      }
+
+      // check uniqueness (exclude current seller if updating)
+      const existingGST = await Seller.findOne({
+        gstNumber,
+        _id: { $ne: seller._id },
+      });
+      if (existingGST) {
+        return res.status(400).json({
+          success: false,
+          message: "GST number is already registered with another seller",
+        });
+      }
+
+      seller.gstNumber = gstNumber;
+      // seller.gstVerified = false;
+    }
+
+    // === 4. Bank Account Uniqueness Check ===
+    const existingBank = await Seller.findOne({
+      "bankDetails.account_number": accountNumber,
+      _id: { $ne: seller._id },
+    });
+    if (existingBank) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Bank account number is already registered with another seller",
+      });
+    }
+
+    // Save Bank Details
+    seller.bankDetails = {
+      beneficiary_name: beneficiaryName.trim(),
+      account_number: accountNumber,
+      ifsc: ifscCode.toUpperCase(),
+    };
+
+    // === 5. Mark Seller Onboarding Complete ===
+    seller.isOnboardingComplete = true;
+    seller.status = "active";
+    await seller.save();
+
+    // === 6. Update User record also ===
+    await User.findByIdAndUpdate(userId, {
+      isOnboardingComplete: true,
+      status: "active",
+      sellerId: seller._id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Seller onboarding completed successfully",
+      seller,
+    });
+  } catch (error) {
+    console.error("Complete onboarding error:", error);
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
@@ -250,89 +376,6 @@ export const startFreeTrial = async (req, res) => {
       message: "Failed to start free trial",
       error: error.message,
     });
-  }
-};
-
-// Complete onboarding and assign trial
-export const completeOnboarding = async (req, res) => {
-  try {
-    const userId = req.user._id; // from auth middleware
-
-    const seller = await Seller.findOne({ user: userId });
-    if (!seller) {
-      return res.status(404).json({
-        success: false,
-        message: "Seller not found for this user",
-      });
-    }
-
-    // Check if user already has subscription
-    // const existingSub = await UserSubscription.findOne({
-    //   user: userId,
-    //   isActive: true,
-    // });
-
-    // if (existingSub) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "User already has active subscription",
-    //   });
-    // }
-
-    const usedTrial = await UserSubscription.findOne({
-      user: userId,
-      billingCycle: "free", // or planName: "Free Trial"
-    });
-    if (usedTrial) {
-      return res.status(400).json({
-        success: false,
-        message: "Free Trial already used. Please choose a paid plan.",
-      });
-    }
-
-    // Find the free trial plan (optional if you keep in Subscription collection)
-    let freeTrialPlan = await Subscription.findOne({ planName: "Free Trial" });
-    if (!freeTrialPlan) {
-      // If not exist, create once in DB
-      freeTrialPlan = await Subscription.create({
-        planName: "Free Trial",
-        pricing: {},
-        includedFeatures: ["productLimit:50", "analytics", "prioritySupport"],
-      });
-    }
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(startDate.getDate() + 7); // 7 days trial
-
-    const userSub = new UserSubscription({
-      user: userId,
-      subscription: freeTrialPlan._id,
-      startDate,
-      endDate,
-      billingCycle: "free",
-      paymentStatus: "free",
-      isActive: true,
-    });
-
-    await userSub.save();
-
-    seller.status = "active";
-    await seller.save();
-
-    await Seller.findOneAndUpdate(
-      { user: userId }, // seller linked to this user
-      { isOnboardingComplete: true }
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: "Onboarding completed. Free Trial started for 7 days",
-      subscription: userSub,
-    });
-  } catch (error) {
-    console.error("Error completing onboarding:", error);
-    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

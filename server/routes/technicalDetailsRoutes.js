@@ -14,19 +14,29 @@ import {
   authorizeAdmin,
 } from "../middlewares/authMiddleware.js";
 
+import { checkAccountStatus } from "../middlewares/checkStatus.js";
+
 const router = express.Router();
 
-router.post("/", authenticateToken, authorizeSeller, createTechnicalDetails);
+router.post(
+  "/",
+  authenticateToken,
+  authorizeSeller,
+  checkAccountStatus,
+  createTechnicalDetails
+);
 router.post(
   "/:subCategoryId",
   authenticateToken,
   authorizeSeller,
+  checkAccountStatus,
   saveTechnicalDetails
 );
 router.patch(
   "/:id",
   authenticateToken,
   authorizeSeller,
+  checkAccountStatus,
   updateTechnicalDetails
 );
 router.delete(

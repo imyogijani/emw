@@ -1006,54 +1006,14 @@ export const getSellerOrdersAnalytics = async (req, res) => {
   }
 };
 
-export const updateSellerGST = async (req, res) => {
+
+
+//  GST + Bank Details
+export const updateSellerGSTBankDetails = async (req, res) => {
   try {
-    const { gstNumber } = req.body;
+    const { gstNumber, beneficiaryName, accountNumber, ifscCode } = req.body;
 
-    if (!gstNumber) {
-      return res
-        .status(400)
-        .json({ success: false, message: "GST number is required" });
-    }
-
-    // GST validation (India GST format)
-    const gstRegex =
-      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-    if (!gstRegex.test(gstNumber)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid GST number format" });
-    }
-
-    // Find seller by logged-in user
-    const seller = await Seller.findOne({ user: req.user._id });
-    if (!seller) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Seller not found" });
-    }
-
-    // Update GST number
-    seller.gstNumber = gstNumber;
-    await seller.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "GST number updated successfully",
-      gstNumber: seller.gstNumber,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: "Server Error" });
-  }
-};
-
-// Update Bank Details
-export const updateBankDetails = async (req, res) => {
-  try {
-    const { beneficiaryName, accountNumber, ifscCode } = req.body;
-
-    // === Validations ===
+    // === Validate Bank Details (Mandatory) ===
     if (!beneficiaryName || beneficiaryName.trim().length < 3) {
       return res.status(400).json({
         success: false,
@@ -1085,7 +1045,7 @@ export const updateBankDetails = async (req, res) => {
       });
     }
 
-    // === Find Seller linked to logged-in user ===
+    // === Find Seller ===
     const seller = await Seller.findOne({ user: req.user._id });
     if (!seller) {
       return res.status(404).json({
@@ -1094,28 +1054,43 @@ export const updateBankDetails = async (req, res) => {
       });
     }
 
-    // === Save Bank Details ===
+    // === Update Bank Details (Always Required) ===
     seller.bankDetails = {
       beneficiary_name: beneficiaryName.trim(),
       account_number: accountNumber,
       ifsc: ifscCode.toUpperCase(),
     };
 
+    // === Update GST Number (Optional) ===
+    if (gstNumber) {
+      const gstRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!gstRegex.test(gstNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid GST number format",
+        });
+      }
+      seller.gstNumber = gstNumber;
+    }
+
     await seller.save();
 
     return res.status(200).json({
       success: true,
-      message: "Bank details updated successfully",
+      message: "Seller profile updated successfully",
       bankDetails: seller.bankDetails,
+      gstNumber: seller.gstNumber || null,
     });
   } catch (error) {
-    console.error("Bank details update error:", error);
+    console.error("Seller profile update error:", error);
     return res.status(500).json({
       success: false,
       message: "Server Error",
     });
   }
 };
+
 
 export const getOnboardingStep = async (req, res) => {
   try {

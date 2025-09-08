@@ -713,29 +713,35 @@ const SellerOnboarding = () => {
   const handleSubmit = async () => {
     // if (!validateStep()) return;
 
+    // console.log("Complate Seller Profile call --> ");
+
     try {
       setLoading(true);
 
-      // const formDataToSend = new FormData();
-      // formDataToSend.append("shopName", formData.shopName);
-      // formDataToSend.append("categories", JSON.stringify(formData.categories));
-      // formDataToSend.append("brands", JSON.stringify(formData.brands));
-      // formDataToSend.append(
-      //   "workingHours",
-      //   JSON.stringify(formData.workingHours)
-      // );
-      // formDataToSend.append("subscriptionPlan", formData.selectedPlan);
+      const userStr = localStorage.getItem("user");
+      if (!userStr)
+        throw new Error("User session not found. Please login again.");
 
-      // console.log("Final form data to send:", formDataToSend);
+      const user = JSON.parse(userStr);
+      const sellerId = user?.sellerId;
+      if (!sellerId)
+        throw new Error("Seller ID not found. Please contact support.");
 
-      // // Complete profile first
-      // await axios.post("/api/seller/complete-profile", formDataToSend, {
-      //   headers: {
-      //     "Content-Type": "multipart/form-data",
-      //   },
-      // });
+      if (!validateStep()) throw new Error("Validation failed");
 
-      // Clear skipped steps from localStorage since onboarding is now complete
+      // ---------- 1. Documents Upload ----------
+      const fd = new FormData();
+      fd.append("sellerId", sellerId);
+      fd.append("incrementOnboarding", "true");
+
+      // ---------- 2. Bank + GST (single API) ----------
+      await axios.post("/api/seller/onboarding/complete", {
+        gstNumber: formData.hasGST ? formData.gstNumber : null,
+        beneficiaryName: formData.bankDetails.beneficiaryName,
+        accountNumber: formData.bankDetails.accountNumber,
+        ifscCode: formData.bankDetails.ifscCode,
+      });
+
       localStorage.removeItem("skippedOnboardingSteps");
 
       showSuccessToast(
@@ -1002,30 +1008,30 @@ const SellerOnboarding = () => {
       setUploadedDocs(response.data.uploadedDocs || []); // backend se docs aayenge
       setIsDocsSubmitted(true);
 
-      if (formData.hasGST === true) {
-        // Call GST API only if GST is provided
-        await axios.post("/api/sellers/gst-number", {
-          gstNumber: formData.gstNumber,
-        });
-      } else {
-        // Skip GST API, directly continue with documents/bank details upload
-        console.log("No GST, skipping GST API call");
-      }
+      // if (formData.hasGST === true) {
+      //   // Call GST API only if GST is provided
+      //   await axios.post("/api/sellers/gst-number", {
+      //     gstNumber: formData.gstNumber,
+      //   });
+      // } else {
+      //   // Skip GST API, directly continue with documents/bank details upload
+      //   console.log("No GST, skipping GST API call");
+      // }
 
       // ---------- 3. Bank Details API ----------
-      const bankDetails = {
-        beneficiaryName: formData.bankDetails.beneficiaryName,
-        accountNumber: formData.bankDetails.accountNumber,
-        ifscCode: formData.bankDetails.ifscCode,
-      };
+      // const bankDetails = {
+      //   beneficiaryName: formData.bankDetails.beneficiaryName,
+      //   accountNumber: formData.bankDetails.accountNumber,
+      //   ifscCode: formData.bankDetails.ifscCode,
+      // };
 
-      const bankRes = await axios.post(
-        `/api/sellers/bank-details`,
-        bankDetails
-      );
+      // const bankRes = await axios.post(
+      //   `/api/sellers/bank-details`,
+      //   bankDetails
+      // );
 
-      console.log("Documents response:", response.data);
-      console.log("Bank response:", bankRes.data);
+      // console.log("Documents response:", response.data);
+      // console.log("Bank response:", bankRes.data);
 
       console.log("Upload response:", response.data);
       showSuccessToast(
