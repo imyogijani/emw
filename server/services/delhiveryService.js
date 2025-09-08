@@ -50,11 +50,135 @@ const getBusinessHoursForSeller = async (sellerId) => {
   return businessHours;
 };
 
+// export const registerOrUpdatePickup = async (seller, address) => {
+//   const businessHours = await getBusinessHoursForSeller(seller._id);
+//   const businessDays = Object.keys(businessHours);
+
+//   console.log("📅 Final business_days:", businessDays);
+//   console.log("📅 Final address passed ----> :", address);
+
+//   try {
+//     const fullAddress =
+//       `${address.addressLine1 || ""} ${address.addressLine2 || ""}, ` +
+//       `${address.city || ""}, ${address.state || ""} - ${
+//         address.pincode || ""
+//       }`;
+
+//     console.log("🏠 Full Address with Pickup ID:", address.delhiveryPickupId);
+//     // ---- Update Case ----
+//     if (address.delhiveryPickupId) {
+//       const payloadUpdate = {
+//         pickup_id: address.delhiveryPickupId,
+//         name: seller.shopName,
+//         registered_name: seller.registeredName || seller.shopName,
+//         phone: seller.user.phone || "0000000000",
+//         email: seller.user.email || "no-reply@example.com",
+
+//         //  Full seller address
+//         address: fullAddress.trim(),
+//         city: address.city,
+//         state: address.state,
+//         pin: address.pincode,
+//         country: address.country || "India",
+
+//         //  Return address bhi full
+//         return_address: fullAddress.trim(),
+//         return_city: address.city,
+//         return_pin: address.pincode,
+//         return_state: address.state,
+//         return_country: address.country || "India",
+
+//         business_hours: businessHours,
+//         business_days: businessDays,
+//       };
+
+//       console.log("🟡 Sending Update Payload:", payloadUpdate);
+
+//       const res = await apiClient.put(
+//         `/api/backend/clientwarehouse/edit/`,
+//         payloadUpdate
+//       );
+
+//       console.log("🟢 Update Response:", res.data);
+//       return address.delhiveryPickupId;
+//     }
+
+//     // ---- Register Case ----
+//     const payloadRegister = {
+//       name: seller.shopName,
+//       registered_name: seller.registeredName || seller.shopName,
+//       phone: seller.user.phone || "0000000000",
+//       email: seller.user.email || "no-reply@example.com",
+
+//       //  Full seller address
+//       address: fullAddress.trim(),
+//       city: address.city,
+//       state: address.state,
+//       pin: address.pincode,
+//       country: address.country || "India",
+
+//       //  Full return address
+//       return_address: fullAddress.trim(),
+//       return_city: address.city,
+//       return_pin: address.pincode,
+//       return_state: address.state,
+//       return_country: address.country || "India",
+
+//       business_hours: businessHours,
+//       business_days: businessDays,
+//     };
+
+//     console.log("🟡 Sending Register Payload:", payloadRegister);
+
+//     const res = await apiClient.post(
+//       `/api/backend/clientwarehouse/create/`,
+//       payloadRegister
+//     );
+
+//     console.log("🟢 Register Response:", res.data);
+
+//     // console.log("🟢 Register Response:", res.data);
+
+//     if (res.data?.success) {
+//       // pickup_id agar mila to use lo, warna fallback me name
+//       const pickupId = res.data.pickup_id || res.data.data?.name;
+
+//       console.log("✅ Warehouse registered:", pickupId);
+
+//       // yeh seller DB me save karo taaki shipment create karte waqt yahi name bhejo
+//       return pickupId;
+//     } else {
+//       throw new Error(`Delhivery Error: ${JSON.stringify(res.data)}`);
+//     }
+//   } catch (err) {
+//     console.error("❌ Pickup Registration/Update Error");
+
+//     // Agar API error hai (axios error)
+//     if (err.response) {
+//       console.error("Status Code:", err.response.status);
+//       console.error("Error Data:", err.response.data);
+//       console.error("Headers:", err.response.headers);
+//     } else if (err.request) {
+//       // Agar request gaya hi nahi
+//       console.error("No response received:", err.request);
+//     } else {
+//       // Agar code error hai (logic, payload issue)
+//       console.error("Error Message:", err.message);
+//     }
+
+//     // Full stack trace for debugging
+//     console.error("Stack Trace:", err.stack);
+
+//     return null;
+//   }
+// };
+
 export const registerOrUpdatePickup = async (seller, address) => {
   const businessHours = await getBusinessHoursForSeller(seller._id);
   const businessDays = Object.keys(businessHours);
 
   console.log("📅 Final business_days:", businessDays);
+  console.log("📦 Address for Pickup:", address);
 
   try {
     const fullAddress =
@@ -62,36 +186,33 @@ export const registerOrUpdatePickup = async (seller, address) => {
       `${address.city || ""}, ${address.state || ""} - ${
         address.pincode || ""
       }`;
-    // ---- Update Case ----
+
+    //  Agar pickupId already hai → Update karo
     if (address.delhiveryPickupId) {
       const payloadUpdate = {
         pickup_id: address.delhiveryPickupId,
-        name: seller.shopName,
+        // name: seller.shopName,
+        name: address.delhiveryPickupId,
         registered_name: seller.registeredName || seller.shopName,
         phone: seller.user.phone || "0000000000",
         email: seller.user.email || "no-reply@example.com",
-
-        //  Full seller address
         address: fullAddress.trim(),
         city: address.city,
         state: address.state,
         pin: address.pincode,
         country: address.country || "India",
-
-        //  Return address bhi full
         return_address: fullAddress.trim(),
         return_city: address.city,
         return_pin: address.pincode,
         return_state: address.state,
         return_country: address.country || "India",
-
         business_hours: businessHours,
         business_days: businessDays,
       };
 
       console.log("🟡 Sending Update Payload:", payloadUpdate);
 
-      const res = await apiClient.put(
+      const res = await apiClient.post(
         `/api/backend/clientwarehouse/edit/`,
         payloadUpdate
       );
@@ -100,27 +221,22 @@ export const registerOrUpdatePickup = async (seller, address) => {
       return address.delhiveryPickupId;
     }
 
-    // ---- Register Case ----
+    // ✅ Agar pickupId nahi hai → Register karo
     const payloadRegister = {
       name: seller.shopName,
       registered_name: seller.registeredName || seller.shopName,
       phone: seller.user.phone || "0000000000",
       email: seller.user.email || "no-reply@example.com",
-
-      //  Full seller address
       address: fullAddress.trim(),
       city: address.city,
       state: address.state,
       pin: address.pincode,
       country: address.country || "India",
-
-      //  Full return address
       return_address: fullAddress.trim(),
       return_city: address.city,
       return_pin: address.pincode,
       return_state: address.state,
       return_country: address.country || "India",
-
       business_hours: businessHours,
       business_days: businessDays,
     };
@@ -134,15 +250,9 @@ export const registerOrUpdatePickup = async (seller, address) => {
 
     console.log("🟢 Register Response:", res.data);
 
-    // console.log("🟢 Register Response:", res.data);
-
     if (res.data?.success) {
-      // pickup_id agar mila to use lo, warna fallback me name
       const pickupId = res.data.pickup_id || res.data.data?.name;
-
       console.log("✅ Warehouse registered:", pickupId);
-
-      // yeh seller DB me save karo taaki shipment create karte waqt yahi name bhejo
       return pickupId;
     } else {
       throw new Error(`Delhivery Error: ${JSON.stringify(res.data)}`);
@@ -150,22 +260,15 @@ export const registerOrUpdatePickup = async (seller, address) => {
   } catch (err) {
     console.error("❌ Pickup Registration/Update Error");
 
-    // Agar API error hai (axios error)
     if (err.response) {
       console.error("Status Code:", err.response.status);
       console.error("Error Data:", err.response.data);
-      console.error("Headers:", err.response.headers);
     } else if (err.request) {
-      // Agar request gaya hi nahi
       console.error("No response received:", err.request);
     } else {
-      // Agar code error hai (logic, payload issue)
       console.error("Error Message:", err.message);
     }
-
-    // Full stack trace for debugging
     console.error("Stack Trace:", err.stack);
-
     return null;
   }
 };

@@ -1,6 +1,7 @@
 import ShopTiming from "../models/shopTimingModel.js";
 import { validateShopTimings } from "../utils/validateShopTiming.js";
 import Seller from "../models/sellerModel.js";
+import { registerOrUpdatePickup } from "../services/delhiveryService.js";
 
 // Create or update shop timing
 export const upsertShopTiming = async (req, res) => {
@@ -52,12 +53,58 @@ export const upsertShopTiming = async (req, res) => {
       await shopTiming.save();
     }
 
+    // if (incrementOnboarding) {
+    //   const seller = await Seller.findById(sellerId);
+    //   if (seller) {
+    //     // seller.onboardingStep = (seller.onboardingStep || 0) + 1; // dynamic increment
+    //     seller.onboardingStep = 3; // dynamic increment
+    //     await seller.save();
+    //   }
+    // }
+
     if (incrementOnboarding) {
-      const seller = await Seller.findById(sellerId);
+      const seller = await Seller.findById(sellerId).populate(
+        "user",
+        "phone email"
+      );
       if (seller) {
-        // seller.onboardingStep = (seller.onboardingStep || 0) + 1; // dynamic increment
-        seller.onboardingStep = 3; // dynamic increment
+        seller.onboardingStep = 3;
         await seller.save();
+
+        //  Background pickup register call only when incrementOnboarding is true
+        setImmediate(async () => {
+          try {
+            //  Get only default address from array
+            const defaultAddress = seller.shopAddresses.find(
+              (addr) => addr.isDefault === true
+            );
+
+            if (!defaultAddress) {
+              console.error(
+                "❌ No default address found for pickup registration"
+              );
+              return;
+            }
+
+            const pickupId = await registerOrUpdatePickup(
+              seller,
+              defaultAddress
+            );
+
+            // if (!pickupId) {
+            //   console.error("❌ Pickup ID not returned from Delhivery");
+            //   return;
+            // }
+
+            if (pickupId) {
+              defaultAddress.delhiveryPickupId = pickupId;
+              await seller.save();
+              console.log(" PickupId saved in seller.shopAddresses:", pickupId);
+            }
+          } catch (err) {
+            console.error("Background pickup error:", err.message);
+          }
+        });
       }
     }
 

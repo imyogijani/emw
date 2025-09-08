@@ -9,6 +9,7 @@ const cartItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, default: 1 },
   variantId: { type: mongoose.Schema.Types.ObjectId, ref: "Variant" },
   price: { type: Number, required: true }, // for snapshotting
+  finalPrice: { type: Number },
   title: { type: String }, // optional
   image: { type: String }, // optional
   discount: { type: Number }, // optional

@@ -118,15 +118,27 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       const variant = item.variantId;
       const quantity = item.quantity;
 
+      // let finalPrice =
+      //   variant?.finalPrice ?? product.finalPrice ?? product.price;
+
+      //  Use finalPrice for GST
       let finalPrice =
         variant?.finalPrice ?? product.finalPrice ?? product.price;
-      const productTotal = finalPrice * quantity;
+
+      //  Selling price (commission added) only for subtotal
+      let sellingPrice =
+        variant?.sellingPrice ?? product.sellingPrice ?? finalPrice;
+
+      const productTotal = sellingPrice * quantity;
       const gstPercentage = product.gstPercentage || 0;
       // const gstAmount = parseFloat(
       //   ((finalPrice * gstPercentage) / 100) * quantity
       // ).toFixed(2);
 
       let basePrice = finalPrice;
+      // console.log("basePrice Price at checkout:", basePrice);
+
+      // let basePrice = variant?.finalPrice ?? product.finalPrice ?? finalPrice;
       let gstAmount = 0;
 
       if (gstPercentage > 0) {
@@ -183,7 +195,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
         name: product.name,
         image: product.image,
         quantity,
-        finalPrice,
+        finalPrice: sellingPrice,
         productTotal,
         // gstAmount: parseFloat(gstAmount),
         gstAmount: Number((gstAmount * quantity).toFixed(2)),
@@ -370,7 +382,12 @@ export const applyCoupon = asyncHandler(async (req, res) => {
 
       let finalPrice =
         variant?.finalPrice ?? product.finalPrice ?? product.price;
-      const productTotal = finalPrice * quantity;
+
+      //  Selling price (commission added) only for subtotal
+      let sellingPrice =
+        variant?.sellingPrice ?? product.sellingPrice ?? finalPrice;
+
+      const productTotal = sellingPrice * quantity;
       const gstPercentage = product.gstPercentage || 0;
 
       // OldCode :
@@ -427,7 +444,7 @@ export const applyCoupon = asyncHandler(async (req, res) => {
         name: product.name,
         image: product.image,
         quantity,
-        finalPrice,
+        finalPrice: sellingPrice,
         productTotal,
         // gstAmount: parseFloat(gstAmount),
         gstAmount: Number((gstAmount * quantity).toFixed(2)),

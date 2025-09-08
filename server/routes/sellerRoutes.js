@@ -8,10 +8,9 @@ import {
   getCustomerOrdersBySeller,
   getSellerSalesOverview,
   getSellerOrdersAnalytics,
-  updateSellerGST,
   getOnboardingStep,
-  updateBankDetails,
   getSellerInfo,
+  updateSellerGSTBankDetails,
 } from "../controllers/sellerController.js";
 import {
   authenticateToken,
@@ -54,7 +53,12 @@ router.get("/orders-analytics", checkDashboardAccess, getSellerOrdersAnalytics);
 //   createCashfreeBeneficiary
 // );
 
-router.post("/gst-number", fetchUser, checkOnboardingSettings, updateSellerGST);
+router.post(
+  "/financial-details",
+  fetchUser,
+  checkOnboardingSettings,
+  updateSellerGSTBankDetails
+);
 
 router.get(
   "/onboarding-status",
@@ -64,14 +68,7 @@ router.get(
   getOnboardingStep
 );
 
-// bank details :
-router.post(
-  "/bank-details",
-  authenticateToken,
-  authorizeSeller,
-  fetchUser,
-  updateBankDetails
-);
+
 
 // seller Info
 router.get("/me", authenticateToken, authorizeSeller, fetchUser, getSellerInfo);
