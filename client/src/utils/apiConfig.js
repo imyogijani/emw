@@ -73,13 +73,13 @@ export const processImageUrl = (image) => {
     // Handle different image formats
     const getFullUrl = (img) => {
       if (!img || typeof img !== "string") {
-        return "/images/offer1.png"; // Default fallback
+        return "/Mall1.png"; // Default fallback
       }
 
       // Trim whitespace
       img = img.trim();
 
-      if (!img) return "/images/offer1.png";
+      if (!img) return "/Mall1.png";
 
       // If image already starts with http/https, return as is
       if (img.startsWith("http://") || img.startsWith("https://")) {
@@ -110,10 +110,10 @@ export const processImageUrl = (image) => {
     }
 
     // Return default fallback
-    return "/images/offer1.png";
+    return "/Mall1.png";
   } catch (error) {
     console.error("❌ Error processing image URL:", error);
-    return "/images/offer1.png";
+    return "/Mall1.png";
   }
 };
 
@@ -146,11 +146,11 @@ export const loadImageWithRetry = (src, maxRetries = 3, delay = 1000) => {
 // Utility to get fallback image based on context
 export const getFallbackImage = (context = 'product') => {
   const fallbacks = {
-    product: '/images/offer1.png',
-    category: '/vite.svg',
-    store: 'https://images.pexels.com/photos/6214360/pexels-photo-6214360.jpeg',
-    user: '/images/MaleUser.png',
-    default: '/images/offer1.png'
+    product: '/Mall1.png',
+    category: '/Mall1.png',
+    store: '/Mall1.png',
+    user: '/Mall1.png',
+    default: '/Mall1.png'
   };
   
   return fallbacks[context] || fallbacks.default;

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { showSuccessToast, showErrorToast } from "../../utils/errorHandler";
+import { SafeImage } from "../../utils/imageUtils.jsx";
 import {
   Star,
   ShoppingCart,
@@ -33,7 +34,7 @@ const sampleProducts = [
     originalPrice: 399.99,
     rating: 4.8,
     reviews: 2847,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+    image: "https://via.placeholder.com/400x400/ff9900/ffffff?text=Headphones",
     badge: "Best Seller",
     inStock: true,
     freeShipping: true,
@@ -47,7 +48,7 @@ const sampleProducts = [
     originalPrice: 249.99,
     rating: 4.6,
     reviews: 1523,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+    image: "https://via.placeholder.com/400x400/232f3e/ffffff?text=Smart+Watch",
     badge: "New",
     inStock: true,
     freeShipping: true,
@@ -61,7 +62,7 @@ const sampleProducts = [
     originalPrice: 29.99,
     rating: 4.9,
     reviews: 892,
-    image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400",
+    image: "https://via.placeholder.com/400x400/67748e/ffffff?text=Sneakers",
     badge: "Organic",
     inStock: true,
     freeShipping: false,
@@ -75,7 +76,7 @@ const sampleProducts = [
     originalPrice: 119.99,
     rating: 4.7,
     reviews: 634,
-    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400",
+    image: "https://via.placeholder.com/400x400/28a745/ffffff?text=Organic+Skincare",
     badge: "Sale",
     inStock: true,
     freeShipping: true,
@@ -89,7 +90,7 @@ const sampleProducts = [
     originalPrice: 69.99,
     rating: 4.5,
     reviews: 1247,
-    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400",
+    image: "https://via.placeholder.com/400x400/6610f2/ffffff?text=Handbag",
     badge: "Eco-Friendly",
     inStock: true,
     freeShipping: true,
@@ -103,7 +104,7 @@ const sampleProducts = [
     originalPrice: 59.99,
     rating: 4.4,
     reviews: 756,
-    image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400",
+    image: "https://via.placeholder.com/400x400/fd7e14/ffffff?text=Coffee+Maker",
     badge: "Fast Charge",
     inStock: true,
     freeShipping: true,
@@ -117,7 +118,7 @@ const sampleProducts = [
     originalPrice: 44.99,
     rating: 4.6,
     reviews: 423,
-    image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400",
+    image: "https://via.placeholder.com/400x400/dc3545/ffffff?text=Gaming+Chair",
     badge: "Handmade",
     inStock: true,
     freeShipping: false,
@@ -131,7 +132,7 @@ const sampleProducts = [
     originalPrice: 99.99,
     rating: 4.7,
     reviews: 1834,
-    image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
+    image: "https://via.placeholder.com/400x400/20c997/ffffff?text=Yoga+Mat",
     badge: "Waterproof",
     inStock: true,
     freeShipping: true,
@@ -233,7 +234,12 @@ export default function Products() {
     return (
       <div className={`product-card ${viewMode === 'list' ? 'list-view' : ''}`}>
         <div className="product-image-container">
-          <img src={product.image} alt={product.name} className="product-image" />
+          <SafeImage 
+            src={product.image} 
+            alt={product.name} 
+            className="product-image"
+            category={product.category}
+          />
           {product.badge && (
             <span className={`product-badge ${product.badge.toLowerCase().replace(' ', '-')}`}>
               {product.badge}
@@ -311,23 +317,110 @@ export default function Products() {
 
   return (
     <div className="products-page">
-      {/* Hero Section */}
-      <div className="hero-section">
-        <div className="hero-content">
-          <h1>Discover Amazing Products</h1>
-          <p>Find everything you need with our curated collection of premium products</p>
-          <div className="hero-stats">
-            <div className="stat">
-              <Award className="stat-icon" />
-              <span>Premium Quality</span>
+      {/* Modern Hero Section */}
+      <div className="modern-hero">
+        <div className="hero-background">
+          <div className="hero-shape shape-1"></div>
+          <div className="hero-shape shape-2"></div>
+          <div className="hero-shape shape-3"></div>
+        </div>
+        <div className="hero-container">
+          <div className="hero-text">
+            <div className="hero-badge">
+              <Zap size={16} />
+              <span>Premium Collection</span>
             </div>
-            <div className="stat">
-              <Truck className="stat-icon" />
-              <span>Fast Delivery</span>
+            <h1 className="hero-title">
+              Discover Your Perfect
+              <span className="gradient-text"> Products</span>
+            </h1>
+            <p className="hero-description">
+              Explore our carefully curated collection of premium products designed to elevate your lifestyle. 
+              From cutting-edge electronics to sustainable home goods.
+            </p>
+            <div className="hero-features">
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <Award size={20} />
+                </div>
+                <div className="feature-text">
+                  <h4>Premium Quality</h4>
+                  <p>Hand-picked products</p>
+                </div>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <Truck size={20} />
+                </div>
+                <div className="feature-text">
+                  <h4>Fast Delivery</h4>
+                  <p>Express shipping</p>
+                </div>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <Shield size={20} />
+                </div>
+                <div className="feature-text">
+                  <h4>Secure Shopping</h4>
+                  <p>Protected payments</p>
+                </div>
+              </div>
             </div>
-            <div className="stat">
-              <Shield className="stat-icon" />
-              <span>Secure Shopping</span>
+            <div className="hero-cta">
+              <button className="cta-primary">
+                <span>Start Shopping</span>
+                <ArrowRight size={18} />
+              </button>
+              <div className="hero-metrics">
+                <div className="metric">
+                  <span className="metric-number">10K+</span>
+                  <span className="metric-label">Products</span>
+                </div>
+                <div className="metric">
+                  <span className="metric-number">50K+</span>
+                  <span className="metric-label">Happy Customers</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="product-showcase">
+              <div className="showcase-item item-1">
+                <SafeImage 
+                  src="/Mall1.png" 
+                  alt="Featured Product 1"
+                  className="showcase-image"
+                />
+              </div>
+              <div className="showcase-item item-2">
+                <SafeImage 
+                  src="/Mall1.png" 
+                  alt="Featured Product 2"
+                  className="showcase-image"
+                />
+              </div>
+              <div className="showcase-item item-3">
+                <SafeImage 
+                  src="/Mall1.png" 
+                  alt="Featured Product 3"
+                  className="showcase-image"
+                />
+              </div>
+            </div>
+            <div className="floating-elements">
+              <div className="floating-badge badge-1">
+                <Tag size={16} />
+                <span>New Arrivals</span>
+              </div>
+              <div className="floating-badge badge-2">
+                <Star size={16} />
+                <span>Top Rated</span>
+              </div>
+              <div className="floating-badge badge-3">
+                <Zap size={16} />
+                <span>Best Seller</span>
+              </div>
             </div>
           </div>
         </div>
@@ -493,65 +586,298 @@ export default function Products() {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        .hero-section {
-          background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-          color: white;
-          padding: 80px 20px;
-          text-align: center;
+        .modern-hero {
           position: relative;
+          min-height: 100vh;
+          background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
           overflow: hidden;
+          display: flex;
+          align-items: center;
         }
 
-        .hero-section::before {
-          content: '';
+        .hero-background {
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
-          opacity: 0.3;
+          overflow: hidden;
         }
 
-        .hero-content {
+        .hero-shape {
+          position: absolute;
+          border-radius: 50%;
+          background: linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        }
+
+        .shape-1 {
+          width: 300px;
+          height: 300px;
+          top: 10%;
+          right: 10%;
+        }
+
+        .shape-2 {
+          width: 200px;
+          height: 200px;
+          bottom: 20%;
+          left: 5%;
+        }
+
+        .shape-3 {
+          width: 150px;
+          height: 150px;
+          top: 60%;
+          right: 30%;
+        }
+
+        .hero-container {
           position: relative;
-          z-index: 1;
-          max-width: 800px;
+          z-index: 10;
+          max-width: 1400px;
           margin: 0 auto;
+          padding: 80px 20px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 80px;
+          align-items: center;
         }
 
-        .hero-content h1 {
-          font-size: 3.5rem;
+        .hero-text {
+          color: white;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(99, 102, 241, 0.2);
+          border: 1px solid rgba(99, 102, 241, 0.3);
+          border-radius: 50px;
+          color: #a5b4fc;
+          font-size: 14px;
+          font-weight: 500;
+          margin-bottom: 24px;
+          backdrop-filter: blur(10px);
+        }
+
+        .hero-title {
+          font-size: 4.5rem;
           font-weight: 800;
-          margin-bottom: 20px;
-          background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+          line-height: 1.1;
+          margin-bottom: 24px;
+          color: white;
+        }
+
+        .gradient-text {
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
 
-        .hero-content p {
+        .hero-description {
           font-size: 1.2rem;
+          line-height: 1.7;
+          color: #cbd5e1;
           margin-bottom: 40px;
-          opacity: 0.9;
+          max-width: 600px;
         }
 
-        .hero-stats {
+        .hero-features {
           display: flex;
+          flex-direction: column;
+          gap: 20px;
+          margin-bottom: 40px;
+        }
+
+        .feature-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          backdrop-filter: blur(10px);
+          transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
           justify-content: center;
+          color: white;
+        }
+
+        .feature-text h4 {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: white;
+          margin-bottom: 4px;
+        }
+
+        .feature-text p {
+          font-size: 0.9rem;
+          color: #94a3b8;
+          margin: 0;
+        }
+
+        .hero-cta {
+          display: flex;
+          align-items: center;
           gap: 40px;
           flex-wrap: wrap;
         }
 
-        .stat {
+        .cta-primary {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px 32px;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          color: white;
+          border: none;
+          border-radius: 50px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .cta-primary:hover {
+          box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
+          background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+        }
+
+        .hero-metrics {
+          display: flex;
+          gap: 32px;
+        }
+
+        .metric {
+          text-align: center;
+        }
+
+        .metric-number {
+          display: block;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: white;
+          margin-bottom: 4px;
+        }
+
+        .metric-label {
+          font-size: 0.9rem;
+          color: #94a3b8;
+        }
+
+        .hero-visual {
+          position: relative;
+          height: 600px;
+        }
+
+        .product-showcase {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        .showcase-item {
+          position: absolute;
+          border-radius: 24px;
+          overflow: hidden;
+          background: white;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+          transition: all 0.3s ease;
+        }
+
+        .showcase-item:hover {
+          box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .item-1 {
+          width: 280px;
+          height: 320px;
+          top: 20%;
+          left: 10%;
+          z-index: 3;
+        }
+
+        .item-2 {
+          width: 240px;
+          height: 280px;
+          top: 40%;
+          right: 10%;
+          z-index: 2;
+        }
+
+        .item-3 {
+          width: 200px;
+          height: 240px;
+          bottom: 10%;
+          left: 30%;
+          z-index: 1;
+        }
+
+        .showcase-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .floating-elements {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+        }
+
+        .floating-badge {
+          position: absolute;
           display: flex;
           align-items: center;
           gap: 8px;
+          padding: 12px 20px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-radius: 50px;
+          font-size: 14px;
           font-weight: 600;
+          color: #1f2937;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .stat-icon {
-          color: #4ecdc4;
+        .badge-1 {
+          top: 10%;
+          left: 50%;
+          background: linear-gradient(135deg, #fef3c7, #fbbf24);
+          color: #92400e;
+        }
+
+        .badge-2 {
+          top: 70%;
+          right: 5%;
+          background: linear-gradient(135deg, #dbeafe, #3b82f6);
+          color: #1e40af;
+        }
+
+        .badge-3 {
+          bottom: 30%;
+          left: 5%;
+          background: linear-gradient(135deg, #dcfdf7, #10b981);
+          color: #065f46;
         }
 
         .controls-section {
@@ -1137,12 +1463,56 @@ export default function Products() {
         }
 
         @media (max-width: 768px) {
-          .hero-content h1 {
-            font-size: 2.5rem;
+          .hero-container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            padding: 60px 20px;
+            text-align: center;
           }
 
-          .hero-stats {
-            gap: 20px;
+          .hero-title {
+            font-size: 3rem;
+          }
+
+          .hero-features {
+            gap: 16px;
+          }
+
+          .hero-cta {
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+          }
+
+          .hero-metrics {
+            gap: 24px;
+          }
+
+          .hero-visual {
+            height: 400px;
+            order: -1;
+          }
+
+          .item-1 {
+            width: 200px;
+            height: 240px;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+
+          .item-2 {
+            width: 160px;
+            height: 200px;
+            top: 50%;
+            right: 20%;
+          }
+
+          .item-3 {
+            width: 140px;
+            height: 180px;
+            bottom: 10%;
+            left: 20%;
           }
 
           .controls-section {

@@ -271,8 +271,6 @@ export default function Shops() {
   const handleAddToCart = async (e, product, sourcePage = "AllStoresPage") => {
     e.stopPropagation();
 
-    // const user = JSON.parse(localStorage.getItem("user"));
-    // console.log("User 1211431243", user);
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?._id;
@@ -287,11 +285,12 @@ export default function Shops() {
         quantity: 1,
         price: product.price,
         title: product.name,
-        // image: product.image,
         discount: product.discount,
       };
 
-      const response = await addToCartAPI(userId, productData);
+      await addToCartAPI(userId, productData);
+      addToCart({ ...product, quantity: 1 });
+
       await trackEvent("add_to_cart", {
         user_id: userId,
         product_id: product._id,
@@ -529,7 +528,7 @@ export default function Shops() {
     if (image && image.startsWith("/uploads")) {
       return `${import.meta.env.VITE_API_BASE_URL_PROD}${image}`;
     }
-    return image || "/images/offer1.png";
+    return image || "/Mall1.png";
   };
 
   const calculateDiscountedPriceFinal = (price, discount) => {

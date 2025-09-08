@@ -7,6 +7,7 @@ import {
   FaSignOutAlt,
   FaSignInAlt,
   FaShoppingCart,
+  FaUser,
 } from "react-icons/fa";
 import { showSuccessToast } from "../utils/muiAlertHandler.jsx";
 import axios from "../utils/axios";
@@ -14,6 +15,8 @@ import "../Components/Navbar.css";
 import UserProfile from "./UserProfile/UserProfile";
 import MaleUser from "../images/MaleUser.png";
 import mallimage from "../images/Mall1.png";
+import { useCart } from "../context/CartContext";
+import CartModal from "./Cart/CartModal";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -30,6 +33,10 @@ const Navbar = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [user, setUser] = useState(null);
   const [avatarError, setAvatarError] = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
+  
+  // Cart context
+  const { getTotalItems, getTotalPrice } = useCart();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -148,23 +155,39 @@ const Navbar = () => {
           </div>
 
           <div className="nav-right">
-            {localStorage.getItem("token") && shouldShowUserMenu ? (
-              <>
-                <div className="user-menu-container">
-                  <button
-                    className="profile-button"
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    title={user?.name || "User profile"}
-                  >
-                    <img
-                      src={avatarError ? MaleUser : user?.avatar || MaleUser}
-                      alt={user?.name || "User avatar"}
-                      className="user-avatar"
-                      onError={handleAvatarError}
-                    />
-                  </button>
-                  {showUserMenu && (
-                    <div className="user-menu animate-dropdown">
+            {/* Cart Button */}
+            <button
+              className="cart-button"
+              onClick={() => setShowCartModal(true)}
+              title="Shopping Cart"
+            >
+              <div className="cart-icon-container">
+                <FaShoppingCart className="cart-icon" />
+                {getTotalItems() > 0 && (
+                  <span className="cart-badge">{getTotalItems()}</span>
+                )}
+              </div>
+              {getTotalItems() > 0 && (
+                <span className="cart-total">₹{getTotalPrice().toFixed(2)}</span>
+              )}
+            </button>
+
+            {/* User Icon with Conditional Menu */}
+            <div className="user-menu-container">
+              <button
+                className="user-icon-button"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                title={user ? "User menu" : "Sign in"}
+              >
+                <FaUser className="user-icon" />
+                {user && <span className="user-indicator"></span>}
+              </button>
+              
+              {showUserMenu && (
+                <div className="user-menu animate-dropdown">
+                  {user ? (
+                    <>
+                      {/* Logged in user menu */}
                       <div className="user-info">
                         <img
                           src={
@@ -200,7 +223,7 @@ const Navbar = () => {
                         className="btn btn-small btn-secondary menu-item dashboard-dropdown"
                         onClick={() => {
                           setShowUserMenu(false);
-                          navigate("/profile-edit"); // Assuming a route for editing profile
+                          navigate("/profile-edit");
                         }}
                       >
                         <span className="sparkle">
@@ -217,22 +240,45 @@ const Navbar = () => {
                         </span>
                         <span className="text">Logout</span>
                       </button>
-                    </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Not logged in menu */}
+                      {/* <div className="login-prompt">
+                        <div className="login-icon">
+                          <FaSignInAlt />
+                        </div>
+                        <div className="login-content">
+                          <h4>Welcome!</h4>
+                          <p>Sign in to access your account</p>
+                        </div>
+                      </div> */}
+                      <div className="menu-divider"></div>
+                      <Link
+                        to="/login"
+                        className="menu-item login-menu-item"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <span className="sparkle">
+                          <FaSignInAlt />
+                        </span>
+                        <span className="text">Sign In</span>
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="menu-item register-menu-item"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <span className="sparkle">
+                          <FaUser />
+                        </span>
+                        <span className="text">Create Account</span>
+                      </Link>
+                    </>
                   )}
                 </div>
-              </>
-            ) : (
-              <Link
-                to="/login"
-                className="btn btn-medium btn-primary login-button"
-                style={{ textDecoration: "none" }}
-              >
-                <span className="sparkle">
-                  <FaSignInAlt />
-                </span>
-                <span className="text">Sign In</span>
-              </Link>
-            )}
+              )}
+            </div>
 
             <button
               className="btn btn-small btn-secondary mobile-menu-toggle"
@@ -288,6 +334,25 @@ const Navbar = () => {
         </div>
 
         <div className="mobile-nav-actions">
+          {/* Mobile Cart Button */}
+          <button
+            className="btn btn-medium btn-secondary nav-pill-link"
+            onClick={() => {
+              closeMobileMenu();
+              setShowCartModal(true);
+            }}
+          >
+            <span className="sparkle">
+              <FaShoppingCart />
+            </span>
+            <span className="text">
+              Cart {getTotalItems() > 0 && `(${getTotalItems()})`}
+            </span>
+            {getTotalItems() > 0 && (
+              <span className="cart-total-mobile">₹{getTotalPrice().toFixed(2)}</span>
+            )}
+          </button>
+
           {localStorage.getItem("token") && shouldShowUserMenu ? (
             <>
               <button
@@ -328,6 +393,12 @@ const Navbar = () => {
       </div>
 
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
+      
+      {/* Cart Modal */}
+      <CartModal 
+        isOpen={showCartModal} 
+        onClose={() => setShowCartModal(false)} 
+      />
     </>
   );
 };

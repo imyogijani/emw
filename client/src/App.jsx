@@ -49,7 +49,6 @@ import SellerCustomers from "./Pages/Seller/SellerCustomers";
 import Cart from "./Components/Cart/Cart";
 import UserProfile from "./Components/UserProfile/UserProfile";
 import { CartProvider } from "./context/CartContext";
-import CartFloatingButton from "./Components/CartFloatingButton";
 import SellerProfile from "./Pages/Seller/SellerProfile";
 import SellerDeals from "./Pages/Seller/SellerDeals";
 import ProductDetail from "./Pages/Home/ProductDetail";
@@ -119,9 +118,6 @@ function LayoutWrapper() {
     location.pathname.startsWith("/login") ||
     location.pathname.startsWith("/register");
 
-  // Show cart button only on non-admin/seller/auth/onboarding pages
-  const shouldShowCartButton =
-    !isAdminOrSellerOrAuth && !location.pathname.includes("onboarding");
   return (
     <>
       {!hideLayout && <Navbar onProfileClick={() => setShowProfile(true)} />}
@@ -220,8 +216,6 @@ function LayoutWrapper() {
         {/* Add more routes as needed */}
       </Routes>
       {!hideLayout && <Footer />}
-      {/* Cart button rendered at the end to ensure it's not clipped by containers */}
-      {shouldShowCartButton && <CartFloatingButton />}
     </>
   );
 }
