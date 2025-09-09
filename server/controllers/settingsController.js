@@ -5,7 +5,7 @@ export const getSettings = async (_req, res) => {
   res.json({ success: true, settings: s });
 };
 
-// ✅ Controller
+//  Controller
 export const updateSettings = async (req, res) => {
   try {
     const {
@@ -19,7 +19,7 @@ export const updateSettings = async (req, res) => {
 
     const updates = {};
 
-    // ✅ Step 1: Only allow boolean values for boolean fields
+    //  Step 1: Only allow boolean values for boolean fields
     for (const [k, v] of Object.entries({
       emailVerificationEnabled,
       customerEmailVerification,
@@ -58,7 +58,7 @@ export const updateSettings = async (req, res) => {
       }
     }
 
-    // ✅ Step 3: Save to DB
+    //  Step 3: Save to DB
     const saved = await Settings.updateSettings(updates);
 
     res.json({

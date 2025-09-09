@@ -15,6 +15,8 @@ import {
   resendVerificationController,
   updateRoleController,
   completeOnboardingController,
+  refreshTokenController,
+  logoutController,
 } from "../controllers/authController.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
@@ -112,5 +114,8 @@ router.patch(
   authenticateToken,
   completeOnboardingController
 );
+
+router.post("/refresh-token", refreshTokenController);
+router.post("/logout", authenticateToken, logoutController);
 
 export default router;

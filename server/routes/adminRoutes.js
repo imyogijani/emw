@@ -15,11 +15,6 @@ import {
   updateUser,
   getShopownerDetails,
   getSellerDetails,
-  getAllLocations,
-  addState,
-  addCity,
-  deleteState,
-  deleteCity,
   getAdminOrdersController,
   getSettings,
   updateSettings,
@@ -38,14 +33,7 @@ import {
   getAllOrdersAdmin,
   updateAdminOrderStatus,
 } from "../controllers/orderController.js";
-import {
-  createMenuItem,
-  getAllMenuItems,
-  getMenuItemById,
-  updateMenuItem,
-  deleteMenuItem,
-  getMenuStats,
-} from "../controllers/menuController.js";
+
 
 import {
   adminGetDocuments,
@@ -100,23 +88,10 @@ router.get("/orders", getAllOrdersAdmin);
 router.get("/recent-orders", getAdminOrdersController);
 router.patch("/orders/:orderId/status", updateAdminOrderStatus);
 
-// Menu management
-router.post("/menu-items", createMenuItem);
-router.get("/menu-items", getAllMenuItems);
-router.get("/menu-items/:id", getMenuItemById);
-router.put("/menu-items/:id", updateMenuItem);
-router.delete("/menu-items/:id", deleteMenuItem);
-router.get("/menu-stats", getMenuStats);
+
 
 // Shopowner details (for admin)
 router.get("/shopowner/:id", getShopownerDetails);
-
-// Location management
-router.get("/locations", getAllLocations);
-router.post("/locations/state", addState);
-router.post("/locations/city", addCity);
-router.delete("/locations/state/:stateName", deleteState);
-router.delete("/locations/city/:stateName/:cityName", deleteCity);
 
 // Documents controller
 

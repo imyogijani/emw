@@ -13,7 +13,7 @@ import { getOnboardingSettings } from "../middlewares/onboardingMiddleware.js";
 import {
   onboardingStep1,
   completeOnboarding,
-  startFreeTrial,
+ 
 } from "../controllers/onBoardingController.js";
 
 const router = express.Router();
@@ -38,12 +38,6 @@ router.post(
   completeOnboarding
 );
 
-router.post(
-  "/start-free-trial",
-  authenticateToken,
-  authorizeSeller,
-  fetchUser,
-  startFreeTrial
-);
+
 
 export default router;

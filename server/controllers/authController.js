@@ -250,9 +250,31 @@ const loginController = async (req, res) => {
       });
     }
 
-    // Generate token
+    // Generate token (Access Token) : ->
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
+    });
+
+    // Generate Refresh Token (30 days)
+    const refreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    // console.log("Generated Refresh Token:", refreshToken);
+    // // Optional: Save refresh token in DB for security
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Send refresh token in cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // Not JS accessible
+      secure: true, // Only sent over HTTPS (in production)
+      sameSite: "strict", // CSRF protection
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
     // Prepare response based on onboarding status
@@ -260,6 +282,7 @@ const loginController = async (req, res) => {
       success: true,
       message: "Login successful 🎉",
       token,
+      // refreshToken,
       user: {
         _id: user._id,
         firstName: user.firstName,
@@ -310,11 +333,10 @@ const currentUserController = async (req, res) => {
   try {
     let userQuery = userModel.findById(req.userId);
     // Populate seller data for shopowners
-    userQuery = userQuery
-      .populate(
-        "sellerId",
-        "shopName ownerName shopAddresses shopImage shopImages gstNumber"
-      );
+    userQuery = userQuery.populate(
+      "sellerId",
+      "shopName ownerName shopAddresses shopImage shopImages gstNumber"
+    );
     const user = await userQuery;
     return res.status(200).send({
       success: true,
@@ -535,8 +557,11 @@ export const updateProfileController = async (req, res) => {
       }
 
       // === Update User ===
-      const updatedUser = await userModel
-        .findByIdAndUpdate(userId, updateUserData, { new: true })
+      const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        updateUserData,
+        { new: true }
+      );
 
       return res.status(200).json({
         success: true,
@@ -547,8 +572,11 @@ export const updateProfileController = async (req, res) => {
     }
 
     // === Update user (non-shopowner) ===
-    const updatedUser = await userModel
-      .findByIdAndUpdate(userId, updateUserData, { new: true })
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      updateUserData,
+      { new: true }
+    );
 
     return res.status(200).json({
       success: true,
@@ -690,42 +718,6 @@ export const clearNotification = async (req, res) => {
     });
   }
 };
-
-// Seller accepts updated plan (from review page)
-// export const acceptPlanUpdateController = async (req, res) => {
-//   try {
-//     const userId = req.user._id;
-//     const { planName } = req.body;
-//     const user = await userModel.findById(userId);
-//     if (!user || user.role !== "shopowner") {
-//       return res.status(403).json({ message: "Unauthorized" });
-//     }
-//     const plan = await Subscription.findOne({ planName });
-//     if (!plan) {
-//       return res.status(404).json({ message: "Plan not found" });
-//     }
-
-//     const startDate = new Date();
-//     const endDate = new Date(startDate);
-//     endDate.setMonth(endDate.getMonth() + 1); // Assuming 1-month plan duration
-
-//     user.subscription = plan._id;
-//     user.subscriptionFeatures = plan.includedFeatures;
-//     user.subscriptionStartDate = new Date();
-//     user.subscriptionEndDate = endDate;
-
-//     await user.save();
-//     return res.status(200).json({
-//       success: true,
-//       message: "Plan updated successfully",
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: "Error updating plan",
-//       error: error.message,
-//     });
-//   }
-// };
 
 // POST /api/v1/auth/forgot-password
 export const forgotPassword = async (req, res) => {
@@ -1034,6 +1026,57 @@ const completeOnboardingController = async (req, res) => {
       message: "Error completing onboarding",
       error: error.message,
     });
+  }
+};
+
+export const refreshTokenController = async (req, res) => {
+  try {
+    // const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
+    console.log("Client New refresh token:", refreshToken);
+    if (!refreshToken)
+      return res
+        .status(401)
+        .json({ success: false, message: "No refresh token provided" });
+
+    const user = await userModel.findOne({ refreshToken });
+    if (!user)
+      return res
+        .status(403)
+        .json({ success: false, message: "Invalid refresh token" });
+
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err) => {
+      if (err)
+        return res
+          .status(403)
+          .json({ success: false, message: "Refresh token expired" });
+
+      const newAccessToken = jwt.sign(
+        { userId: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+      res.status(200).json({ success: true, accessToken: newAccessToken });
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Refresh token error", error });
+  }
+};
+
+export const logoutController = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId);
+    if (user) {
+      user.refreshToken = null;
+      await user.save();
+    }
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Logout error", error });
   }
 };
 

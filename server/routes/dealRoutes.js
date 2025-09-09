@@ -17,7 +17,6 @@ import {
   authorizeSeller,
   fetchUser,
 } from "../middlewares/authMiddleware.js";
-import { demoGuard } from "../middlewares/demoGuard.js";
 import { checkAccountStatus } from "../middlewares/checkStatus.js";
 
 const router = express.Router();

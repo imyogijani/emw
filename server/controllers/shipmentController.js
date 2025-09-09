@@ -335,7 +335,7 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
   }
 };
 
-// 3. Attach Waybill + Shipment to Order Items
+//  Attach Waybill + Shipment to Order Items
 export const processShipmentsForOrder = async (orderId) => {
   const order = await Order.findById(orderId)
     .populate("items.productId")

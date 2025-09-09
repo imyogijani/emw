@@ -29,12 +29,13 @@ const categoryImageSchema = mongoose.Schema(
     },
     categoryId: {
       type: mongoose.ObjectId,
-      ref: 'Category',
-      required: true,
+      ref: "Category",
+      // required: true,
+      required: false, // Made optional to allow saving images before category creation
     },
     uploadedBy: {
       type: mongoose.ObjectId,
-      ref: 'User',
+      ref: "users",
       required: false,
     },
     isActive: {
@@ -58,5 +59,5 @@ categoryImageSchema.index({ categoryId: 1 });
 categoryImageSchema.index({ filename: 1 });
 categoryImageSchema.index({ isActive: 1 });
 
-const CategoryImage = mongoose.model('CategoryImage', categoryImageSchema);
+const CategoryImage = mongoose.model("CategoryImage", categoryImageSchema);
 export default CategoryImage;

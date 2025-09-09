@@ -260,35 +260,6 @@ export const getAllDeals = async (req, res) => {
   }
 };
 
-// Get seller's deals
-// export const getSellerDeals = async (req, res) => {
-//   try {
-//     const { status, page = 1, limit = 10 } = req.query;
-//     const filter = { seller: req.user._id };
-//     if (status) filter.status = status;
-
-//     const deals = await Deal.find(filter)
-//       .populate("product", "name image")
-//       .sort({ createdAt: -1 })
-//       .limit(limit * 1)
-//       .skip((page - 1) * limit);
-
-//     const total = await Deal.countDocuments(filter);
-
-//     res.status(200).json({
-//       success: true,
-//       deals,
-//       totalPages: Math.ceil(total / limit),
-//       currentPage: page,
-//       total,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// GET /api/seller/deals
 export const getSellerDeals = async (req, res) => {
   try {
     const { page = 1, limit = 10, search = "" } = req.query;
@@ -330,37 +301,6 @@ export const getSellerDeals = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-// Get active deals for offers page
-// export const getActiveDeals = async (req, res) => {
-//   const featured = req.query.featured === "true";
-//   try {
-//     const now = new Date();
-//     const deals = await Deal.find({
-//       status: "approved",
-//       startDate: { $lte: now },
-//       endDate: { $gte: now },
-//       ...(featured ? { featuredInOffers: true } : {}),
-//     })
-//       .populate("product", "name image description averageRating totalReviews")
-//       .populate("seller", "names shopName")
-//       .sort({ createdAt: -1 });
-//     const enrichedDeals = deals.map((deal) => {
-//       const moneySaved = deal.originalPrice - deal.dealPrice;
-//       return {
-//         ...deal._doc,
-//         moneySaved,
-//       };
-//     });
-//     res.status(200).json({
-//       success: true,
-//       deals: enrichedDeals,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
 
 export const getFilteredDeals = async (req, res) => {
   try {

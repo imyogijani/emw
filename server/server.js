@@ -196,7 +196,6 @@ import userRoutes from "./routes/userRoutes.js";
 import testNotificationRouter from "./routes/testNotification.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
-import newLocationRoutes from "./routes/newLocationRoutes.js";
 import shopAddressRoutes from "./routes/shopAddressRoutes.js";
 import hsnRoutes from "./routes/hsnRoutes.js";
 import shopTimingRoutes from "./routes/shopTimingRoutes.js";
@@ -251,7 +250,6 @@ app.get("/health", (req, res) => {
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/location", locationRoutes);
-app.use("/api/locations", newLocationRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/variants", productVariantRoutes);
 app.use("/api/orders", orderRoutes);

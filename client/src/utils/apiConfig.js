@@ -9,45 +9,54 @@ export const getApiBaseUrl = () => {
     const isDevelopment = import.meta.env.DEV;
     const mode = import.meta.env.MODE;
     const hostname = window.location.hostname;
-    
-    console.log('Environment Detection:', {
-      isDevelopment,
-      mode,
-      hostname,
-      VITE_API_BASE_URL_LOCAL: import.meta.env.VITE_API_BASE_URL_LOCAL,
-      VITE_API_BASE_URL_PROD: import.meta.env.VITE_API_BASE_URL_PROD
-    });
-    
+
+    // console.log('Environment Detection:', {
+    //   isDevelopment,
+    //   mode,
+    //   hostname,
+    //   VITE_API_BASE_URL_LOCAL: import.meta.env.VITE_API_BASE_URL_LOCAL,
+    //   VITE_API_BASE_URL_PROD: import.meta.env.VITE_API_BASE_URL_PROD
+    // });
+
     let apiBaseUrl;
-    
+
     // Force localhost usage when running on localhost, regardless of mode
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || isDevelopment || mode === 'development') {
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      isDevelopment ||
+      mode === "development"
+    ) {
       // Use local API URL for development or localhost
-      apiBaseUrl = import.meta.env.VITE_API_BASE_URL_LOCAL || 'http://localhost:8080';
+      apiBaseUrl =
+        import.meta.env.VITE_API_BASE_URL_LOCAL || "http://localhost:8080";
     } else {
       // Production environment detection
-      if (hostname === 'emallworld.com' || hostname === 'www.emallworld.com') {
-        apiBaseUrl = import.meta.env.VITE_API_BASE_URL_PROD || 'https://api.emallworld.com';
+      if (hostname === "emallworld.com" || hostname === "www.emallworld.com") {
+        apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL_PROD ||
+          "https://api.emallworld.com";
       } else {
         // Default to production API for any other domain
-        apiBaseUrl = import.meta.env.VITE_API_BASE_URL_PROD || 'https://api.emallworld.com';
+        apiBaseUrl =
+          import.meta.env.VITE_API_BASE_URL_PROD ||
+          "https://api.emallworld.com";
       }
     }
-    
+
     // Validate the URL format
     if (!isValidUrl(apiBaseUrl)) {
-      console.error('Invalid API base URL detected:', apiBaseUrl);
+      console.error("Invalid API base URL detected:", apiBaseUrl);
       // Fallback to production URL if current URL is invalid
-      apiBaseUrl = 'https://api.emallworld.com';
+      apiBaseUrl = "https://api.emallworld.com";
     }
-    
-    console.log('Selected API Base URL:', apiBaseUrl);
+
+    console.log("Selected API Base URL:", apiBaseUrl);
     return apiBaseUrl;
-    
   } catch (error) {
-    console.error('Error determining API base URL:', error);
+    console.error("Error determining API base URL:", error);
     // Fallback to production URL in case of any error
-    return 'https://api.emallworld.com';
+    return "https://api.emallworld.com";
   }
 };
 
@@ -59,7 +68,7 @@ export const getApiBaseUrl = () => {
 const isValidUrl = (string) => {
   try {
     const url = new URL(string);
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    return url.protocol === "http:" || url.protocol === "https:";
   } catch (_) {
     return false;
   }
@@ -121,38 +130,40 @@ export const processImageUrl = (image) => {
 export const loadImageWithRetry = (src, maxRetries = 3, delay = 1000) => {
   return new Promise((resolve, reject) => {
     let attempts = 0;
-    
+
     const tryLoad = () => {
       const img = new Image();
-      
+
       img.onload = () => resolve(src);
-      
+
       img.onerror = () => {
         attempts++;
         if (attempts < maxRetries) {
           setTimeout(tryLoad, delay * attempts);
         } else {
-          reject(new Error(`Failed to load image after ${maxRetries} attempts`));
+          reject(
+            new Error(`Failed to load image after ${maxRetries} attempts`)
+          );
         }
       };
-      
+
       img.src = src;
     };
-    
+
     tryLoad();
   });
 };
 
 // Utility to get fallback image based on context
-export const getFallbackImage = (context = 'product') => {
+export const getFallbackImage = (context = "product") => {
   const fallbacks = {
-    product: '/Mall1.png',
-    category: '/Mall1.png',
-    store: '/Mall1.png',
-    user: '/Mall1.png',
-    default: '/Mall1.png'
+    product: "/Mall1.png",
+    category: "/Mall1.png",
+    store: "/Mall1.png",
+    user: "/Mall1.png",
+    default: "/Mall1.png",
   };
-  
+
   return fallbacks[context] || fallbacks.default;
 };
 
@@ -160,13 +171,13 @@ export const getFallbackImage = (context = 'product') => {
 export const processCategoryImageUrl = (image) => {
   try {
     if (!image || typeof image !== "string") {
-      return getFallbackImage('category'); // Category-specific fallback
+      return getFallbackImage("category"); // Category-specific fallback
     }
 
     // Trim whitespace
     image = image.trim();
 
-    if (!image) return getFallbackImage('category');
+    if (!image) return getFallbackImage("category");
 
     const baseURL = getApiBaseUrl();
 
@@ -189,12 +200,12 @@ export const processCategoryImageUrl = (image) => {
     return `${baseURL}/uploads/categories/${image}`;
   } catch (error) {
     console.error("❌ Error processing category image URL:", error);
-    return getFallbackImage('category');
+    return getFallbackImage("category");
   }
 };
 
 // Unified image processing function that handles all image types
-export const processImageUrlUnified = (image, type = 'product') => {
+export const processImageUrlUnified = (image, type = "product") => {
   try {
     if (!image || (typeof image !== "string" && !Array.isArray(image))) {
       return getFallbackImage(type);
@@ -229,15 +240,15 @@ export const processImageUrlUnified = (image, type = 'product') => {
 
     // If it's just a filename, determine the folder based on type
     const folderMap = {
-      product: 'products',
-      category: 'categories',
-      brand: 'brands',
-      store: 'shopowner',
-      user: 'avatars',
-      avatar: 'avatars'
+      product: "products",
+      category: "categories",
+      brand: "brands",
+      store: "shopowner",
+      user: "avatars",
+      avatar: "avatars",
     };
-    
-    const folder = folderMap[type] || 'products';
+
+    const folder = folderMap[type] || "products";
     return `${baseURL}/uploads/${folder}/${image}`;
   } catch (error) {
     console.error(`❌ Error processing ${type} image URL:`, error);

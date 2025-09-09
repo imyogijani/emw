@@ -1,7 +1,6 @@
 import express from "express";
 import { authenticateToken, fetchUser } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
-import { demoGuard } from "../middlewares/demoGuard.js";
 import { restrictDemoAccess } from "../middlewares/demoAccessMiddleware.js";
 import { checkOnboardingSettings } from "../middlewares/onboardingMiddleware.js";
 import {
@@ -15,7 +14,6 @@ import {
   getRelatedProducts,
 } from "../controllers/productController.js";
 
-// import { checkIsPremium } from "../middlewares/checkPremium.js";
 
 import { checkAccountStatus } from "../middlewares/checkStatus.js";
 
@@ -27,7 +25,6 @@ router.post(
   authenticateToken,
   upload.array("images", 10),
   fetchUser,
-  demoGuard,
   restrictDemoAccess,
   checkOnboardingSettings,
   checkAccountStatus,
@@ -50,7 +47,6 @@ router.patch(
   "/:productId",
   authenticateToken,
   fetchUser,
-  demoGuard,
   restrictDemoAccess,
   checkOnboardingSettings,
   checkAccountStatus,
@@ -63,7 +59,6 @@ router.delete(
   "/:productId",
   authenticateToken,
   fetchUser,
-  demoGuard,
   restrictDemoAccess,
   checkOnboardingSettings,
   deleteProduct

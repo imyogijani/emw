@@ -16,6 +16,7 @@ import {
   authorizeAdmin,
 } from "../middlewares/authMiddleware.js";
 import upload, {
+  optimizeImage,
   saveImageToDatabase,
 } from "../middlewares/uploadMiddleware.js";
 
@@ -30,7 +31,8 @@ router.post(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
-  saveImageToDatabase,
+  optimizeImage,
+  // saveImageToDatabase,
   createCategoryController
 );
 
@@ -40,7 +42,7 @@ router.post(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
-  saveImageToDatabase,
+  optimizeImage,
   createCategoryController
 );
 
@@ -57,6 +59,7 @@ router.patch(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
+  optimizeImage,
   updateSubCategoryController
 );
 
@@ -66,7 +69,8 @@ router.post(
   authenticateToken,
   authorizeAdmin,
   upload.single("image"),
-  saveImageToDatabase,
+  optimizeImage,
+
   updateCategoryController
 );
 
@@ -76,8 +80,8 @@ router.get("/get-category", categoryController);
 //get all subcategory
 router.get("/get-sub-category/:parentId", getSubcategoriesController);
 
-// Single Category
-router.get("/single-category/:slug", singleCategoryController);
+// // Single Category
+// router.get("/single-category/:slug", singleCategoryController);
 
 // Delete Category
 router.delete(
@@ -97,7 +101,6 @@ router.get("/hsn-suggestions", getHsnSuggestionsController);
 router.get("/gst-rate/:hsnCode", getGSTRateByHSN);
 
 // Brands :
-
 router.get("/:subcategoryId/brands", getSubcategoryWithBrands);
 
 export default router;

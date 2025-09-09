@@ -5,7 +5,7 @@ import PayoutTransaction from "../models/payoutTransactionModel.js";
 
 export const delhiveryWebhook = async (req, res) => {
   try {
-    // 🔐 Verify secret header (optional but recommended)
+    //  Verify secret header (optional but recommended)
     if (process.env.WEBHOOK_SECRET) {
       const sig =
         req.headers["x-webhook-signature"] ||
@@ -99,7 +99,7 @@ export const razorpayWebhook = async (req, res) => {
   try {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
-    // 🔐 Verify Razorpay signature
+    //  Verify Razorpay signature
     const shasum = crypto.createHmac("sha256", secret);
     shasum.update(JSON.stringify(req.body));
     const digest = shasum.digest("hex");

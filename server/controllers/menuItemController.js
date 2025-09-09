@@ -392,3 +392,28 @@ export const getAllProductMenusWithFilters = async (req, res) => {
     });
   }
 };
+
+// Get menu statistics
+export const getMenuStats = async (req, res) => {
+  try {
+    const totalItems = await MenuItem.countDocuments();
+    const availableItems = await MenuItem.countDocuments({ isAvailable: true });
+    const premiumItems = await MenuItem.countDocuments({ isPremium: true });
+    const totalValue = await MenuItem.aggregate([
+      { $group: { _id: null, total: { $sum: "$price" } } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalItems,
+        availableItems,
+        premiumItems,
+        totalValue: totalValue[0]?.total || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching menu stats:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -98,11 +98,11 @@ export const getProductsByBrand = async (req, res) => {
 
     // 1. Find subcategories with this brand
     const subcategories = await Category.find({ brands: brandId });
-    console.log("✅ Subcategories found:", subcategories.length);
+    console.log(" Subcategories found:", subcategories.length);
 
     // 2. Extract subcategory IDs
     const subcategoryIds = subcategories.map((sub) => sub._id.toString());
-    console.log("🆔 Subcategory IDs:", subcategoryIds);
+    console.log(" Subcategory IDs:", subcategoryIds);
 
     if (subcategoryIds.length === 0) {
       return res.status(404).json({

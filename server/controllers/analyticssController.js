@@ -500,78 +500,6 @@ export const getUserAnalytics = asyncHandler(async (req, res) => {
   });
 });
 
-// export const getAdminAnalytics = asyncHandler(async (req, res) => {
-//   // Parallel aggregate queries for performance
-//   const [
-//     totalOrders,
-//     deliveredOrders,
-//     cancelledOrders,
-//     totalUsers,
-//     totalSellers,
-//     deliveredOrderData,
-//     activeSubscriptions,
-//   ] = await Promise.all([
-//     Order.countDocuments(),
-//     Order.countDocuments({ orderStatus: "delivered" }),
-//     Order.countDocuments({ orderStatus: "cancelled" }),
-//     User.countDocuments(),
-//     Seller.countDocuments(),
-//     Order.aggregate([
-//       { $match: { orderStatus: "delivered" } },
-//       {
-//         $group: {
-//           _id: null,
-//           totalRevenue: { $sum: "$totalAmount" },
-//         },
-//       },
-//     ]),
-//     UserSubscription.aggregate([
-//       {
-//         $match: {
-//           isActive: true,
-//           paymentStatus: "paid",
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: "$billingCycle",
-//           totalRevenue: { $sum: "$amountPaid" }, // Optional field you can add
-//           count: { $sum: 1 },
-//         },
-//       },
-//     ]),
-//   ]);
-
-//   const totalRevenue = deliveredOrderData[0]?.totalRevenue || 0;
-
-//   // Optional: Normalize subscription revenue
-//   let subscriptionRevenue = 0;
-//   for (const sub of activeSubscriptions) {
-//     subscriptionRevenue += sub.totalRevenue || 0;
-//   }
-
-//   res.status(200).json({
-//     stats: {
-//       orders: {
-//         total: totalOrders,
-//         delivered: deliveredOrders,
-//         cancelled: cancelledOrders,
-//       },
-//       users: totalUsers,
-//       sellers: totalSellers,
-//       revenue: {
-//         fromOrders: totalRevenue,
-//         fromSubscriptions: subscriptionRevenue,
-//       },
-//       subscriptions: activeSubscriptions.map((sub) => ({
-//         billingCycle: sub._id,
-//         totalRevenue: sub.totalRevenue || 0,
-//         activeCount: sub.count,
-//       })),
-//     },
-//   });
-// });
-
 export const getAdminAnalytics = asyncHandler(async (req, res) => {
   // Parallel aggregate queries
   const [
@@ -599,25 +527,6 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
         },
       },
     ]),
-    // UserSubscription.aggregate([
-    //   { $match: { isActive: true, paymentStatus: "paid" } },
-    //   {
-    //     $lookup: {
-    //       from: "subscriptions",
-    //       localField: "subscription",
-    //       foreignField: "_id",
-    //       as: "subscriptionDetails",
-    //     },
-    //   },
-    //   { $unwind: "$subscriptionDetails" },
-    //   {
-    //     $group: {
-    //       _id: "$billingCycle",
-    //       totalRevenue: { $sum: "$subscriptionDetails.price" },
-    //       activeCount: { $sum: 1 },
-    //     },
-    //   },
-    // ]),
   ]);
 
   const totalRevenue = deliveredOrderData[0]?.totalRevenue || 0;

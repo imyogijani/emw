@@ -128,50 +128,6 @@ export const uploadDocuments = async (req, res) => {
   }
 };
 
-// Download / View document
-// export const viewDocument = async (req, res) => {
-//   try {
-//     const { docId } = req.params;
-//     const doc = await SellerDocument.findById(docId);
-//     if (!doc) return res.status(404).json({ message: "Document not found" });
-
-//     // Access control
-//     if (
-//       req.user.role !== "admin" &&
-//       (!req.user.sellerId ||
-//         doc.seller.toString() !== req.user.sellerId.toString())
-//     ) {
-//       return res.status(403).json({ message: "Unauthorized" });
-//     }
-
-//     const encryptedBuffer = fs.readFileSync(doc.filePath);
-//     const decrypted = decryptFile(
-//       encryptedBuffer,
-//       doc.iv,
-//       doc.salt,
-//       doc.authTag
-//     );
-
-//     const ext = path.extname(doc.filePath).replace(".enc", "").toLowerCase();
-//     let mimeType = "application/pdf";
-//     if (ext === ".jpg" || ext === ".jpeg") mimeType = "image/jpeg";
-//     else if (ext === ".png") mimeType = "image/png";
-//     else if (ext === ".pdf") mimeType = "application/pdf";
-
-//     res.setHeader("Content-Type", mimeType);
-//     res.setHeader(
-//       "Content-Disposition",
-//       `inline; filename="${doc.docType}${ext}"`
-//     );
-
-//     res.send(decrypted);
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to view document", error: error.message });
-//   }
-// };
 
 export const viewDocument = async (req, res) => {
   try {
@@ -207,52 +163,6 @@ export const viewDocument = async (req, res) => {
   }
 };
 
-// DOWNLOAD Document (force download)
-// export const downloadDocument = async (req, res) => {
-//   try {
-//     const { docId } = req.params;
-//     const doc = await SellerDocument.findById(docId);
-//     if (!doc) return res.status(404).json({ message: "Document not found" });
-
-//     // Access control
-//     if (
-//       req.user.role !== "admin" &&
-//       (!req.user.sellerId ||
-//         doc.seller.toString() !== req.user.sellerId.toString())
-//     ) {
-//       return res.status(403).json({ message: "Unauthorized" });
-//     }
-
-//     const encryptedBuffer = fs.readFileSync(doc.filePath);
-//     const decrypted = decryptFile(
-//       encryptedBuffer,
-//       doc.iv,
-//       doc.salt,
-//       doc.authTag
-//     );
-
-//     // detect mime type
-//     let mimeType = "application/pdf";
-//     if (doc.docType.endsWith(".jpg") || doc.docType.endsWith(".jpeg"))
-//       mimeType = "image/jpeg";
-//     else if (doc.docType.endsWith(".png")) mimeType = "image/png";
-
-//     res.setHeader("Content-Type", mimeType);
-
-//     // ⬇️ force download
-//     res.setHeader(
-//       "Content-Disposition",
-//       `attachment; filename="${doc.docType}"`
-//     );
-
-//     res.send(decrypted);
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to download document", error: error.message });
-//   }
-// };
 
 export const downloadDocument = async (req, res) => {
   try {
@@ -302,7 +212,6 @@ export const downloadDocument = async (req, res) => {
 };
 
 // Update documents (single ya multiple)
-
 export const updateDocuments = async (req, res) => {
   try {
     const sellerId = req.user.sellerId;
@@ -376,7 +285,7 @@ export const updateDocuments = async (req, res) => {
   }
 };
 
-// 📌 GET /api/seller-documents
+//  GET /api/seller-documents
 // Query params: ?page=1&limit=10&status=pending&docType=pan
 export const getSellerDocuments = async (req, res) => {
   try {

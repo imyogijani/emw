@@ -55,8 +55,8 @@ export const getMonthlySettlementReport = asyncHandler(async (req, res) => {
   res.json({ month, sellers: data });
 });
 
-// 💸 Settlement API
-// 💸 Settlement API
+
+// Settlement API
 export const settleMonthlyPayouts = asyncHandler(async (req, res) => {
   const { month } = req.body;
   if (!month)

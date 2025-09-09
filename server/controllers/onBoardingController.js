@@ -300,84 +300,84 @@ export const completeOnboarding = async (req, res) => {
   }
 };
 
-// Start free trial for new sellers
-export const startFreeTrial = async (req, res) => {
-  try {
-    const userId = req.user._id;
+// // Start free trial for new sellers
+// export const startFreeTrial = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
 
-    // Check if user already used free trial
-    const usedTrial = await UserSubscription.findOne({
-      user: userId,
-      billingCycle: "free",
-    });
+//     // Check if user already used free trial
+//     const usedTrial = await UserSubscription.findOne({
+//       user: userId,
+//       billingCycle: "free",
+//     });
 
-    if (usedTrial) {
-      return res.status(400).json({
-        success: false,
-        message: "Free trial already used. Please choose a paid plan.",
-      });
-    }
+//     if (usedTrial) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Free trial already used. Please choose a paid plan.",
+//       });
+//     }
 
-    // Find or create free trial plan
-    let freeTrialPlan = await Subscription.findOne({ planName: "Free Trial" });
-    if (!freeTrialPlan) {
-      freeTrialPlan = await Subscription.create({
-        planName: "Free Trial",
-        pricing: { monthly: "free", yearly: "free" },
-        includedFeatures: [
-          "Product Listing:50",
-          "Basic Analytics",
-          "Customer Support",
-          "Order Management",
-          "Inventory Tracking",
-        ],
-        isVisible: false, // Don't show in regular subscription list
-      });
-    }
+//     // Find or create free trial plan
+//     let freeTrialPlan = await Subscription.findOne({ planName: "Free Trial" });
+//     if (!freeTrialPlan) {
+//       freeTrialPlan = await Subscription.create({
+//         planName: "Free Trial",
+//         pricing: { monthly: "free", yearly: "free" },
+//         includedFeatures: [
+//           "Product Listing:50",
+//           "Basic Analytics",
+//           "Customer Support",
+//           "Order Management",
+//           "Inventory Tracking",
+//         ],
+//         isVisible: false, // Don't show in regular subscription list
+//       });
+//     }
 
-    // Create 7-day free trial subscription
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 7);
+//     // Create 7-day free trial subscription
+//     const trialEndDate = new Date();
+//     trialEndDate.setDate(trialEndDate.getDate() + 7);
 
-    const trialSubscription = new UserSubscription({
-      user: userId,
-      subscription: freeTrialPlan._id,
-      startDate: new Date(),
-      endDate: trialEndDate,
-      billingCycle: "free",
-      isActive: true,
-      paymentStatus: "free",
-    });
+//     const trialSubscription = new UserSubscription({
+//       user: userId,
+//       subscription: freeTrialPlan._id,
+//       startDate: new Date(),
+//       endDate: trialEndDate,
+//       billingCycle: "free",
+//       isActive: true,
+//       paymentStatus: "free",
+//     });
 
-    await trialSubscription.save();
+//     await trialSubscription.save();
 
-    // Update user's onboarding status
-    await User.findByIdAndUpdate(userId, {
-      isOnboardingComplete: true,
-      subscription: freeTrialPlan._id,
-      subscriptionStartDate: new Date(),
-    });
+//     // Update user's onboarding status
+//     await User.findByIdAndUpdate(userId, {
+//       isOnboardingComplete: true,
+//       subscription: freeTrialPlan._id,
+//       subscriptionStartDate: new Date(),
+//     });
 
-    await Seller.findOneAndUpdate(
-      { user: userId }, // seller linked to this user
-      { isOnboardingComplete: true, status: "active" }
-    );
+//     await Seller.findOneAndUpdate(
+//       { user: userId }, // seller linked to this user
+//       { isOnboardingComplete: true, status: "active" }
+//     );
 
-    res.status(200).json({
-      success: true,
-      message: "7-day free trial started successfully!",
-      trialEndDate: trialEndDate,
-      subscription: freeTrialPlan,
-    });
-  } catch (error) {
-    console.error("Error starting free trial:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to start free trial",
-      error: error.message,
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "7-day free trial started successfully!",
+//       trialEndDate: trialEndDate,
+//       subscription: freeTrialPlan,
+//     });
+//   } catch (error) {
+//     console.error("Error starting free trial:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to start free trial",
+//       error: error.message,
+//     });
+//   }
+// };
 
 export const validateAddress = (address) => {
   let errors = {};

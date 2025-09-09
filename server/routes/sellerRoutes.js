@@ -24,7 +24,6 @@ import {
   getOnboardingSettings,
 } from "../middlewares/onboardingMiddleware.js";
 
-import { createCashfreeBeneficiary } from "../controllers/createCashfreeBeneficiary.js";
 
 const router = express.Router();
 
@@ -46,12 +45,6 @@ router.get("/customer-orders", checkDashboardAccess, getCustomerOrdersBySeller);
 router.get("/sales-overview", checkDashboardAccess, getSellerSalesOverview);
 router.get("/orders-analytics", checkDashboardAccess, getSellerOrdersAnalytics);
 
-// router.post(
-//   "/create-cashfree-beneficiary",
-//   authenticateToken,
-//   authorizeSeller,
-//   createCashfreeBeneficiary
-// );
 
 router.post(
   "/financial-details",

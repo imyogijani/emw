@@ -111,17 +111,7 @@ export const createCategoryController = async (req, res) => {
     await category.save();
 
     // Update image record with category ID if image was uploaded
-    if (imageId) {
-      try {
-        await CategoryImage.findByIdAndUpdate(imageId, {
-          categoryId: category._id,
-          entityId: category._id,
-          entityType: "Category",
-        });
-      } catch (imageUpdateError) {
-        console.error("Error updating image record:", imageUpdateError);
-      }
-    }
+
     res.status(201).send({
       success: true,
       message: "New category created",
@@ -206,28 +196,6 @@ export const categoryController = async (req, res) => {
     });
   }
 };
-
-// // Get subcategories
-// export const getSubcategoriesController = async (req, res) => {
-//   try {
-//     const { parentId } = req.params;
-//     const subcategories = await Category.find({ parent: parentId }).populate(
-//       "children"
-//     );
-//     res.status(200).send({
-//       success: true,
-//       message: "Subcategories retrieved successfully",
-//       subcategories,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({
-//       success: false,
-//       error,
-//       message: "Error while getting subcategories",
-//     });
-//   }
-// };
 
 // Get subcategories with brand names
 export const getSubcategoriesController = async (req, res) => {

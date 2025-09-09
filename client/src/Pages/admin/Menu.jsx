@@ -391,7 +391,9 @@ const Menu = () => {
                   onClick={() => setProductPage((p) => Math.max(1, p - 1))}
                   disabled={productPage <= 1 || productsLoading}
                 >
-                  <span className="sparkle"><FaChevronLeft /></span>
+                  <span className="sparkle">
+                    <FaChevronLeft />
+                  </span>
                   <span className="text">Prev</span>
                 </button>
 
@@ -403,12 +405,14 @@ const Menu = () => {
                   type="button"
                   className="btn btn-medium btn-secondary page-btn"
                   onClick={() =>
-                    setProductPage((p) => Math.min(totalProductPages, p + 1))
+                    setProductPage((p) => Math.min(productTotalPages, p + 1))
                   }
-                  disabled={productPage >= totalProductPages || productsLoading}
+                  disabled={productPage >= productTotalPages || productsLoading}
                 >
                   <span className="text">Next</span>
-                  <span className="sparkle"><FaChevronRight /></span>
+                  <span className="sparkle">
+                    <FaChevronRight />
+                  </span>
                 </button>
               </div>
             </>
@@ -487,7 +491,9 @@ const Menu = () => {
                       className="btn btn-small btn-danger action-btn delete"
                       onClick={() => handleDelete(item._id)}
                     >
-                      <span className="sparkle"><FaTrash /></span>
+                      <span className="sparkle">
+                        <FaTrash />
+                      </span>
                     </button>
                   </td>
                 </tr>
