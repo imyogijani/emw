@@ -10,6 +10,8 @@ import User from "../models/userModel.js";
 import Brand from "../models/brandModel.js";
 import mongoose from "mongoose";
 
+import redisClient from "../config/redis.js";
+
 // import { attachActiveDeals } from "../utils/attachActiveDeals.js";
 import { getFeatureLimit } from "../helpers/checkSubscriptionFeature.js";
 
@@ -33,8 +35,8 @@ export const addProduct = async (req, res) => {
 
       // isPremium,
     } = req.body;
-    console.log("Incoming fields:", req.body);
-    console.log("Incoming files:", req.files);
+    // console.log("Incoming fields:", req.body);
+    // console.log("Incoming files:", req.files);
 
     // Get seller and user info
     const seller = await Seller.findOne({ user: req.userId }).populate(
@@ -42,12 +44,6 @@ export const addProduct = async (req, res) => {
       "email"
     );
 
-    // if (seller.user.email === "demo@seller.com") {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "Demo account cannot add products.",
-    //   });
-    // }
     if (!seller) return res.status(404).json({ message: "Seller not found" });
 
     // if ( !seller.bankDetails || !seller.razorpayAccountId) {
@@ -273,6 +269,19 @@ export const addProduct = async (req, res) => {
     });
 
     await product.save();
+
+    // //  Cache Invalidation: related GET API
+    // try {
+    //   // Delete global all products cache
+    //   await redisClient.del("GET_/api/products");
+
+    //   // Optional: agar tum seller-specific products GET cache rakhe ho
+    //   await redisClient.del(`GET_/api/products?sellerId=${req.userId}`);
+
+    //   console.log("💥 Cache cleared for products GET API");
+    // } catch (err) {
+    //   console.error("⚠️ Failed to clear cache:", err.message);
+    // }
 
     return res.status(201).json({
       success: true,

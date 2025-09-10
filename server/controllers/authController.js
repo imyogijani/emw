@@ -723,7 +723,7 @@ export const clearNotification = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("Forgot", req.body);
+    // console.log("Forgot", req.body);
     const user = await userModel.findOne({ email });
 
     if (!user) {
@@ -762,7 +762,7 @@ export const forgotPassword = async (req, res) => {
 
 // POST /api/v1/auth/reset-password/:token
 export const resetPassword = async (req, res) => {
-  console.log("Request body:", req.body);
+  // console.log("Request body:", req.body);
   try {
     const hashedToken = crypto
       .createHash("sha256")
@@ -883,7 +883,7 @@ const updateRoleController = async (req, res) => {
   try {
     const { role } = req.body;
     const userId = req.userId; // From auth middleware
-    console.log("Updating role for user:", req.userId, "New role:", role);
+    // console.log("Updating role for user:", req.userId, "New role:", role);
 
     if (!role || !["client", "shopowner"].includes(role)) {
       return res.status(400).send({

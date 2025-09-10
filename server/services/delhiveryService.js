@@ -142,7 +142,6 @@ const getBusinessHoursForSeller = async (sellerId) => {
 //     if (res.data?.success) {
 //       // pickup_id agar mila to use lo, warna fallback me name
 //       const pickupId = res.data.pickup_id || res.data.data?.name;
-
 //       console.log("✅ Warehouse registered:", pickupId);
 
 //       // yeh seller DB me save karo taaki shipment create karte waqt yahi name bhejo
@@ -221,7 +220,7 @@ export const registerOrUpdatePickup = async (seller, address) => {
       return address.delhiveryPickupId;
     }
 
-    // ✅ Agar pickupId nahi hai → Register karo
+    //  If your pickupid is not present → Register
     const payloadRegister = {
       name: seller.shopName,
       registered_name: seller.registeredName || seller.shopName,

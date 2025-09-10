@@ -124,8 +124,8 @@ instance.interceptors.response.use(
           "Bearer " + newAccessToken;
 
         processQueue(null, newAccessToken);
-        console.log("Access Token:", localStorage.getItem("token"));
-        console.log("Refresh Token:", document.cookie);
+        // console.log("Access Token:", localStorage.getItem("token"));
+        // console.log("Refresh Token:", document.cookie);
 
         return instance(originalRequest);
       } catch (err) {

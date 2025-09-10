@@ -60,3 +60,7 @@ Thumbs.db
 firebase/firebaseKey.json
 
 
+
+# Ignore local notes
+notes/
+

@@ -298,8 +298,8 @@ export const updateCategoryController = async (req, res) => {
       suggestedHsnCodes,
       defaultHsnCode,
     } = req.body;
-    console.log("[DEBUG] Update Category Request Body:", req.body);
-    console.log("[DEBUG] req.file:", req.file);
+    // console.log("[DEBUG] Update Category Request Body:", req.body);
+    // console.log("[DEBUG] req.file:", req.file);
     // First, get the current category to check if it's a subcategory
     const currentCategory = await Category.findById(req.params.id);
     if (!currentCategory) {

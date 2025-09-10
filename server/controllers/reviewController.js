@@ -49,9 +49,6 @@ export const addReview = async (req, res) => {
       reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
 
     // 6 Update product's review stats
-
-    console.log("Hello --1514165146514164151----+++++++++ kem che ");
-
     await Product.findByIdAndUpdate(product, {
       averageRating: averageRating.toFixed(1),
       totalReviews,
@@ -119,7 +116,8 @@ export const getProductReviews = async (req, res) => {
       if (user.role === "client" || user.role === "admin") {
         username = user.names;
       } else if (user.role === "shopowner") {
-        username = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.names;
+        username =
+          `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.names;
       }
 
       return {

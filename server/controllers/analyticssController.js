@@ -339,12 +339,12 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
     })
     .lean(); // get plain JS objects
 
-  console.log("DEBUG: Total orders fetched:", orders.length);
+  // console.log("DEBUG: Total orders fetched:", orders.length);
   const categoryMap = new Map();
 
   orders.forEach((order, orderIndex) => {
     order.items.forEach((item, itemIndex) => {
-      console.log("Raw productId for item:", item.productId);
+      // console.log("Raw productId for item:", item.productId);
       if (item.sellerId.toString() !== sellerId.toString()) return;
 
       const product = item.productId; // populated product object
@@ -355,7 +355,7 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
         return;
       }
 
-      console.log("prduct categories", product.category);
+      // console.log("prduct categories", product.category);
       if (!product.category) {
         console.log(
           `DEBUG: Order ${order._id} item ${itemIndex} product ${product._id} missing category`
@@ -364,9 +364,9 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
       }
 
       const catId = product.category.toString();
-      console.log(
-        `DEBUG: Processing order ${order._id} item ${itemIndex} with category ${catId}`
-      );
+      // console.log(
+      //   `DEBUG: Processing order ${order._id} item ${itemIndex} with category ${catId}`
+      // );
 
       if (!categoryMap.has(catId)) {
         categoryMap.set(catId, {
@@ -375,7 +375,7 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
           totalQuantity: 0,
           totalRevenue: 0,
         });
-        console.log(`DEBUG: New category added to map: ${catId}`);
+        // console.log(`DEBUG: New category added to map: ${catId}`);
       }
 
       const catData = categoryMap.get(catId);
@@ -384,13 +384,13 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
       catData.totalQuantity += item.quantity;
       catData.totalRevenue += item.quantity * item.finalPrice;
 
-      console.log(
-        `DEBUG: Updated category ${catId} -> orders: ${
-          catData.totalOrders
-        }, quantity: ${
-          catData.totalQuantity
-        }, revenue: ${catData.totalRevenue.toFixed(2)}`
-      );
+      // console.log(
+      //   `DEBUG: Updated category ${catId} -> orders: ${
+      //     catData.totalOrders
+      //   }, quantity: ${
+      //     catData.totalQuantity
+      //   }, revenue: ${catData.totalRevenue.toFixed(2)}`
+      // );
     });
   });
 
@@ -398,7 +398,7 @@ export const getSellerAnalytics = asyncHandler(async (req, res) => {
   const categories = await Category.find({ _id: { $in: categoryIds } })
     .select("name")
     .lean();
-  console.log("DEBUG: Categories fetched from DB:", categories.length);
+  // console.log("DEBUG: Categories fetched from DB:", categories.length);
 
   const categoryNameMap = {};
   // const categoryNameMap = {};

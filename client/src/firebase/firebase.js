@@ -23,7 +23,7 @@ const auth = getAuth(app);
 const messagingPromise = isSupported().then((supported) => {
   if (supported) {
     const messaging = getMessaging(app);
-    console.log("Firebase Messaging initialized");
+    // console.log("Firebase Messaging initialized");
     return messaging;
   } else {
     console.warn("Firebase Messaging is not supported in this browser");

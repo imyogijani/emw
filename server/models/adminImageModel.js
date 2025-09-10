@@ -30,7 +30,7 @@ const adminImageSchema = mongoose.Schema(
     imageType: {
       type: String,
       required: true,
-      enum: ['category', 'brand', 'banner', 'promotion', 'system', 'deal'],
+      enum: ["category", "brand", "banner", "promotion", "system", "deal"],
     },
     entityId: {
       type: mongoose.ObjectId,
@@ -39,11 +39,11 @@ const adminImageSchema = mongoose.Schema(
     entityType: {
       type: String,
       required: false,
-      enum: ['Category', 'Brand', 'Deal', 'Promotion'],
+      enum: ["Category", "Brand", "Deal", "Promotion"],
     },
     uploadedBy: {
       type: mongoose.ObjectId,
-      ref: 'User',
+      ref: "users",
       required: true,
     },
     isActive: {
@@ -78,5 +78,5 @@ adminImageSchema.index({ filename: 1 });
 adminImageSchema.index({ isActive: 1 });
 adminImageSchema.index({ isPublic: 1 });
 
-const AdminImage = mongoose.model('AdminImage', adminImageSchema);
+const AdminImage = mongoose.model("AdminImage", adminImageSchema);
 export default AdminImage;

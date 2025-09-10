@@ -20,7 +20,7 @@ router.post("/ga-event", async (req, res) => {
       
       
 
-    console.log("Google analytics ", GA_MEASUREMENT_ID, GA_API_SECRET);
+    // console.log("Google analytics ", GA_MEASUREMENT_ID, GA_API_SECRET);
 
     if (!GA_MEASUREMENT_ID || !GA_API_SECRET) {
       return res

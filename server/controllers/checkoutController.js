@@ -158,7 +158,7 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       // let quantity = product.quantity || 1;
 
       rawWeight = rawWeight / 1000;
-      console.log("Product weight get ----> ", rawWeight);
+      // console.log("Product weight get ----> ", rawWeight);
 
       // Normalize → string ko lowercase karo aur space hatao
       rawWeight = rawWeight.toString().toLowerCase().trim();
@@ -177,16 +177,16 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
       // Multiply by quantity
       sellerWeight += weightInGrams * quantity;
 
-      console.log(
-        "Weight (grams):",
-        weightInGrams,
-        "Total Seller Weight (grams):",
-        sellerWeight
-      );
+      // console.log(
+      //   "Weight (grams):",
+      //   weightInGrams,
+      //   "Total Seller Weight (grams):",
+      //   sellerWeight
+      // );
 
       // If kg in send  --> finalWeightInKg :
       const finalWeightInKg = sellerWeight / 1000;
-      console.log("Final Seller Weight (kg):", finalWeightInKg);
+      // console.log("Final Seller Weight (kg):", finalWeightInKg);
 
       // sellerWeight = finalWeightInKg + " kg";
 
@@ -245,7 +245,8 @@ export const checkoutSummary = asyncHandler(async (req, res) => {
   }
 
   // const totalAmount = subTotal + totalGST + totalDeliveryCharge;
-  const totalAmount = subTotal + totalDeliveryCharge;
+  // const totalAmount = subTotal + totalDeliveryCharge;
+  const totalAmount = subTotal;
 
   // console.log("📦 Seller-wise Summary:", sellerSummaries);
 
@@ -505,7 +506,8 @@ export const applyCoupon = asyncHandler(async (req, res) => {
 
   // ---------- Final Total ----------
   // const totalAmount = subTotal + totalGST + totalDeliveryCharge - discount;
-  const totalAmount = subTotal + totalDeliveryCharge - discount;
+  // const totalAmount = subTotal + totalDeliveryCharge - discount;
+  const totalAmount = subTotal - discount;
 
   res.status(200).json({
     success: true,

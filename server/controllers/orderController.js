@@ -19,6 +19,7 @@ import {
 } from "./shipmentController.js";
 import { backendClient } from "../utils/backendApi.js";
 import { getDeliveryCharge } from "../controllers/shipmentController.js";
+import redisClient from "../config/redis.js";
 
 export const getAllOrdersAdmin = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -415,66 +416,68 @@ export const createOrder = asyncHandler(async (req, res) => {
     }
   }
 
-  // const sellerDeliveryCharges = {}; // sellerId -> deliveryCharge
-  // const groupedBySeller = {};
+  const sellerDeliveryCharges = {}; // sellerId -> deliveryCharge
+  const groupedBySeller = {};
 
-  // orderItems.forEach((item) => {
-  //   const sellerId = item.sellerId.toString();
-  //   if (!groupedBySeller[sellerId]) groupedBySeller[sellerId] = [];
-  //   groupedBySeller[sellerId].push(item);
-  // });
+  orderItems.forEach((item) => {
+    const sellerId = item.sellerId.toString();
+    if (!groupedBySeller[sellerId]) groupedBySeller[sellerId] = [];
+    groupedBySeller[sellerId].push(item);
+  });
 
-  // // 2️⃣ Calculate delivery charge per seller
-  // let totalDeliveryCharge = 0;
+  // 2️⃣ Calculate delivery charge per seller
+  let totalDeliveryCharge = 0;
 
-  // for (const sellerId of Object.keys(groupedBySeller)) {
-  //   const sellerItems = groupedBySeller[sellerId];
+  for (const sellerId of Object.keys(groupedBySeller)) {
+    const sellerItems = groupedBySeller[sellerId];
 
-  //   const seller = await Seller.findById(sellerId);
-  //   const pickupPincode = seller?.shopAddresses?.[0]?.pincode;
-  //   if (!pickupPincode)
-  //     throw new Error(`Seller ${sellerId} has no pickup address.`);
+    const seller = await Seller.findById(sellerId);
+    const pickupPincode = seller?.shopAddresses?.[0]?.pincode;
+    if (!pickupPincode)
+      throw new Error(`Seller ${sellerId} has no pickup address.`);
 
-  //   // Calculate total weight for seller
-  //   let sellerWeight = 0;
-  //   for (const item of sellerItems) {
-  //     const product = await Product.findById(item.productId);
-  //     const variant = item.variantId
-  //       ? await Variant.findById(item.variantId)
-  //       : null;
-  //     let weight = variant?.weight || product.weight || 0.5; // default 0.5kg
-  //     sellerWeight += weight * item.quantity;
-  //   }
+    // Calculate total weight for seller
+    let sellerWeight = 0;
+    for (const item of sellerItems) {
+      const product = await Product.findById(item.productId);
+      const variant = item.variantId
+        ? await Variant.findById(item.variantId)
+        : null;
+      let weight = variant?.weight || product.weight || 0.5; // default 0.5kg
+      sellerWeight += weight * item.quantity;
+    }
 
-  //   // Call API once per seller
-  //   const sellerCharge = await getDeliveryCharge(
-  //     pickupPincode,
-  //     shippingAddress.pincode,
-  //     sellerWeight,
-  //     true
-  //   );
+    // Call API once per seller
+    const sellerCharge = await getDeliveryCharge(
+      pickupPincode,
+      shippingAddress.pincode,
+      sellerWeight,
+      true
+    );
 
-  //   sellerDeliveryCharges[sellerId] = sellerCharge;
-  //   totalDeliveryCharge += sellerCharge;
+    sellerDeliveryCharges[sellerId] = sellerCharge;
+    totalDeliveryCharge += sellerCharge;
 
-  //   // Distribute proportionally across seller's items
-  //   const sellerSubTotal = sellerItems.reduce(
-  //     (acc, i) => acc + i.finalPrice * i.quantity,
-  //     0
-  //   );
-  //   sellerItems.forEach((item) => {
-  //     item.deliveryCharge =
-  //       ((item.finalPrice * item.quantity) / sellerSubTotal) * sellerCharge;
-  //   });
-  // }
+    // Distribute proportionally across seller's items
+    const sellerSubTotal = sellerItems.reduce(
+      (acc, i) => acc + i.finalPrice * i.quantity,
+      0
+    );
+    sellerItems.forEach((item) => {
+      item.deliveryCharge =
+        ((item.finalPrice * item.quantity) / sellerSubTotal) * sellerCharge;
+    });
+  }
 
   // const totalAmount = parseFloat(
   //   (subTotal + totalGST + deliveryCharge - couponDiscount).toFixed(2)
   // );
 
-  const totalAmount = parseFloat(
-    (subTotal + deliveryCharge - couponDiscount).toFixed(2)
-  );
+  // const totalAmount = parseFloat(
+  //   (subTotal + deliveryCharge - couponDiscount).toFixed(2)
+  // );
+
+  const totalAmount = parseFloat((subTotal - couponDiscount).toFixed(2));
 
   let counter = await Counter.findOneAndUpdate(
     { name: "order" },
@@ -495,6 +498,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     subTotal,
     totalAmount,
     totalGST,
+    totalDeliveryCharge,
     paymentMethod,
     paymentStatus: paymentMethod === "COD" ? "pending" : "pending",
     isPaid: false,
@@ -508,6 +512,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   //  Ab order ke liye shipment process karo
   console.log("Check Order Id =--=-=", order._id);
+  
   // await processShipmentsForOrder(order._id);
   // await generateShipmentsForOrder(order._id);
   // const responseShip = await backendClient.post(`/api/shipments/generate`, {

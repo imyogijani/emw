@@ -70,11 +70,10 @@ router.post(
   authorizeAdmin,
   upload.single("image"),
   optimizeImage,
-
   updateCategoryController
 );
 
-// Get All Categories
+// Get All Categoriesd
 router.get("/get-category", categoryController);
 
 //get all subcategory

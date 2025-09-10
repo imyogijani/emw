@@ -584,7 +584,7 @@ export const deleteCity = async (req, res) => {
 export const deletePincode = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("Pincode params id :", id);
+    // console.log("Pincode params id :", id);
 
     const pin = await Pincode.findById(id);
     if (!pin)

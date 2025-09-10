@@ -235,7 +235,13 @@ const getOrCreateWaybill = async (sellerId, orderId) => {
 
 //  Shipment Create
 
-export const createShipment = async (order, item, seller, shippingAddress) => {
+export const createShipment = async (
+  order,
+  item,
+  seller,
+  shippingAddress,
+  retry = false
+) => {
   try {
     const waybill = await getOrCreateWaybill(seller._id, order._id);
     if (!waybill) throw new Error("Waybill not available for this order");
@@ -326,6 +332,12 @@ export const createShipment = async (order, item, seller, shippingAddress) => {
           console.log(" Pickup ID DB save ->:", pickupId);
         }
       }
+
+      //  Retry shipment creation only once to avoid infinite loop
+      if (!retry) {
+        console.log("🔄 Retrying shipment after pickup registration...");
+        return await createShipment(order, item, seller, shippingAddress, true);
+      }
     }
 
     return { success: true, data: res.data, waybill };
@@ -396,22 +408,6 @@ export const generateLabel = async (waybill, orderId, sellerId) => {
     return filePath;
   } catch (err) {
     console.error("❌ Label Generation Failed:", err.message);
-    return null;
-  }
-};
-
-export const trackShipment = async (waybill) => {
-  try {
-    console.log("📦 Tracking Waybill:", waybill);
-
-    const res = await apiClient.get(
-      `/api/v1/packages/json/?waybill=${waybill}`
-    );
-
-    console.log(" Tracking Data:", res.data);
-    return res.data;
-  } catch (err) {
-    console.error("❌ Tracking Failed:", err.message);
     return null;
   }
 };
@@ -556,6 +552,22 @@ export const generateShipmentsForOrder = async (req, res) => {
   } catch (e) {
     console.error(e);
     return res.status(500).json({ success: false, message: "Internal error" });
+  }
+};
+
+export const trackShipment = async (waybill) => {
+  try {
+    console.log("📦 Tracking Waybill:", waybill);
+
+    const res = await apiClient.get(
+      `/api/v1/packages/json/?waybill=${waybill}`
+    );
+
+    console.log(" Tracking Data:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Tracking Failed:", err.message);
+    return null;
   }
 };
 

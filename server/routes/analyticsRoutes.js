@@ -11,6 +11,8 @@ import {
   fetchUser,
 } from "../middlewares/authMiddleware.js";
 
+import { cacheMiddleware } from "../middlewares/cache.js";
+
 const router = express.Router();
 
 // Admin analytics (requires admin)

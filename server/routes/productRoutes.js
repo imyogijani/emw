@@ -13,8 +13,7 @@ import {
   getSingleProductById,
   getRelatedProducts,
 } from "../controllers/productController.js";
-
-
+import { cacheMiddleware } from "../middlewares/cache.js";
 import { checkAccountStatus } from "../middlewares/checkStatus.js";
 
 const router = express.Router();
@@ -35,7 +34,7 @@ router.post(
 router.get("/seller-products", authenticateToken, getSellerProducts);
 
 // Get all products
-router.get("/", getAllProducts);
+router.get("/", cacheMiddleware(300), getAllProducts);
 
 router.get("/related/:productId", getRelatedProducts);
 

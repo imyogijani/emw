@@ -43,7 +43,7 @@ const sellerImageSchema = mongoose.Schema(
     },
     sellerId: {
       type: mongoose.ObjectId,
-      ref: 'User',
+      ref: 'users',
       required: true,
     },
     isActive: {

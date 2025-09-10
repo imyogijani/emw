@@ -11,15 +11,16 @@ export const authenticateToken = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "No authorization header provided",
-        errorCode: "NO_AUTH_HEADER"
+        errorCode: "NO_AUTH_HEADER",
       });
     }
 
     if (!authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
-        message: "Invalid authorization header format. Expected 'Bearer <token>'",
-        errorCode: "INVALID_AUTH_FORMAT"
+        message:
+          "Invalid authorization header format. Expected 'Bearer <token>'",
+        errorCode: "INVALID_AUTH_FORMAT",
       });
     }
 
@@ -29,7 +30,7 @@ export const authenticateToken = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "No token provided in authorization header",
-        errorCode: "NO_TOKEN"
+        errorCode: "NO_TOKEN",
       });
     }
 
@@ -39,44 +40,44 @@ export const authenticateToken = async (req, res, next) => {
       return res.status(500).json({
         success: false,
         message: "Server configuration error",
-        errorCode: "JWT_SECRET_MISSING"
+        errorCode: "JWT_SECRET_MISSING",
       });
     }
 
     // Verify the token
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
       if (err) {
         console.error("JWT Verification Error:", {
           name: err.name,
           message: err.message,
-          expiredAt: err.expiredAt
+          expiredAt: err.expiredAt,
         });
 
         // Handle specific JWT errors
-        if (err.name === 'TokenExpiredError') {
+        if (err.name === "TokenExpiredError") {
           return res.status(401).json({
             success: false,
             message: "Token has expired. Please log in again.",
             errorCode: "TOKEN_EXPIRED",
-            expiredAt: err.expiredAt
+            expiredAt: err.expiredAt,
           });
-        } else if (err.name === 'JsonWebTokenError') {
+        } else if (err.name === "JsonWebTokenError") {
           return res.status(401).json({
             success: false,
             message: "Invalid token. Please log in again.",
-            errorCode: "INVALID_TOKEN"
+            errorCode: "INVALID_TOKEN",
           });
-        } else if (err.name === 'NotBeforeError') {
+        } else if (err.name === "NotBeforeError") {
           return res.status(401).json({
             success: false,
             message: "Token not active yet",
-            errorCode: "TOKEN_NOT_ACTIVE"
+            errorCode: "TOKEN_NOT_ACTIVE",
           });
         } else {
           return res.status(401).json({
             success: false,
             message: "Token verification failed",
-            errorCode: "TOKEN_VERIFICATION_FAILED"
+            errorCode: "TOKEN_VERIFICATION_FAILED",
           });
         }
       }
@@ -86,11 +87,29 @@ export const authenticateToken = async (req, res, next) => {
         return res.status(401).json({
           success: false,
           message: "Invalid token payload",
-          errorCode: "INVALID_TOKEN_PAYLOAD"
+          errorCode: "INVALID_TOKEN_PAYLOAD",
+        });
+      }
+
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+          errorCode: "USER_NOT_FOUND",
+        });
+      }
+
+      if (user.status === "banned") {
+        return res.status(403).json({
+          success: false,
+          message: "Your account has been banned. Please contact support.",
+          errorCode: "USER_BANNED",
         });
       }
 
       req.userId = decoded.userId;
+      // req.user = user;
       next();
     });
   } catch (error) {
@@ -98,12 +117,12 @@ export const authenticateToken = async (req, res, next) => {
       message: error.message,
       stack: error.stack,
       url: req.url,
-      method: req.method
+      method: req.method,
     });
     return res.status(500).json({
       success: false,
       message: "Internal authentication error",
-      errorCode: "AUTH_MIDDLEWARE_ERROR"
+      errorCode: "AUTH_MIDDLEWARE_ERROR",
     });
   }
 };

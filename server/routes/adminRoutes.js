@@ -34,7 +34,6 @@ import {
   updateAdminOrderStatus,
 } from "../controllers/orderController.js";
 
-
 import {
   adminGetDocuments,
   adminUpdateDocumentStatus,
@@ -87,8 +86,6 @@ router.patch("/users/:id", updateUser);
 router.get("/orders", getAllOrdersAdmin);
 router.get("/recent-orders", getAdminOrdersController);
 router.patch("/orders/:orderId/status", updateAdminOrderStatus);
-
-
 
 // Shopowner details (for admin)
 router.get("/shopowner/:id", getShopownerDetails);

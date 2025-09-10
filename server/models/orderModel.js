@@ -94,7 +94,8 @@ const shippingAddressSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
-    orderId: { type: String, unique: true }, // customeId for uman readable
+    orderId: { type: String, unique: true }, // customeId for human readable
+    // orderId: { type: String, unique: true, required: true, index: true }, // customId for human readable
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
@@ -108,6 +109,9 @@ const orderSchema = new mongoose.Schema(
     totalGST: {
       type: Number,
     },
+    totalDeliveryCharge: {
+      type: Number, 
+    }, // total delivery charge for entire order
     paymentMethod: {
       type: String,
       enum: ["COD", "UPI", "QR", "NetBanking", "Card", "Wallet"],
@@ -133,6 +137,7 @@ const orderSchema = new mongoose.Schema(
             "in_transit",
             "delivered",
             "cancelled",
+            "returned",
           ],
         },
         time: {
