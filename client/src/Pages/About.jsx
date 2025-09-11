@@ -1,6 +1,15 @@
-import React from 'react';
-import './About.css';
-import { Users, Target, Award, Heart, Globe, Truck, Shield, Clock } from 'lucide-react';
+import React from "react";
+import "./About.css";
+import {
+  Users,
+  Target,
+  Award,
+  Heart,
+  Globe,
+  Truck,
+  Shield,
+  Clock,
+} from "lucide-react";
 
 const About = () => {
   return (
@@ -10,7 +19,8 @@ const About = () => {
         <div className="hero-content">
           <h1>About E-Mall World</h1>
           <p className="hero-subtitle">
-            Your trusted destination for quality products, exceptional service, and unbeatable value.
+            Your trusted destination for quality products, exceptional service,
+            and unbeatable value.
           </p>
         </div>
       </section>
@@ -22,9 +32,10 @@ const About = () => {
             <div className="mission-content">
               <h2>Our Mission</h2>
               <p>
-                At E-Mall World, we're committed to revolutionizing the online shopping experience 
-                by connecting customers with quality products from trusted sellers worldwide. We believe 
-                in making shopping convenient, secure, and enjoyable for everyone.
+                At E-Mall World, we're committed to revolutionizing the online
+                shopping experience by connecting customers with quality
+                products from trusted sellers worldwide. We believe in making
+                shopping convenient, secure, and enjoyable for everyone.
               </p>
             </div>
             <div className="mission-stats">
@@ -56,22 +67,34 @@ const About = () => {
             <div className="value-card">
               <Heart className="value-icon" />
               <h3>Customer First</h3>
-              <p>Every decision we make is centered around providing the best experience for our customers.</p>
+              <p>
+                Every decision we make is centered around providing the best
+                experience for our customers.
+              </p>
             </div>
             <div className="value-card">
               <Shield className="value-icon" />
               <h3>Trust & Security</h3>
-              <p>We ensure secure transactions and protect your personal information with advanced security measures.</p>
+              <p>
+                We ensure secure transactions and protect your personal
+                information with advanced security measures.
+              </p>
             </div>
             <div className="value-card">
               <Target className="value-icon" />
               <h3>Quality Assurance</h3>
-              <p>We work only with verified sellers who meet our strict quality and service standards.</p>
+              <p>
+                We work only with verified sellers who meet our strict quality
+                and service standards.
+              </p>
             </div>
             <div className="value-card">
               <Clock className="value-icon" />
               <h3>Fast Delivery</h3>
-              <p>Quick and reliable delivery service to get your orders to you as fast as possible.</p>
+              <p>
+                Quick and reliable delivery service to get your orders to you as
+                fast as possible.
+              </p>
             </div>
           </div>
         </div>
@@ -83,14 +106,16 @@ const About = () => {
           <div className="story-content">
             <h2>Our Story</h2>
             <p>
-              Founded in 2020, E-Mall World started with a simple vision: to create a marketplace 
-              where quality meets convenience. What began as a small team's dream has grown into a 
-              thriving platform that serves millions of customers worldwide.
+              Founded in 2020, E-Mall World started with a simple vision: to
+              create a marketplace where quality meets convenience. What began
+              as a small team's dream has grown into a thriving platform that
+              serves millions of customers worldwide.
             </p>
             <p>
-              Today, we continue to innovate and expand our services, always keeping our customers' 
-              needs at the heart of everything we do. From electronics to fashion, home goods to 
-              specialty items, we're your one-stop destination for all your shopping needs.
+              Today, we continue to innovate and expand our services, always
+              keeping our customers' needs at the heart of everything we do.
+              From electronics to fashion, home goods to specialty items, we're
+              your one-stop destination for all your shopping needs.
             </p>
           </div>
         </div>

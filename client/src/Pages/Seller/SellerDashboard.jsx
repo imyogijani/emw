@@ -32,9 +32,9 @@ const SellerDashboard = () => {
     const fetchAllData = async () => {
       try {
         // Example: Fetch dashboard stats and sales data here
-        // const statsRes = await axios.get('/api/seller/dashboard-stats');
+        // const statsRes = await axios.get("/api/seller/dashboard-stats");
         // setDashboardStats(statsRes.data);
-        // const salesRes = await axios.get('/api/seller/sales-data');
+        // const salesRes = await axios.get("/api/seller/sales-data");
         // setSalesData(salesRes.data);
         setLoading(false);
       } catch (err) {
@@ -52,7 +52,9 @@ const SellerDashboard = () => {
 
   // Error state
   if (error) {
-    return <div className="error">Error loading dashboard: {error.message}</div>;
+    return (
+      <div className="error">Error loading dashboard: {error.message}</div>
+    );
   }
 
   return (
@@ -116,10 +118,10 @@ const SellerDashboard = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="sales" 
-              stroke="#8884d8" 
+            <Line
+              type="monotone"
+              dataKey="sales"
+              stroke="#8884d8"
               strokeWidth={2}
             />
           </LineChart>

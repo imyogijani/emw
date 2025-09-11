@@ -9,6 +9,7 @@ import { sendShipmentLabelEmail } from "../utils/sendEmail.js";
 import axios from "axios";
 // import { generateLabel } from "../utils/labelPdfGenerator.js";
 import { registerOrUpdatePickup } from "../services/delhiveryService.js";
+import mongoose from "mongoose";
 
 export const checkServiceability = async (pincode) => {
   console.log("🔍 Checking Serviceability for:", pincode);
@@ -237,7 +238,7 @@ const getOrCreateWaybill = async (sellerId, orderId) => {
 
 export const createShipment = async (
   order,
-  item,
+  items,
   seller,
   shippingAddress,
   retry = false
@@ -246,18 +247,29 @@ export const createShipment = async (
     const waybill = await getOrCreateWaybill(seller._id, order._id);
     if (!waybill) throw new Error("Waybill not available for this order");
 
-    let weightInKg = 0.5;
-    if (item.productId?.technicalDetails?.weight) {
-      const w = item.productId.technicalDetails.weight; // grams
-      weightInKg = Math.max(0.1, w / 1000);
+    // 🔹 Calculate seller subtotal
+    let sellerTotal = 0;
+    let totalWeight = 0;
+    let productNames = [];
+
+    for (const it of items) {
+      const lineTotal = it.finalPrice * it.quantity;
+      sellerTotal += lineTotal;
+
+      // weight
+      let w = it.productId?.technicalDetails?.weight || 100; // grams
+      totalWeight += Math.max(100, w * it.quantity);
+
+      // product desc
+      productNames.push(
+        `${it.productId?.name || "Product"} x${it.quantity} = ₹${lineTotal}`
+      );
     }
-    let weightInGm = 100;
-    // minimum 100 grams
-    if (item.productId?.technicalDetails?.weight) {
-      const w = item.productId.technicalDetails.weight; // grams
-      weightInGm = Math.max(100, w);
-    }
-    //  Seller ka default shop address
+
+    const isCOD = order.paymentMethod === "COD";
+    const codAmount = isCOD ? sellerTotal : 0;
+
+    // 🔹 Seller default pickup address
     const defaultAddress =
       seller.shopAddresses?.find((a) => a.isDefault) ||
       seller.shopAddresses?.[0];
@@ -267,25 +279,21 @@ export const createShipment = async (
         {
           waybill,
           order: order._id,
-          payment_mode: order.paymentMethod === "COD" ? "COD" : "Prepaid",
-          total_amount: item.finalPrice * item.quantity,
-          cod_amount:
-            order.paymentMethod === "COD" ? item.finalPrice * item.quantity : 0,
-          name: order.shippingAddress.fullName,
-          add: order.shippingAddress.addressLine,
-          address1:
-            order.shippingAddress.addressLine1 ||
-            order.shippingAddress.addressLine, //  primary
-          address2: order.shippingAddress.addressLine2 || "", //Secondary
-          city: order.shippingAddress.city,
-          state: order.shippingAddress.state,
+          payment_mode: isCOD ? "COD" : "Prepaid",
+          total_amount: sellerTotal,
+          cod_amount: codAmount,
+          name: shippingAddress.fullName,
+          add: shippingAddress.addressLine,
+          address1: shippingAddress.addressLine1 || shippingAddress.addressLine,
+          address2: shippingAddress.addressLine2 || "",
+          city: shippingAddress.city,
+          state: shippingAddress.state,
           country: "India",
-          phone: order.shippingAddress.phone,
-          mobile: order.shippingAddress.phone,
-          pin: order.shippingAddress.pincode,
-          products_desc:
-            item.productId?.name || item.productId?.title || "Product",
-          weight: weightInGm,
+          phone: shippingAddress.phone,
+          mobile: shippingAddress.phone,
+          pin: shippingAddress.pincode,
+          products_desc: productNames.join(", "),
+          weight: Math.max(100, totalWeight), // ensure min 100g
         },
       ],
       pickup_location: {
@@ -313,15 +321,12 @@ export const createShipment = async (
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    //  Agar Delhivery fail kare pickup location missing ke wajah se
+    // handle pickup location issue
     if (
       res.data?.rmk?.includes("ClientWarehouse matching query does not exist.")
     ) {
       console.log("⚠️ Pickup not registered → registering now...");
-
       const pickupId = await registerOrUpdatePickup(seller, defaultAddress);
-
-      console.log("Shipment Controller --> ", pickupId);
       if (pickupId) {
         const idx = seller.shopAddresses.findIndex((a) =>
           a._id.equals(defaultAddress._id)
@@ -329,14 +334,17 @@ export const createShipment = async (
         if (idx !== -1) {
           seller.shopAddresses[idx].delhiveryPickupId = pickupId;
           await seller.save();
-          console.log(" Pickup ID DB save ->:", pickupId);
         }
       }
-
-      //  Retry shipment creation only once to avoid infinite loop
       if (!retry) {
         console.log("🔄 Retrying shipment after pickup registration...");
-        return await createShipment(order, item, seller, shippingAddress, true);
+        return await createShipment(
+          order,
+          items,
+          seller,
+          shippingAddress,
+          true
+        );
       }
     }
 
@@ -436,28 +444,50 @@ export const generateShipmentsForOrder = async (req, res) => {
         .json({ success: false, message: "Order not found" });
 
     const results = [];
+    const sellerGroups = {};
 
     for (const item of order.items) {
-      const seller = item.sellerId;
-      const sellerUser = seller.user;
-      if (!seller) continue;
+      const sid = String(item.sellerId?._id);
+      if (!sid) continue;
+      if (!sellerGroups[sid]) sellerGroups[sid] = [];
+      sellerGroups[sid].push(item);
+    }
 
-      // Skip if already shipped
-      if (item.shipmentStatus === "success" && item.deliveryTrackingId) {
-        console.log(" Already shipped:", item.deliveryTrackingId);
+    // 🔹 Process each seller group
+    for (const sid of Object.keys(sellerGroups)) {
+      const items = sellerGroups[sid];
+      const seller = items[0].sellerId;
+      const sellerUser = seller.user;
+
+      // If seller already has shipment created, skip
+      const existingWaybill = items.find(
+        (it) => it.deliveryTrackingId
+      )?.deliveryTrackingId;
+      if (existingWaybill) {
+        console.log("🚫 Shipment already exists for seller:", sid);
         results.push({
-          sellerId: seller._id,
-          waybill: item.deliveryTrackingId,
-          labelPath: item.labelPath,
+          sellerId: sid,
+          waybill: existingWaybill,
+          labelPath: items[0].labelPath || null,
           status: "already_exists",
+          products: items.map((it) => ({
+            productId: it.productId?._id,
+            name: it.productId?.name,
+            qty: it.quantity,
+          })),
         });
         continue;
       }
-      console.log("⏳ Creating shipment for item:", item._id);
 
+      console.log(
+        `⏳ Creating shipment for seller ${sid}, items count:`,
+        items.length
+      );
+
+      // ✅ Call shipment API once for this seller (you may need to modify createShipment to accept multiple items)
       const shipmentRes = await createShipment(
         order,
-        item,
+        items,
         seller,
         order.shippingAddress
       );
@@ -472,54 +502,54 @@ export const generateShipmentsForOrder = async (req, res) => {
         const errorMsg =
           shipmentRes.data?.packages?.[0]?.remarks?.join(", ") ||
           "Shipment creation failed";
-        item.shipmentStatus = "failed";
-        item.deliveryStatus = "cancelled"; //  order side bhi reflect ho
-        item.shippedAt = null;
+        for (const it of items) {
+          it.shipmentStatus = "failed";
+          it.deliveryStatus = "cancelled";
+          it.shippedAt = null;
+        }
         await order.save();
+
         results.push({
-          sellerId: seller._id,
+          sellerId: sid,
           status: "failed",
           message: errorMsg,
         });
         continue;
       }
 
-      // Determine waybill from either our local value or API response
+      // ✅ Waybill
       const apiWaybill =
         shipmentRes.waybill ||
         shipmentRes.data?.shipments?.[0]?.waybill ||
         shipmentRes.data?.packages?.[0]?.waybill;
 
-      console.log("Waybill generated:", apiWaybill);
-
       if (!apiWaybill) {
-        item.shipmentStatus = "failed";
+        for (const it of items) it.shipmentStatus = "failed";
         await order.save();
-        results.push({ sellerId: seller._id, status: "failed_no_waybill" });
+        results.push({ sellerId: sid, status: "failed_no_waybill" });
         continue;
       }
 
-      // Generate Label PDF
+      console.log("Waybill generated:", apiWaybill);
+
+      // ✅ Generate Label PDF (once for seller)
       console.log("📄 Generating label for waybill:", apiWaybill);
       const labelPath = await generateLabel(apiWaybill, orderId, seller._id);
-      console.log("Label Path:", labelPath);
 
-      // Update item shipment fields
-      item.deliveryPartner = "Delhivery";
-      item.deliveryTrackingId = apiWaybill;
-      item.deliveryTrackingURL = `https://www.delhivery.com/track/package/${apiWaybill}`;
-      item.shipmentStatus = "success";
-      item.deliveryStatus = "shipped";
-
-      item.shippedAt = new Date();
-      if (labelPath) item.labelPath = labelPath;
-
+      // ✅ Update all items for this seller
+      for (const it of items) {
+        it.deliveryPartner = "Delhivery";
+        it.deliveryTrackingId = apiWaybill;
+        it.deliveryTrackingURL = `https://www.delhivery.com/track/package/${apiWaybill}`;
+        it.shipmentStatus = "success";
+        it.deliveryStatus = "shipped";
+        it.shippedAt = new Date();
+        if (labelPath) it.labelPath = labelPath;
+      }
       await order.save();
-      console.log(" Order updated with shipment info");
 
-      // Send label email to seller (if email exists)
+      // ✅ Send label email
       if (sellerUser && sellerUser.email) {
-        console.log("📧 Sending shipment label email to:", sellerUser.email);
         try {
           await sendShipmentLabelEmail({
             to: sellerUser.email,
@@ -528,9 +558,7 @@ export const generateShipmentsForOrder = async (req, res) => {
               seller.shopName || "Seller"
             },\n\nYour shipment label is attached.\nOrder: ${
               order.orderId
-            }\nWaybill: ${apiWaybill}\nTrack: ${
-              item.deliveryTrackingURL
-            }\n\nThanks.`,
+            }\nWaybill: ${apiWaybill}\nTrack: https://www.delhivery.com/track/package/${apiWaybill}\n\nThanks.`,
             pdfPath: labelPath,
           });
         } catch (e) {
@@ -538,14 +566,20 @@ export const generateShipmentsForOrder = async (req, res) => {
         }
       }
 
+      // ✅ Push final result for seller
       results.push({
-        sellerId: seller._id,
+        sellerId: sid,
         waybill: apiWaybill,
         labelPath,
-        labelUrl: item.labelUrl || null,
         status: "success",
+        products: items.map((it) => ({
+          productId: it.productId?._id,
+          name: it.productId?.name,
+          qty: it.quantity,
+        })),
       });
     }
+
     console.log("Final Results:", results);
 
     return res.json({ success: true, orderId: order._id, results });
@@ -575,56 +609,99 @@ export const listSellerShipments = async (req, res) => {
   try {
     const { sellerId } = req.params;
 
-    // Query params from frontend
-    const page = parseInt(req.query.page) || 1; // default page 1
-    const limit = parseInt(req.query.limit) || 10; // default 10 per page
-    const status = req.query.status; // optional filter e.g. ?status=success
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status; // future filter
 
     const skip = (page - 1) * limit;
 
-    // Orders laao jisme seller ka item ho
+    // Orders with seller items
     const orders = await Order.find({ "items.sellerId": sellerId })
       .select("orderId items createdAt _id")
       .lean();
 
-    let rows = [];
+    let waybillMap = new Map();
+
     for (const o of orders) {
       for (const it of o.items) {
         if (String(it.sellerId) !== String(sellerId)) continue;
 
-        //  Hide delivered shipments
-        if (it.deliveryStatus === "delivered") continue;
+        // Hide delivered/cancelled
+        if (["delivered", "cancelled"].includes(it.deliveryStatus)) continue;
 
-        //  Hide cancelled bhi agar chaho
-        if (it.deliveryStatus === "cancelled") continue;
+        // Skip if no waybill
+        if (!it.deliveryTrackingId) continue;
 
-        rows.push({
-          orderId: o.orderId,
-          customeOrderId: o._id,
-          sellerId,
-          waybill: it.deliveryTrackingId,
-          trackingUrl: it.deliveryTrackingURL,
-          status: it.shipmentStatus, // pending / success / failed
-          deliveryStatus: it.deliveryStatus, // processing / shipped / delivered / cancelled
-          labelPath: it.deliveryStatus !== "delivered" ? it.labelPath : null, //  delivered hone ke baad label hide
-          labelUrl: it.deliveryStatus !== "delivered" ? it.labelUrl : null,
-          shippedAt: it.shippedAt,
-          createdAt: o.createdAt,
-        });
+        const wb = it.deliveryTrackingId;
+
+        if (!waybillMap.has(wb)) {
+          // New entry for waybill
+          waybillMap.set(wb, {
+            orderId: o._id,
+            customeOrderId: o.orderId,
+            sellerId,
+            waybill: wb,
+            trackingUrl: it.deliveryTrackingURL,
+            status: it.shipmentStatus,
+            deliveryStatus: it.deliveryStatus,
+            labelPath: it.deliveryStatus !== "delivered" ? it.labelPath : null,
+            labelUrl: it.deliveryStatus !== "delivered" ? it.labelUrl : null,
+            shippedAt: it.shippedAt,
+            createdAt: o.createdAt,
+
+            // 👇 extra: pickup & return info
+            pickupRequested: it.pickupRequested,
+            pickupRequest: it.pickupRequest || null,
+            isReturnRequested: it.isReturnRequested || false,
+            isReturned: it.isReturned || false,
+            returnedAt: it.returnedAt || null,
+
+            // group products in this waybill
+            products: [
+              {
+                productId: it.productId,
+                quantity: it.quantity,
+                price: it.price,
+                finalPrice: it.finalPrice,
+              },
+            ],
+          });
+        } else {
+          // Already exists → merge products
+          const existing = waybillMap.get(wb);
+          existing.products.push({
+            productId: it.productId,
+            quantity: it.quantity,
+            price: it.price,
+            finalPrice: it.finalPrice,
+          });
+
+          // Merge pickup/return if any new info
+          existing.pickupRequested =
+            existing.pickupRequested || it.pickupRequested;
+          existing.isReturnRequested =
+            existing.isReturnRequested || it.isReturnRequested;
+          existing.isReturned = existing.isReturned || it.isReturned;
+
+          waybillMap.set(wb, existing);
+        }
       }
     }
 
-    //  Sort by createdAt (latest first)
+    // Convert Map → Array
+    let rows = Array.from(waybillMap.values());
+
+    // Sort latest first
     rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    //  Pagination slice
+    // Pagination
     const paginatedRows = rows.slice(skip, skip + limit);
 
     res.json({
       success: true,
       page,
       limit,
-      total: rows.length, // total count before pagination
+      total: rows.length,
       shipments: paginatedRows,
     });
   } catch (e) {
@@ -659,30 +736,151 @@ export const downloadLabel = async (req, res) => {
 
 const formatPickupDate = (date = null) => {
   const now = new Date();
-  const d = date ? new Date(date) : new Date();
+  let d = date ? new Date(date) : new Date();
 
-  // Agar date explicitly diya gaya hai
   if (date) {
+    //  Explicit date → force 10AM
     d.setHours(10, 0, 0, 0);
+
+    // If that 10AM is already in past → bump to next day 10AM
+    if (d <= now) {
+      d.setDate(d.getDate() + 1);
+      d.setHours(10, 0, 0, 0);
+    }
     return d.toISOString().slice(0, 16).replace("T", " ");
   }
 
-  // Same-day vs Next-day logic
-  if (now.getHours() < 12) {
-    // Agar subah 12 baje se pehle → same-day pickup 3PM fix karte hain
-    d.setHours(15, 0, 0, 0);
-  } else {
-    // Agar 12 ke baad → next-day 10AM
-    d.setDate(d.getDate() + 1);
-    d.setHours(10, 0, 0, 0);
-  }
+  //  No explicit date → always tomorrow 10AM (safe)
+  d.setDate(d.getDate() + 1);
+  d.setHours(10, 0, 0, 0);
 
   return d.toISOString().slice(0, 16).replace("T", " ");
 };
 
+// export const requestPickupForOrder = async (req, res) => {
+//   try {
+//     const { orderId, pickupDate } = req.body;
+
+//     const order = await Order.findById(orderId).populate({
+//       path: "items.sellerId",
+//       populate: { path: "user", model: "users" },
+//     });
+
+//     if (!order) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Order not found" });
+//     }
+
+//     const results = [];
+//     const sellers = {};
+
+//     // group waybills per seller
+//     for (const it of order.items) {
+//       if (it.shipmentStatus === "success" && it.deliveryTrackingId) {
+//         if (it.pickupRequested) {
+//           //  Prevent repeat request
+//           results.push({
+//             sellerId: String(it.sellerId._id),
+//             success: false,
+//             message: "Pickup already requested for this item",
+//           });
+//           continue;
+//         }
+
+//         const sid = String(it.sellerId._id);
+//         sellers[sid] = sellers[sid] || {
+//           seller: it.sellerId,
+//           items: [],
+//           waybills: [],
+//         };
+//         sellers[sid].items.push(it);
+//         sellers[sid].waybills.push(it.deliveryTrackingId);
+//       }
+//     }
+
+//     for (const sid of Object.keys(sellers)) {
+//       const { seller, items, waybills } = sellers[sid];
+//       const addr =
+//         seller.shopAddresses?.find((a) => a.isDefault) ||
+//         seller.shopAddresses?.[0];
+//       if (!addr) {
+//         results.push({
+//           sellerId: sid,
+//           success: false,
+//           message: "No pickup address",
+//         });
+//         continue;
+//       }
+
+//       let pickup_location;
+//       if (addr.delhiveryPickupId) {
+//         // Agar Delhivery pickup_id string hi store hai to direct string bhej do
+//         pickup_location = addr.delhiveryPickupId;
+//       } else {
+//         pickup_location = seller.shopName;
+//       }
+
+//       //  Updated pickup_date logic
+//       const pickup_date = formatPickupDate(pickupDate);
+//       const [datePart, timePart] = pickup_date.split(" ");
+
+//       const payload = {
+//         pickup_location,
+//         waybills,
+//         pickup_date: datePart, // “YYYY-MM-DD”
+//         pickup_time: `${timePart}:00`,
+//       };
+//       console.log("Request PickUp request --> ", payload);
+
+//       try {
+//         const dlResp = await apiClient.post("/fm/request/new/", payload);
+
+//         for (const it of items) {
+//           it.pickupRequested = true;
+//           it.pickupRequest = {
+//             requestedAt: new Date(),
+//             waybills,
+//             pickupDate: new Date(pickup_date),
+//             delhiveryResponse: dlResp.data,
+//           };
+//         }
+//         await order.save();
+
+//         results.push({
+//           sellerId: sid,
+//           success: true,
+//           apiResponse: dlResp.data,
+//         });
+//       } catch (err) {
+//         console.error("Pickup error:", err.response?.data || err.message);
+//         results.push({
+//           sellerId: sid,
+//           success: false,
+//           error: err.response?.data || err.message,
+//         });
+//       }
+//     }
+
+//     res.json({ success: true, orderId: order._id, results });
+//   } catch (err) {
+//     console.error("requestPickupForOrder failed:", err);
+//     res.status(500).json({ success: false, message: "Pickup request failed" });
+//   }
+// };
+
 export const requestPickupForOrder = async (req, res) => {
   try {
-    const { orderId, pickupDate } = req.body;
+    const { orderId, pickupDate, sellerId } = req.body;
+
+    console.log("🟢 Request received:", { orderId, pickupDate, sellerId });
+
+    if (!orderId || !sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "orderId and sellerId are required",
+      });
+    }
 
     const order = await Order.findById(orderId).populate({
       path: "items.sellerId",
@@ -690,76 +888,86 @@ export const requestPickupForOrder = async (req, res) => {
     });
 
     if (!order) {
+      console.log("❌ Order not found");
       return res
         .status(404)
         .json({ success: false, message: "Order not found" });
     }
 
-    const results = [];
-    const sellers = {};
+    // Filter items for this seller only
+    const sellerItems = order.items.filter(
+      (it) =>
+        it.sellerId &&
+        new mongoose.Types.ObjectId(sellerId).equals(it.sellerId._id)
+    );
 
-    // group waybills per seller
-    for (const it of order.items) {
-      if (it.shipmentStatus === "success" && it.deliveryTrackingId) {
-        if (it.pickupRequested) {
-          //  Prevent repeat request
-          results.push({
-            sellerId: String(it.sellerId._id),
-            success: false,
-            message: "Pickup already requested for this item",
-          });
-          continue;
-        }
-
-        const sid = String(it.sellerId._id);
-        sellers[sid] = sellers[sid] || {
-          seller: it.sellerId,
-          items: [],
-          waybills: [],
-        };
-        sellers[sid].items.push(it);
-        sellers[sid].waybills.push(it.deliveryTrackingId);
-      }
+    if (!sellerItems.length) {
+      console.log("❌ No items found for this seller in the order");
+      return res.status(400).json({
+        success: false,
+        message: "No items found for this seller or already requested",
+      });
     }
 
-    for (const sid of Object.keys(sellers)) {
-      const { seller, items, waybills } = sellers[sid];
-      const addr =
-        seller.shopAddresses?.find((a) => a.isDefault) ||
-        seller.shopAddresses?.[0];
-      if (!addr) {
-        results.push({
-          sellerId: sid,
-          success: false,
-          message: "No pickup address",
-        });
-        continue;
-      }
+    // Check if all items already requested
+    const alreadyRequested = sellerItems.every((it) => it.pickupRequested);
+    if (alreadyRequested) {
+      console.log("⚠️ All items already pickup requested for this seller");
+      return res.json({
+        success: false,
+        message: "Pickup already requested for all items of this seller",
+      });
+    }
 
-      let pickup_location;
-      if (addr.delhiveryPickupId) {
-        // Agar Delhivery pickup_id string hi store hai to direct string bhej do
-        pickup_location = addr.delhiveryPickupId;
-      } else {
-        pickup_location = seller.shopName;
-      }
+    const seller = sellerItems[0].sellerId;
 
-      //  Updated pickup_date logic
-      const pickup_date = formatPickupDate(pickupDate);
-      const [datePart, timePart] = pickup_date.split(" ");
+    // Get default shop address
+    const addr =
+      seller.shopAddresses?.find((a) => a.isDefault) ||
+      seller.shopAddresses?.[0];
 
-      const payload = {
-        pickup_location,
-        waybills,
-        pickup_date: datePart, // “YYYY-MM-DD”
-        pickup_time: `${timePart}:00`,
-      };
-      console.log("Request PickUp request --> ", payload);
+    if (!addr) {
+      console.log("❌ No pickup address for seller:", sellerId);
+      return res.status(400).json({
+        success: false,
+        message: "No pickup address configured for this seller",
+      });
+    }
 
-      try {
-        const dlResp = await apiClient.post("/fm/request/new/", payload);
+    const pickup_location = addr.delhiveryPickupId || seller.shopName;
+    const pickup_date = formatPickupDate(pickupDate);
+    const [datePart, timePart] = pickup_date.split(" ");
 
-        for (const it of items) {
+    const waybills = sellerItems
+      .filter((it) => it.deliveryTrackingId)
+      .map((it) => it.deliveryTrackingId);
+
+    if (!waybills.length) {
+      console.log("❌ No shipments created for this seller yet");
+      return res.status(400).json({
+        success: false,
+        message: "No shipments created yet for this seller",
+      });
+    }
+
+    const payload = {
+      pickup_location,
+      waybills,
+      pickup_date: datePart,
+      pickup_time: `${timePart}:00`,
+    };
+
+    console.log("📤 Sending pickup payload:", payload);
+
+    try {
+      const dlResp = await apiClient.post("/fm/request/new/", payload);
+
+      // ✅ Handle case: Pickup already exists (Delhivery error code 669)
+      if (dlResp.data?.error?.code === 669 || dlResp.data?.pr_exist === true) {
+        console.log("⚠️ Pickup already exists, treating as success");
+
+        // Update order items anyway
+        for (const it of sellerItems) {
           it.pickupRequested = true;
           it.pickupRequest = {
             requestedAt: new Date(),
@@ -770,24 +978,51 @@ export const requestPickupForOrder = async (req, res) => {
         }
         await order.save();
 
-        results.push({
-          sellerId: sid,
+        return res.json({
           success: true,
+          message: "Pickup already exists, no new request created",
+          orderId: order._id,
+          sellerId,
+          waybills,
           apiResponse: dlResp.data,
         });
-      } catch (err) {
-        console.error("Pickup error:", err.response?.data || err.message);
-        results.push({
-          sellerId: sid,
-          success: false,
-          error: err.response?.data || err.message,
-        });
       }
-    }
 
-    res.json({ success: true, orderId: order._id, results });
+      // ✅ Normal success case
+      for (const it of sellerItems) {
+        it.pickupRequested = true;
+        it.pickupRequest = {
+          requestedAt: new Date(),
+          waybills,
+          pickupDate: new Date(pickup_date),
+          delhiveryResponse: dlResp.data,
+        };
+      }
+
+      await order.save();
+      console.log("✅ Pickup requested success for seller:", sellerId);
+
+      return res.json({
+        success: true,
+        orderId: order._id,
+        sellerId,
+        waybills,
+        apiResponse: dlResp.data,
+      });
+    } catch (err) {
+      console.error("❌ Pickup API error:", err.response?.data || err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Delhivery pickup request failed",
+        error: err.response?.data || err.message,
+      });
+    }
   } catch (err) {
-    console.error("requestPickupForOrder failed:", err);
-    res.status(500).json({ success: false, message: "Pickup request failed" });
+    console.error("❌ requestPickupForOrder failed:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal error",
+      error: err.message,
+    });
   }
 };

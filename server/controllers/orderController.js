@@ -439,12 +439,20 @@ export const createOrder = asyncHandler(async (req, res) => {
     // Calculate total weight for seller
     let sellerWeight = 0;
     for (const item of sellerItems) {
-      const product = await Product.findById(item.productId);
+      const product = await Product.findById(item.productId).populate(
+        "technicalDetails"
+      );
       const variant = item.variantId
         ? await Variant.findById(item.variantId)
         : null;
-      let weight = variant?.weight || product.weight || 0.5; // default 0.5kg
+      let weight = product.technicalDetails.weight || 500; // default 500g
       sellerWeight += weight * item.quantity;
+
+      console.log(
+        `📦 Seller ${sellerId} ka item: ${item.productId}, Quantity: ${
+          item.quantity
+        }, Weight per item: ${weight}g, Total: ${weight * item.quantity}g`
+      );
     }
 
     // Call API once per seller
@@ -455,6 +463,8 @@ export const createOrder = asyncHandler(async (req, res) => {
       true
     );
 
+    console.log * ("Delivery charge for seller", sellerId, "is", sellerCharge);
+
     sellerDeliveryCharges[sellerId] = sellerCharge;
     totalDeliveryCharge += sellerCharge;
 
@@ -463,6 +473,9 @@ export const createOrder = asyncHandler(async (req, res) => {
       (acc, i) => acc + i.finalPrice * i.quantity,
       0
     );
+
+    console.log("Seller Subtotal:", sellerSubTotal);
+
     sellerItems.forEach((item) => {
       item.deliveryCharge =
         ((item.finalPrice * item.quantity) / sellerSubTotal) * sellerCharge;
@@ -512,7 +525,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   //  Ab order ke liye shipment process karo
   console.log("Check Order Id =--=-=", order._id);
-  
+
   // await processShipmentsForOrder(order._id);
   // await generateShipmentsForOrder(order._id);
   // const responseShip = await backendClient.post(`/api/shipments/generate`, {

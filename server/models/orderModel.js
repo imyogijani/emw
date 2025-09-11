@@ -110,7 +110,7 @@ const orderSchema = new mongoose.Schema(
       type: Number,
     },
     totalDeliveryCharge: {
-      type: Number, 
+      type: Number,
     }, // total delivery charge for entire order
     paymentMethod: {
       type: String,

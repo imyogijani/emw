@@ -656,14 +656,6 @@ const SellerOnboarding = () => {
     return true;
   };
 
-  // const updateOnboardingStep = async (newStep) => {
-  //   try {
-  //     await axios.post("/api/seller/update-onboarding-step", { step: newStep });
-  //   } catch (error) {
-  //     console.error("Failed to update onboarding step:", error);
-  //   }
-  // };
-
   const handleNext = async () => {
     if (!validateStep()) {
       return;
@@ -1007,31 +999,6 @@ const SellerOnboarding = () => {
       });
       setUploadedDocs(response.data.uploadedDocs || []); // backend se docs aayenge
       setIsDocsSubmitted(true);
-
-      // if (formData.hasGST === true) {
-      //   // Call GST API only if GST is provided
-      //   await axios.post("/api/sellers/gst-number", {
-      //     gstNumber: formData.gstNumber,
-      //   });
-      // } else {
-      //   // Skip GST API, directly continue with documents/bank details upload
-      //   console.log("No GST, skipping GST API call");
-      // }
-
-      // ---------- 3. Bank Details API ----------
-      // const bankDetails = {
-      //   beneficiaryName: formData.bankDetails.beneficiaryName,
-      //   accountNumber: formData.bankDetails.accountNumber,
-      //   ifscCode: formData.bankDetails.ifscCode,
-      // };
-
-      // const bankRes = await axios.post(
-      //   `/api/sellers/bank-details`,
-      //   bankDetails
-      // );
-
-      // console.log("Documents response:", response.data);
-      // console.log("Bank response:", bankRes.data);
 
       console.log("Upload response:", response.data);
       showSuccessToast(
